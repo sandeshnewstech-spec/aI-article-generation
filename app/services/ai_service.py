@@ -3,14 +3,22 @@ from typing import List, Dict
 from app.core.config import settings
 from app.models.data import ScrapedArticle
 
+
 class AIService:
-    
+
     def __init__(self):
         self.provider = settings.AI_PROVIDER
-        
-    def build_style_prompt(self, articles: List[ScrapedArticle], topic: str, style: str) -> str:
-        combined_text = "\n\n".join([f"SOURCE: {a.source}\nTITLE: {a.title}\nCONTENT: {a.body}" for a in articles])
-        
+
+    def build_style_prompt(
+        self, articles: List[ScrapedArticle], topic: str, style: str
+    ) -> str:
+        combined_text = "\n\n".join(
+            [
+                f"SOURCE: {a.source}\nTITLE: {a.title}\nCONTENT: {a.body}"
+                for a in articles
+            ]
+        )
+
         style_instructions = {
             "formal": """
 Write in a FORMAL, PROFESSIONAL journalistic style:
@@ -32,9 +40,9 @@ Write in an ANALYTICAL, IN-DEPTH style:
 - Explore implications and connections
 - Use data and facts to support points
 - Suitable for feature articles or investigative pieces
-"""
+""",
         }
-        
+
         return f"""
 You are an expert Gujarati journalist.
 You fully understand Gujarati, Hindi, and English.
@@ -60,11 +68,12 @@ SOURCES AND CONTENT:
 
     async def generate_content(self, prompt: str) -> str:
         import asyncio
+
         if self.provider == "gemini":
             return await asyncio.to_thread(self._generate_gemini, prompt)
         else:
             return await asyncio.to_thread(self._generate_ollama, prompt)
-            
+
     def _generate_ollama(self, prompt: str) -> str:
         payload = {
             "model": settings.OLLAMA_MODEL,
@@ -73,7 +82,9 @@ SOURCES AND CONTENT:
             "temperature": 0.7,
         }
         try:
-            resp = requests.post("http://localhost:11434/api/chat", json=payload, timeout=120)
+            resp = requests.post(
+                "http://localhost:11434/api/chat", json=payload, timeout=120
+            )
             resp.raise_for_status()
             data = resp.json()
             return data.get("message", {}).get("content", "")
@@ -83,12 +94,11 @@ SOURCES AND CONTENT:
 
     def _generate_gemini(self, prompt: str) -> str:
         try:
-            from google import genai
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            response = client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=prompt
-            )
+            import google.generativeai as genai
+
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            response = model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
             print(f"Gemini Error: {e}")

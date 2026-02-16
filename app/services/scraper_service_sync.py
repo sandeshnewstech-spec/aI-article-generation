@@ -5,6 +5,7 @@ from app.models.data import ScrapedArticle
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+
 class ScraperService:
     SITES = [
         "gujaratsamachar.com",
@@ -18,12 +19,21 @@ class ScraperService:
     def __init__(self):
         self.executor = ThreadPoolExecutor(max_workers=6)
 
-    async def scrape_topic(self, topic: str, limit_per_site: int = 3) -> List[ScrapedArticle]:
+    async def scrape_topic(
+        self,
+        topic: str,
+        limit_per_site: int = 3,
+        allowed_sites: Optional[List[str]] = None,
+    ) -> List[ScrapedArticle]:
         """Async wrapper around sync scraping to avoid Windows event loop issues"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(self.executor, self._scrape_topic_sync, topic, limit_per_site)
+        return await loop.run_in_executor(
+            self.executor, self._scrape_topic_sync, topic, limit_per_site, allowed_sites
+        )
 
-    def _scrape_topic_sync(self, topic: str, limit_per_site: int) -> List[ScrapedArticle]:
+    def _scrape_topic_sync(
+        self, topic: str, limit_per_site: int, allowed_sites: Optional[List[str]] = None
+    ) -> List[ScrapedArticle]:
         """Synchronous scraping using sync_playwright"""
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # Visible browser
@@ -36,27 +46,34 @@ class ScraperService:
             )
 
             results: List[ScrapedArticle] = []
-            
+
+            # Determine sites to scrape
+            sites_to_scrape = allowed_sites if allowed_sites else self.SITES
+
             # Scrape each site sequentially in sync mode
-            for site in self.SITES:
+            for site in sites_to_scrape:
                 articles = self._scrape_one_site(context, topic, site, limit_per_site)
                 results.extend(articles)
-                
+
             browser.close()
             return results
 
-    def _scrape_one_site(self, context, topic: str, site: str, limit: int) -> List[ScrapedArticle]:
+    def _scrape_one_site(
+        self, context, topic: str, site: str, limit: int
+    ) -> List[ScrapedArticle]:
         page = context.new_page()
         articles = []
 
         try:
             query = f"{topic} site:{site}"
             print(f"🔍 Searching {site}...")
-            
+
             # Use regular DuckDuckGo (not HTML version)
-            page.goto("https://duckduckgo.com/", wait_until="networkidle", timeout=30000)
+            page.goto(
+                "https://duckduckgo.com/", wait_until="networkidle", timeout=30000
+            )
             page.wait_for_timeout(2000)
-            
+
             # Fill search with explicit wait for input
             try:
                 page.wait_for_selector("input[name='q']", timeout=10000)
@@ -93,7 +110,7 @@ class ScraperService:
                 if article:
                     articles.append(article)
                     print(f"✅ Scraped article from {site}")
-                    
+
             return articles
 
         except Exception as e:
@@ -107,7 +124,7 @@ class ScraperService:
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=15000)
             page.wait_for_timeout(1000)
-            
+
             self._expand_article_if_needed(page, site)
 
             # Get Title
@@ -115,7 +132,10 @@ class ScraperService:
             if page.locator("h1").count() > 0:
                 title = page.locator("h1").first.text_content() or ""
             elif page.locator("meta[property='og:title']").count() > 0:
-                title = page.locator("meta[property='og:title']").get_attribute("content") or ""
+                title = (
+                    page.locator("meta[property='og:title']").get_attribute("content")
+                    or ""
+                )
 
             if not title.strip():
                 return None
@@ -129,7 +149,7 @@ class ScraperService:
                 source=site,
                 url=url,
                 title=title.strip(),
-                body=" ".join(body_text.split())
+                body=" ".join(body_text.split()),
             )
 
         except Exception as e:
@@ -140,7 +160,9 @@ class ScraperService:
     def _expand_article_if_needed(self, page, site: str):
         try:
             if "sandesh.com" in site:
-                btn = page.locator("#postId button, #postId button span").filter(has_text="View")
+                btn = page.locator("#postId button, #postId button span").filter(
+                    has_text="View"
+                )
                 if btn.count() > 0:
                     btn.first.click()
                     page.wait_for_timeout(800)
@@ -150,7 +172,9 @@ class ScraperService:
                     btn.first.click()
                     page.wait_for_timeout(800)
             elif "news18.com" in site:
-                btn = page.locator("span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')")
+                btn = page.locator(
+                    "span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')"
+                )
                 if btn.count() > 0:
                     btn.first.click()
                     page.wait_for_timeout(800)
@@ -158,36 +182,40 @@ class ScraperService:
             pass
 
     def _extract_body(self, page, url: str, site: str) -> str:
-        if url.lower().endswith(".html"):
-            return page.evaluate("""
-                () => {
-                    const selectors = [
-                        'article', '.article-content', '.article-body', '.story-details',
-                        '.content', '.content-area', '.detailBody', '.news-description',
-                        '.article-inner-detail', '.story'
-                    ];
-                    for (const sel of selectors) {
-                        const el = document.querySelector(sel);
-                        if (el && el.innerText.length > 100) {
-                            return el.innerText;
-                        }
-                    }
-                    return document.body.innerText || '';
-                }
-            """)
-        
+        # 1. Try site-specific selectors first
         selectors = {
             "sandesh.com": "div[class^='story article-']",
             "gujaratsamachar.com": "div.article-inner-detail.card-body",
             "tv9gujarati.com": "div.detailBody",
             "aninews.in": "article",
             "aajtak.in": "div.content-area",
-            "news18.com": "article[id^='story-']"
+            "news18.com": "article[id^='story-']",
         }
-        
+
         for k, v in selectors.items():
             if k in site:
                 el = page.query_selector(v)
-                return el.inner_text() if el else ""
-                
-        return page.evaluate("document.body.innerText")
+                if el:
+                    return el.inner_text()
+
+        # 2. Try common selectors for any site
+        return page.evaluate(
+            """
+            () => {
+                const selectors = [
+                    'article', '.article-content', '.article-body', '.story-details',
+                    '.content', '.content-area', '.detailBody', '.news-description',
+                    '.article-inner-detail', '.story', '#article-body', '.story_content',
+                    '[itemprop="articleBody"]', '.post-content', '.entry-content'
+                ];
+                for (const sel of selectors) {
+                    const el = document.querySelector(sel);
+                    if (el && el.innerText.length > 200) {
+                         return el.innerText;
+                    }
+                }
+                // 3. Last resort: body text
+                return document.body.innerText || '';
+            }
+        """
+        )

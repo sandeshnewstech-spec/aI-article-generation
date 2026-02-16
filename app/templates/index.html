@@ -82,6 +82,21 @@
             </div>
         </div>
 
+        <!-- Category Selection -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">News Category</label>
+            <select id="categorySelect"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <option value="National">National</option>
+                <option value="Business">Business</option>
+                <option value="International">International</option>
+                <option value="Local">Local</option>
+                <option value="Agency">Agency</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-2">Select category to fetch news from specific sources (e.g., NDTV for
+                National, BBC for International)</p>
+        </div>
+
         <!-- Search Input -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex flex-col md:flex-row gap-4">
@@ -132,6 +147,31 @@
             'variant3': 'Article Option 3'
         };
 
+        const categorySources = {
+            "National": [
+                "ndtv.com", "timesofindia.indiatimes.com", "thehindu.com", "scroll.in", "theprint.in",
+                "thewire.in", "aajtak.in", "abplive.com", "zeenews.india.com", "indianexpress.com",
+                "indiatoday.in", "republicbharat.com", "bhaskar.com", "navbharattimes.indiatimes.com",
+                "news18.com", "jagran.com", "hindustantimes.com", "tribuneindia.com", "telegraphindia.com"
+            ],
+            "Business": [
+                "moneycontrol.com", "economictimes.indiatimes.com", "business-standard.com", "livemint.com",
+                "financialexpress.com", "thehindubusinessline.com", "businesstoday.in", "cnbctv18.com",
+                "ndtv.com/business", "zeebiz.com", "outlookbusiness.com", "bloomberg.com"
+            ],
+            "International": [
+                "bbc.com", "reuters.com", "nytimes.com", "washingtonpost.com", "aljazeera.com",
+                "theguardian.com", "cnn.com", "foxnews.com", "dailymail.co.uk"
+            ],
+            "Local": [
+                "tv9gujarati.com", "gstv.in", "divyabhaskar.co.in", "gujarati.news18.com",
+                "abplive.com/states/gujarat", "zeenews.india.com/gujarati", "ddnews.gov.in"
+            ],
+            "Agency": [
+                "aninews.in", "ptinews.com", "pib.gov.in", "newsonair.gov.in", "nseindia.com", "bseindia.com"
+            ]
+        };
+
         // Word count matrix for layout info
         const wordCountMatrix = {
             '2-1': { heading: '8-10', intro: '40-60', body: '130-150' },
@@ -164,13 +204,17 @@
             const columnSpan = parseInt(document.getElementById('columnSpan').value);
             const slotCount = parseInt(document.getElementById('slotCount').value);
 
+            // Get selected category sources
+            const selectedCategory = document.getElementById('categorySelect').value;
+            const allowedSources = categorySources[selectedCategory] || [];
+
             // Reset UI
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('results').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
             document.getElementById('tabsHeader').innerHTML = '';
             document.getElementById('tabsContent').innerHTML = '';
-            newspaperArticles = { 'variant1': null, 'variant2': null, 'variant3': null };
+            newspaperArticles = {};
 
             const config = {
                 slot_config: {
@@ -178,38 +222,52 @@
                     column_span: columnSpan
                 },
                 topic: topic,
-                allowed_sources: ["sandesh.com", "gujaratsamachar.com"]
+                allowed_sources: allowedSources
             };
 
             try {
-                // Generate 3 variants sequentially
-                for (let i = 1; i <= 3; i++) {
-                    document.querySelector('#loading p').innerText = `Generating Article Option ${i}/3...`;
+                document.querySelector('#loading p').innerText = `Searching & Generating Articles...`;
 
-                    const response = await fetch('/api/newspaper/generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(config)
+                const response = await fetch('/api/newspaper/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to generate articles`);
+                }
+
+                const data = await response.json();
+
+                // Reset articles store
+                newspaperArticles = {};
+                // Clear old variant names
+                for (let key in variantNames) delete variantNames[key];
+
+                if (Array.isArray(data)) {
+                    data.forEach((article, index) => {
+                        const key = `article_${index}`;
+                        newspaperArticles[key] = article;
+
+                        // Use source as label if available, else generic name
+                        let sourceName = article.source || `Article ${index + 1}`;
+                        if (sourceName.includes("http")) {
+                            sourceName = sourceName.replace("https://", "").replace("http://", "").replace("www.", "").split('/')[0];
+                        }
+
+                        variantNames[key] = sourceName;
                     });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to generate article ${i}`);
-                    }
-
-                    const data = await response.json();
-                    newspaperArticles[`variant${i}`] = data;
-
-                    // Show progressive results
-                    renderProgressiveResults();
-
-                    // Wait 60 seconds between variants (except after last one)
-                    if (i < 3) {
-                        document.querySelector('#loading p').innerText = `Waiting 60s before generating Article Option ${i + 1}...`;
-                        await new Promise(resolve => setTimeout(resolve, 60000));
-                    }
+                } else {
+                    // Fallback
+                    newspaperArticles['dataset1'] = data;
+                    variantNames['dataset1'] = "Generated Article";
                 }
 
                 document.getElementById('loading').classList.add('hidden');
+
+                // Show results
+                renderProgressiveResults();
 
             } catch (error) {
                 console.error('Error:', error);
@@ -217,6 +275,8 @@
                 document.getElementById('errorText').innerText = error.message;
                 document.getElementById('loading').classList.add('hidden');
             }
+
+
         }
 
         function renderProgressiveResults() {
