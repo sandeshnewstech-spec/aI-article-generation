@@ -421,6 +421,92 @@ Generate all {len(articles)} articles now.
                 for _ in articles
             ]
 
+    async def merge_and_refine_articles(
+        self, articles: List[NewspaperOutput], config: NewspaperConfig
+    ) -> NewspaperOutput:
+        """
+        Merge multiple articles into one cohesive piece following strict rules
+        """
+        if not articles:
+            raise ValueError("No articles provided for merging")
+
+        print(f"✨ Merging {len(articles)} articles...")
+        print(f"📝 Config Rules: {config.word_count_rules}")
+
+        if config.word_count_rules is None:
+            raise ValueError("Word count rules are missing from config")
+
+        # Aggregate content
+        combined_content = ""
+        for i, art in enumerate(articles):
+            combined_content += f"""
+--- SOURCE {i+1} ({art.source or 'Unknown'}) ---
+HEADLINE: {art.headline}
+INTRO: {art.intro}
+BODY: {art.body}
+INFO BOX: {art.info_box or 'None'}
+"""
+
+        rules = config.word_count_rules
+
+        # Build prompt
+        prompt = f"""
+You are an expert Gujarati Chief Editor.
+Your task is to MERGE the following source articles into ONE single, cohesive, and high-quality news report.
+
+SOURCE MATERIAL:
+{combined_content}
+
+MANDATORY EDITORIAL RULES:
+1. MERGE facts from all sources into a unified narrative.
+2. RESOLVE any conflicting information (prioritize specific details over general ones).
+3. FLOW nicely between paragraphs (use transition words).
+4. MAINTAIN a neutral, authoritative news tone.
+5. STRICTLY FOLLOW the word count limits below.
+
+WORD COUNT REQUIREMENTS (STRICT):
+- HEADLINE: {rules.heading_min}-{rules.heading_max} words. Punchy, active voice.
+- INTRO: {rules.intro_min}-{rules.intro_max} words. Summarize the key event.
+- BODY: {rules.body_min}-{rules.body_max} words. detailed reporting.
+- INFO BOX: {rules.info_box_min}-{rules.info_box_max} words (if applicable).
+
+OUTPUT FORMAT (STRICT):
+HEADLINE: [Merged Headline]
+INTRO PARAGRAPH: [Merged Intro]
+BODY PARAGRAPH: [Merged Body]
+INFO BOX: [Merged Info Box or None]
+
+Generate the merged article now.
+"""
+
+        try:
+            # Generate content
+            raw_output = await self.base_ai.generate_content(prompt)
+
+            # Parse output
+            parsed = self._parse_output(raw_output, config)
+
+            # Set metadata
+            parsed.source = "Merged Report"
+            parsed.url = "merged"
+
+            # Validate
+            is_valid, validation_results = self.validator.comprehensive_validation(
+                parsed, config
+            )
+            parsed.validation_passed = is_valid
+
+            all_errors = []
+            for category, errors in validation_results.items():
+                all_errors.extend(errors)
+            parsed.validation_errors = all_errors
+
+            return parsed
+
+        except Exception as e:
+            print(f"❌ Merge failed: {e}")
+            raise e
+
     async def refine_newspaper_article(
         self, draft: NewspaperOutput, config: NewspaperConfig
     ) -> NewspaperOutput:

@@ -222,6 +222,15 @@ async def merge_articles(request: MergeRequest):
             f"✨ Merging {len(request.selected_articles)} articles for topic: {request.config.topic}"
         )
 
+        # Ensure word count rules exist
+        if request.config.word_count_rules is None:
+            print("⚠️ Word count rules missing in merge request, recalculating...")
+            request.config.word_count_rules = grid_calc.get_word_count_rules(
+                request.config.slot_config.column_span,
+                request.config.slot_config.slot_count,
+                not request.config.headline_config.single_line,
+            )
+
         # Call merge service
         final_output = await newspaper_ai.merge_and_refine_articles(
             request.selected_articles, request.config
@@ -230,5 +239,8 @@ async def merge_articles(request: MergeRequest):
         return final_output
 
     except Exception as e:
+        import traceback
+
         print(f"❌ Error merging articles: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
