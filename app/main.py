@@ -1,9 +1,6 @@
 import sys
 import asyncio
 
-# CRITICAL: Set event loop policy BEFORE any async operations on Windows
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -12,12 +9,11 @@ from fastapi.templating import Jinja2Templates
 from app.routers import api_router, ui_router
 from app.core.config import settings
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure event loop policy is set on startup
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     yield
+
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
@@ -30,8 +26,12 @@ app.include_router(ui_router.router)
 
 # Include Newspaper Router
 from app.routers import newspaper_router
+
 app.include_router(newspaper_router.router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True, loop="asyncio")
+
+    uvicorn.run(
+        "app.main:app", host="127.0.0.1", port=8000, reload=True, loop="asyncio"
+    )

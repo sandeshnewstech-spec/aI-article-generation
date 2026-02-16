@@ -4,15 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI News Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>AI News Generator Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Rasa:wght@400;500;600;700&family=Mukta+Vaani:wght@300;400;500;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                        headline: ['Rasa', 'serif'],
+                        body: ['Mukta Vaani', 'sans-serif'],
+                        ui: ['Noto Sans Gujarati', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            border: 3px solid rgba(229, 231, 235, 0.5);
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
 
@@ -26,153 +53,416 @@
             }
         }
 
+        .newspaper-paper {
+            background-color: #ffffff;
+            color: #000000;
+            /* Subtle texture or shadow for realism */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Smooth tab transitions */
+        /* Tab Content Styling - Simplified for reliability */
         .tab-content {
             display: none;
         }
 
         .tab-content.active {
+            display: block !important;
+        }
+
+        /* Tabs styling for categories */
+        .category-pill.active-cat {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            font-weight: 600;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Explicit Article Styling to override any visibility issues */
+        .article-container {
+            font-family: 'Mukta Vaani', sans-serif;
+            color: #000000;
+        }
+
+        .article-container h1 {
+            font-family: 'Rasa', serif;
+            font-weight: 700;
+            font-size: 2.75rem;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            color: #000000 !important;
+            letter-spacing: -0.02em;
+        }
+
+        .article-container h2 {
+            font-family: 'Rasa', serif;
+            font-weight: 600;
+            font-size: 1.75rem;
+            line-height: 1.3;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #374151 !important;
+            /* dark gray */
+        }
+
+        .article-container h6 {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #dc2626 !important;
+            /* red-600 for category/eyebrow */
+            margin-bottom: 0.5rem;
+        }
+
+        .article-container p {
+            margin-bottom: 1.25rem;
+            font-size: 1.25rem;
+            /* Larger for readability */
+            line-height: 1.6;
+            color: #111827 !important;
+            /* gray-900 */
+        }
+
+        .article-intro {
+            font-weight: 600;
+            font-size: 1.35rem;
+            color: #000000 !important;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            border-left: 4px solid #000000;
+            padding-left: 1rem;
+        }
+
+        .article-infobox {
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .article-infobox h4 {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #1f2937 !important;
+            margin-bottom: 0.75rem;
+            border-bottom: 2px solid #d1d5db;
+            padding-bottom: 0.5rem;
+        }
+
+        .article-infobox div {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #374151 !important;
+        }
+
+        .article-separator {
+            width: 4rem;
+            height: 0.25rem;
+            background-color: #000000 !important;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Inner Article Tabs */
+        .subtab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            background: none;
+            cursor: pointer;
+        }
+
+        .subtab-btn:hover {
+            color: #111827;
+            background-color: #f3f4f6;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .subtab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background-color: #eff6ff;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .section-view {
+            display: none;
+            padding-top: 1.5rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .section-view.active {
             display: block;
         }
 
-        .tab-btn.active {
-            border-bottom-width: 2px;
-            border-color: #3b82f6;
-            color: #3b82f6;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+<body class="bg-gray-100 min-h-screen text-gray-800 flex flex-col">
 
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">📰 AI News Generator</h1>
-            <p class="text-gray-500">Generate professional Gujarati newspaper articles</p>
-        </header>
-
-        <!-- Newspaper Configuration -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h3 class="font-semibold text-gray-700 mb-3">Layout Configuration</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Column Span</label>
-                    <select id="columnSpan" onchange="updateLayoutInfo()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="2">2 Columns (Small)</option>
-                        <option value="3" selected>3 Columns (Medium)</option>
-                        <option value="4">4 Columns (Large)</option>
-                        <option value="5">5 Columns (Feature)</option>
-                    </select>
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
+        <div class=" mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-600 text-white p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 tracking-tight">AI Newsroom Pro</h1>
+                        <p class="text-xs text-gray-500">Intelligent Gujarati Journalism</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Slot Count</label>
-                    <select id="slotCount" onchange="updateLayoutInfo()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="1" selected>1 Slot</option>
-                        <option value="2">2 Slots</option>
-                        <option value="3">3 Slots</option>
-                        <option value="4">4 Slots</option>
-                    </select>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">v2.1
+                        Tabs</span>
                 </div>
             </div>
-            <div class="mt-3 p-3 bg-blue-50 rounded-md">
-                <p class="text-sm text-blue-800" id="layoutInfo">
-                    <strong>3 Columns, 1 Slot:</strong> Heading: 8-12 words | Intro: 70-80 words | Body: 170-180 words
-                </p>
+        </div>
+    </nav>
+
+    <div class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+
+        <!-- Sidebar: Configuration -->
+        <aside class="w-full lg:w-96 flex-shrink-0 space-y-6">
+
+            <!-- Input Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                        </path>
+                    </svg>
+                    Topic Details
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic / Headline</label>
+                        <input type="text" id="topicInput" placeholder="e.g. Gujarat Elections 2026 updates"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition text-gray-900 placeholder-gray-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category Source</label>
+                        <div class="flex flex-wrap gap-2" id="categoryTabs">
+                            <!-- Category Pills -->
+                            <button onclick="selectCategory('National')" id="cat_National"
+                                class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm active-cat">
+                                National
+                            </button>
+                            <button onclick="selectCategory('Business')" id="cat_Business"
+                                class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                Business
+                            </button>
+                            <button onclick="selectCategory('International')" id="cat_International"
+                                class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                International
+                            </button>
+                            <button onclick="selectCategory('Local')" id="cat_Local"
+                                class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                Local
+                            </button>
+                            <button onclick="selectCategory('Agency')" id="cat_Agency"
+                                class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                Agency
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedCategory" value="National">
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Category Selection -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">News Category</label>
-            <select id="categorySelect"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <option value="National">National</option>
-                <option value="Business">Business</option>
-                <option value="International">International</option>
-                <option value="Local">Local</option>
-                <option value="Agency">Agency</option>
-            </select>
-            <p class="text-xs text-gray-500 mt-2">Select category to fetch news from specific sources (e.g., NDTV for
-                National, BBC for International)</p>
-        </div>
+            <!-- Layout Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    Layout Settings
+                </h2>
 
-        <!-- Search Input -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="topicInput"
-                    placeholder="Enter topic (e.g., 'અમદાવાદમાં વરસાદ', 'ગુજરાતમાં ચૂંટણી')"
-                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <button onclick="generateNews()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 ease-in-out transform hover:scale-105">
-                    Generate 3 Articles
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Columns</label>
+                        <select id="columnSpan" onchange="updateLayoutInfo()"
+                            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                            <option value="2">2 Cols</option>
+                            <option value="3" selected>3 Cols</option>
+                            <option value="4">4 Cols</option>
+                            <option value="5">5 Cols</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Grid Slots</label>
+                        <select id="slotCount" onchange="updateLayoutInfo()"
+                            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                            <option value="1" selected>1 Slot</option>
+                            <option value="2">2 Slots</option>
+                            <option value="3">3 Slots</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-xs bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-100" id="layoutInfo">
+                    3 Cols, 1 Slot: Headline ~8-12w | Body ~175w
+                </div>
+            </div>
+
+            <button onclick="generateNews()" id="generateBtn"
+                class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <span id="btnIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                </span>
+                <span id="btnText">Generate Drafts</span>
+            </button>
+
+        </aside>
+
+        <!-- Main Content: Results -->
+        <main class="flex-1 flex flex-col min-h-[600px] relative min-w-0">
+
+            <!-- Welcome State -->
+            <div id="welcomeState"
+                class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-white border border-dashed border-gray-300 rounded-2xl">
+                <div class="bg-gray-50 p-6 rounded-full mb-6">
+                    <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Ready to Create</h3>
+                <p class="text-gray-500 max-w-sm">Enter a topic and generate 3 professional article drafts instantly.
+                    Merge them for the perfect story.</p>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loading"
+                class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl">
+                <div class="loader w-12 h-12 border-4 mb-4" style="border-top-color: #2563eb;"></div>
+                <h3 class="text-xl font-semibold text-gray-800 animate-pulse">Analyzing Sources...</h3>
+                <p class="text-gray-500 mt-2 text-sm" id="loadingText">Scraping live news & generating drafts</p>
+            </div>
+
+            <!-- Results View -->
+            <div id="results"
+                class="hidden flex-1 flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+
+                <!-- Tab Headers -->
+                <div class="bg-gray-50 border-b border-gray-200 px-6 pt-4 flex space-x-6 overflow-x-auto no-scrollbar"
+                    id="tabsHeader">
+                    <!-- Dynamic Tabs -->
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="flex-1 overflow-y-auto p-8 relative" id="tabsContent">
+                    <!-- Dynamic Article Content -->
+                </div>
+
+            </div>
+
+            <!-- FAB: Merge Action -->
+            <div id="mergeFab" class="hidden fixed bottom-8 right-8 z-50 animate-bounce-in">
+                <button onclick="mergeArticles()"
+                    class="bg-gray-900 hover:bg-black text-white text-lg font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-3 transition-transform hover:scale-105 ring-4 ring-white border border-gray-800">
+                    <span
+                        class="bg-brand-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                        id="selectedCount">0</span>
+                    <span>Merge Selected</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
                 </button>
             </div>
-        </div>
 
-        <!-- Loading State -->
-        <div id="loading" class="hidden flex flex-col items-center justify-center py-12">
-            <div class="loader mb-4"></div>
-            <p class="text-gray-600 animate-pulse">Generating articles...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-8" role="alert">
-            <p id="errorText">Something went wrong.</p>
-        </div>
-
-        <!-- Results Section -->
-        <div id="results" class="hidden bg-white rounded-lg shadow-lg overflow-hidden">
-            <!-- Tabs Header -->
-            <div class="flex overflow-x-auto border-b border-gray-200 bg-gray-50" id="tabsHeader">
-                <!-- Tabs will be injected here -->
+            <!-- Error Toast -->
+            <div id="error"
+                class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 max-w-lg">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1 text-sm font-medium" id="errorText">Error message here</div>
+                <button onclick="document.getElementById('error').classList.add('hidden')"
+                    class="opacity-75 hover:opacity-100">✕</button>
             </div>
 
-            <!-- Tabs Content -->
-            <div class="p-6 md:p-8" id="tabsContent">
-                <!-- Content will be injected here -->
-            </div>
-        </div>
+        </main>
     </div>
 
+    <!-- Logic -->
     <script>
-        let newspaperArticles = {
-            'variant1': null,
-            'variant2': null,
-            'variant3': null
-        };
-        const variantNames = {
-            'variant1': 'Article Option 1',
-            'variant2': 'Article Option 2',
-            'variant3': 'Article Option 3'
-        };
+        // --- State ---
+        let newspaperArticles = {};
+        let variantNames = {};
+        const selectedArticles = new Set();
 
+        // --- Config ---
         const categorySources = {
-            "National": [
-                "ndtv.com", "timesofindia.indiatimes.com", "thehindu.com", "scroll.in", "theprint.in",
-                "thewire.in", "aajtak.in", "abplive.com", "zeenews.india.com", "indianexpress.com",
-                "indiatoday.in", "republicbharat.com", "bhaskar.com", "navbharattimes.indiatimes.com",
-                "news18.com", "jagran.com", "hindustantimes.com", "tribuneindia.com", "telegraphindia.com"
-            ],
-            "Business": [
-                "moneycontrol.com", "economictimes.indiatimes.com", "business-standard.com", "livemint.com",
-                "financialexpress.com", "thehindubusinessline.com", "businesstoday.in", "cnbctv18.com",
-                "ndtv.com/business", "zeebiz.com", "outlookbusiness.com", "bloomberg.com"
-            ],
-            "International": [
-                "bbc.com", "reuters.com", "nytimes.com", "washingtonpost.com", "aljazeera.com",
-                "theguardian.com", "cnn.com", "foxnews.com", "dailymail.co.uk"
-            ],
-            "Local": [
-                "tv9gujarati.com", "gstv.in", "divyabhaskar.co.in", "gujarati.news18.com",
-                "abplive.com/states/gujarat", "zeenews.india.com/gujarati", "ddnews.gov.in"
-            ],
-            "Agency": [
-                "aninews.in", "ptinews.com", "pib.gov.in", "newsonair.gov.in", "nseindia.com", "bseindia.com"
-            ]
+            "National": ["ndtv.com", "timesofindia.indiatimes.com", "bhaskar.com", "navbharattimes.indiatimes.com", "news18.com", "jagran.com", "hindustantimes.com"],
+            "Business": ["moneycontrol.com", "economictimes.indiatimes.com", "business-standard.com"],
+            "International": ["bbc.com", "reuters.com", "cnn.com"],
+            "Local": ["divyabhaskar.co.in", "gujarati.news18.com", "sandesh.com"],
+            "Agency": ["aninews.in", "ptinews.com"]
         };
 
-        // Word count matrix for layout info
         const wordCountMatrix = {
             '2-1': { heading: '8-10', intro: '40-60', body: '130-150' },
             '3-1': { heading: '8-12', intro: '70-80', body: '170-180' },
@@ -180,194 +470,396 @@
             '5-1': { heading: '8-10 (single) or 12-16 (double)', intro: '70-80', body: '170-180', infoBox: '60-80' }
         };
 
+        // --- Helpers ---
         function updateLayoutInfo() {
-            const columnSpan = document.getElementById('columnSpan').value;
-            const slotCount = document.getElementById('slotCount').value;
-            const key = `${columnSpan}-${slotCount}`;
-
+            const cols = document.getElementById('columnSpan').value;
+            const slots = document.getElementById('slotCount').value;
+            const key = `${cols}-${slots}`;
             const info = wordCountMatrix[key] || wordCountMatrix['3-1'];
-            let infoText = `<strong>${columnSpan} Columns, ${slotCount} Slot(s):</strong> `;
-            infoText += `Heading: ${info.heading} words | `;
-            infoText += `Intro: ${info.intro} words | `;
-            infoText += `Body: ${info.body} words`;
-            if (info.infoBox) {
-                infoText += ` | Info Box: ${info.infoBox} words`;
-            }
 
-            document.getElementById('layoutInfo').innerHTML = infoText;
+            document.getElementById('layoutInfo').innerText =
+                `${cols} Cols, ${slots} Slot${slots > 1 ? 's' : ''}: Headline ~${info.heading}w | Body ~${info.body}w`;
         }
 
+        function switchTab(index) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('border-brand-600', 'text-brand-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500');
+                } else {
+                    btn.classList.remove('border-brand-600', 'text-brand-600');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+
+            // Update content directly
+            document.querySelectorAll('.tab-content').forEach((div, i) => {
+                if (i === index) {
+                    // Force visible
+                    div.style.display = 'block';
+                    div.classList.add('active');
+                } else {
+                    // Force hidden
+                    div.style.display = 'none';
+                    div.classList.remove('active');
+                }
+            });
+        }
+
+        // --- Category Logic ---
+        function selectCategory(cat) {
+            document.getElementById('selectedCategory').value = cat;
+
+            // Remove active from all
+            document.querySelectorAll('.category-pill').forEach(btn => {
+                btn.classList.remove('active-cat');
+            });
+
+            // Add to selected
+            document.getElementById(`cat_${cat}`).classList.add('active-cat');
+        }
+
+        // --- Core Functions ---
         async function generateNews() {
             const topic = document.getElementById('topicInput').value.trim();
-            if (!topic) return alert("Please enter a topic");
+            if (!topic) {
+                showError("Please enter a topic first.");
+                return;
+            }
 
-            const columnSpan = parseInt(document.getElementById('columnSpan').value);
-            const slotCount = parseInt(document.getElementById('slotCount').value);
-
-            // Get selected category sources
-            const selectedCategory = document.getElementById('categorySelect').value;
-            const allowedSources = categorySources[selectedCategory] || [];
-
-            // Reset UI
-            document.getElementById('loading').classList.remove('hidden');
+            // UI Reset
+            document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
-            document.getElementById('tabsHeader').innerHTML = '';
-            document.getElementById('tabsContent').innerHTML = '';
-            newspaperArticles = {};
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('btnText').innerText = "Generating...";
+            document.getElementById('mergeFab').classList.add('hidden');
+            selectedArticles.clear();
 
+            const cat = document.getElementById('selectedCategory').value;
             const config = {
                 slot_config: {
-                    slot_count: slotCount,
-                    column_span: columnSpan
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
                 },
                 topic: topic,
-                allowed_sources: allowedSources
+                allowed_sources: categorySources[cat] || [],
+                headline_config: { single_line: false },
+                word_count_rules: null,
+                editorial_filters: {}
             };
 
             try {
-                document.querySelector('#loading p').innerText = `Searching & Generating Articles...`;
-
-                const response = await fetch('/api/newspaper/generate', {
+                const res = await fetch('/api/newspaper/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Failed to generate articles`);
-                }
+                if (!res.ok) throw new Error("Generation failed");
 
-                const data = await response.json();
+                const data = await res.json();
 
-                // Reset articles store
+                // Process Data
                 newspaperArticles = {};
-                // Clear old variant names
-                for (let key in variantNames) delete variantNames[key];
+                variantNames = {};
 
-                if (Array.isArray(data)) {
-                    data.forEach((article, index) => {
-                        const key = `article_${index}`;
-                        newspaperArticles[key] = article;
+                const validData = Array.isArray(data) ? data.filter(a => a.validation_passed !== false || a.headline !== "Generation Failed") : [data];
 
-                        // Use source as label if available, else generic name
-                        let sourceName = article.source || `Article ${index + 1}`;
-                        if (sourceName.includes("http")) {
-                            sourceName = sourceName.replace("https://", "").replace("http://", "").replace("www.", "").split('/')[0];
-                        }
+                if (validData.length === 0) throw new Error("No valid articles could be generated. Try a different topic.");
 
-                        variantNames[key] = sourceName;
-                    });
-                } else {
-                    // Fallback
-                    newspaperArticles['dataset1'] = data;
-                    variantNames['dataset1'] = "Generated Article";
-                }
+                validData.forEach((article, idx) => {
+                    const key = `draft_${idx}`;
+                    newspaperArticles[key] = article;
 
+                    let name = article.source || `Draft ${idx + 1}`;
+                    if (name.length > 20) name = name.substring(0, 18) + "...";
+                    // Clean URL
+                    if (name.includes('www')) name = name.replace('www.', '').split('.')[0];
+                    variantNames[key] = name;
+                });
+
+                renderResults();
+
+            } catch (e) {
+                console.error(e);
+                showError(e.message || "An unexpected error occurred.");
+            } finally {
                 document.getElementById('loading').classList.add('hidden');
-
-                // Show results
-                renderProgressiveResults();
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
-                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('btnText').innerText = "Generate Drafts";
             }
-
-
         }
 
-        function renderProgressiveResults() {
-            const tabsHeader = document.getElementById('tabsHeader');
-            const tabsContent = document.getElementById('tabsContent');
-
-            // Show results container
+        function renderResults() {
             document.getElementById('results').classList.remove('hidden');
+            const header = document.getElementById('tabsHeader');
+            const content = document.getElementById('tabsContent');
 
-            // Get available variants
-            const availableVariants = Object.keys(newspaperArticles).filter(key => newspaperArticles[key] !== null);
-            if (availableVariants.length === 0) return;
+            header.innerHTML = '';
+            content.innerHTML = '';
 
-            // Remember current active tab
-            const currentActive = document.querySelector('.tab-btn.active')?.innerText;
+            const keys = Object.keys(newspaperArticles);
 
-            // Clear and rebuild
-            tabsHeader.innerHTML = '';
-            tabsContent.innerHTML = '';
-
-            // Create Tabs and Content for each variant
-            availableVariants.forEach((variantKey, index) => {
-                const output = newspaperArticles[variantKey];
-                const displayName = variantNames[variantKey];
-                const isActive = currentActive === displayName || (index === 0 && !currentActive);
-
+            keys.forEach((key, index) => {
                 // Tab Button
                 const btn = document.createElement('button');
-                btn.className = `tab-btn px-6 py-4 font-medium text-gray-600 hover:text-blue-600 focus:outline-none whitespace-nowrap transition ${isActive ? 'active' : ''}`;
-                btn.innerText = displayName;
+                btn.className = `tab-btn flex-shrink-0 whitespace-nowrap pb-4 px-4 border-b-2 font-medium text-sm transition-colors duration-200 ${index === 0 ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`;
+                btn.innerText = variantNames[key].toUpperCase();
                 btn.onclick = () => switchTab(index);
-                tabsHeader.appendChild(btn);
+                header.appendChild(btn);
 
-                // Tab Content
-                const contentDiv = document.createElement('div');
-                contentDiv.className = `tab-content ${isActive ? 'active' : ''}`;
-
-                let content = `<div class="newspaper-article">`;
-                content += `<h1 class="text-3xl font-bold mb-4 text-gray-900">${output.headline}</h1>`;
-
-                if (output.headline_cap) {
-                    content += `<h2 class="text-xl font-semibold mb-3 text-gray-700">${output.headline_cap}</h2>`;
-                }
-
-                if (output.subheading) {
-                    content += `<h3 class="text-lg font-medium mb-4 text-gray-600">${output.subheading}</h3>`;
-                }
-
-                content += `<p class="text-lg mb-4 leading-relaxed text-gray-800"><strong>Intro:</strong> ${output.intro}</p>`;
-                content += `<div class="text-base leading-relaxed text-gray-700 whitespace-pre-wrap">${output.body}</div>`;
-
-                if (output.info_box) {
-                    content += `<div class="mt-6 p-4 bg-gray-100 border-l-4 border-blue-500">`;
-                    content += `<h4 class="font-semibold mb-2">Info Box</h4>`;
-                    content += `<p class="text-sm">${output.info_box}</p>`;
-                    content += `</div>`;
-                }
-
-                if (!output.validation_passed && output.validation_errors.length > 0) {
-                    content += `<div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">`;
-                    content += `<p class="text-sm text-yellow-800"><strong>Validation Warnings:</strong></p>`;
-                    content += `<ul class="text-sm text-yellow-700 list-disc list-inside">`;
-                    output.validation_errors.forEach(err => {
-                        content += `<li>${err}</li>`;
-                    });
-                    content += `</ul></div>`;
-                }
-
-                content += `</div>`;
-
-                contentDiv.innerHTML = content;
-                tabsContent.appendChild(contentDiv);
+                // Content
+                const div = document.createElement('div');
+                div.className = `tab-content ${index === 0 ? 'active' : ''} max-w-3xl mx-auto`;
+                // Explicitly set style for first item
+                div.style.display = index === 0 ? 'block' : 'none';
+                div.innerHTML = buildArticleHTML(newspaperArticles[key], key);
+                content.appendChild(div);
             });
         }
 
-        function switchTab(index) {
-            const btns = document.querySelectorAll('.tab-btn');
-            const contents = document.querySelectorAll('.tab-content');
-
-            btns.forEach((btn, i) => {
-                if (i === index) btn.classList.add('active');
-                else btn.classList.remove('active');
+        // Global Sub-Tab Logic
+        window.switchArticleSubTab = function (key, section) {
+            // Update Buttons
+            document.querySelectorAll(`.subtab-btn-${key}`).forEach(btn => {
+                if (btn.dataset.section === section) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
 
-            contents.forEach((div, i) => {
-                if (i === index) div.classList.add('active');
-                else div.classList.remove('active');
+            // Update Content
+            document.querySelectorAll(`.section-view-${key}`).forEach(view => {
+                if (view.dataset.section === section) {
+                    view.classList.add('active');
+                } else {
+                    view.classList.remove('active');
+                }
             });
+        };
+
+        function buildArticleHTML(article, key) {
+            const isSelected = selectedArticles.has(key);
+
+            // Safe key for IDs
+            const safeKey = key.replace(/[^a-zA-Z0-9]/g, '_');
+
+            return `
+                <div class="newspaper-paper p-8 md:p-12 relative mb-12">
+                    
+                    <!-- Meta Header -->
+                    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                            ${article.source || 'AI NEWSWIRE'} • ${new Date().toLocaleDateString()}
+                        </div>
+                        
+                        <label class="cursor-pointer group">
+                            <input type="checkbox" class="peer sr-only" onchange="toggleSelection('${key}')" ${isSelected ? 'checked' : ''}>
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-300 text-gray-500 text-sm font-medium transition-all peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 group-hover:bg-gray-50">
+                                <span class="w-4 h-4 rounded-full border border-gray-400 peer-checked:bg-brand-600 peer-checked:border-brand-600 flex items-center justify-center">
+                                    <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </span>
+                                Select for Merge
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Inner Tabs Navigation -->
+                    <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-0 mb-6 sticky top-0 bg-white z-10 pt-2">
+                        <button onclick="switchArticleSubTab('${safeKey}', 'all')" data-section="all" 
+                            class="subtab-btn subtab-btn-${safeKey} active">
+                            All Sections
+                        </button>
+                        <button onclick="switchArticleSubTab('${safeKey}', 'headline')" data-section="headline" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Headline
+                        </button>
+                        ${article.subheading ? `
+                        <button onclick="switchArticleSubTab('${safeKey}', 'subheading')" data-section="subheading" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Sub-Heading
+                        </button>` : ''}
+                        <button onclick="switchArticleSubTab('${safeKey}', 'intro')" data-section="intro" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Intro
+                        </button>
+                        <button onclick="switchArticleSubTab('${safeKey}', 'body')" data-section="body" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Content
+                        </button>
+                        ${article.info_box ? `
+                        <button onclick="switchArticleSubTab('${safeKey}', 'infobox')" data-section="infobox" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Key Points
+                        </button>` : ''}
+                    </div>
+
+                    <!-- Article Body Container -->
+                    <article class="article-container min-h-[300px]">
+                        
+                        <!-- 1. ALL View (Active by default) -->
+                        <div class="section-view section-view-${safeKey} active" data-section="all">
+                            ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
+                            <h1>${article.headline}</h1>
+                            ${article.subheading ? `<h2>${article.subheading}</h2>` : ''}
+                            <div class="article-separator"></div>
+                            <p class="article-intro">
+                                <span class="font-bold text-black uppercase mr-1" style="color: black !important;">${(article.source || "AHMEDABAD").split('.')[0]}:</span> 
+                                ${article.intro}
+                            </p>
+                            <div style="color: black !important;">
+                                ${article.body.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')}
+                            </div>
+                            ${article.info_box ? `
+                                <div class="article-infobox">
+                                    <h4>Key Points</h4>
+                                    <div>${article.info_box}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- 2. Headline View -->
+                        <div class="section-view section-view-${safeKey}" data-section="headline">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Headline Component</span>
+                                <div class="mt-4">
+                                    ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
+                                    <h1>${article.headline}</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Subheading View -->
+                        ${article.subheading ? `
+                        <div class="section-view section-view-${safeKey}" data-section="subheading">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Sub-Heading</span>
+                                <h2 class="mt-4">${article.subheading}</h2>
+                            </div>
+                        </div>` : ''}
+
+                        <!-- 4. Intro View -->
+                        <div class="section-view section-view-${safeKey}" data-section="intro">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Introduction Paragraph</span>
+                                <p class="article-intro mt-4">
+                                    <span class="font-bold text-black uppercase mr-1" style="color: black !important;">${(article.source || "AHMEDABAD").split('.')[0]}:</span> 
+                                    ${article.intro}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 5. Body View -->
+                        <div class="section-view section-view-${safeKey}" data-section="body">
+                             <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Main Content</span>
+                                <div class="mt-4" style="color: black !important;">
+                                    ${article.body.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Info Box View -->
+                        ${article.info_box ? `
+                        <div class="section-view section-view-${safeKey}" data-section="infobox">
+                            <div class="article-infobox mt-0">
+                                <h4>Key Points / Summary Box</h4>
+                                <div>${article.info_box}</div>
+                            </div>
+                        </div>` : ''}
+
+                    </article>
+                </div>
+            `;
+        }
+
+        // --- Merging Logic ---
+        function toggleSelection(key) {
+            if (selectedArticles.has(key)) selectedArticles.delete(key);
+            else selectedArticles.add(key);
+            updateFab();
+            // Re-render only to update styling if needed, or rely on simple class toggles
+            // Here simpler: just update UI state via checkbox listener (already done in HTML)
+        }
+
+        function updateFab() {
+            const fab = document.getElementById('mergeFab');
+            const count = document.getElementById('selectedCount');
+
+            if (selectedArticles.size > 0) {
+                fab.classList.remove('hidden');
+                count.innerText = selectedArticles.size;
+            } else {
+                fab.classList.add('hidden');
+            }
+        }
+
+        async function mergeArticles() {
+            if (selectedArticles.size === 0) return;
+
+            const drafts = Array.from(selectedArticles).map(k => newspaperArticles[k]);
+            const btn = document.querySelector('#mergeFab button');
+            const originalHTML = btn.innerHTML;
+
+            // Loading
+            btn.innerHTML = `<div class="loader w-5 h-5"></div><span class="ml-2">Synthesizing...</span>`;
+            btn.disabled = true;
+
+            const config = {
+                topic: document.getElementById('topicInput').value,
+                slot_config: {
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
+                },
+                word_count_rules: null,
+                headline_config: { single_line: false },
+                editorial_filters: {}
+            };
+
+            try {
+                const res = await fetch('/api/newspaper/merge-refine', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selected_articles: drafts, config: config })
+                });
+
+                if (!res.ok) throw new Error("Merge failed");
+                const finalArticle = await res.json();
+
+                // Add to results
+                const newKey = `merged_${Date.now()}`;
+                newspaperArticles[newKey] = finalArticle;
+                variantNames[newKey] = "✨ Final Article";
+
+                renderResults();
+
+                // Switch to last tab
+                const tabsCount = Object.keys(newspaperArticles).length;
+                switchTab(tabsCount - 1);
+
+                // Clear state
+                selectedArticles.clear();
+                updateFab();
+
+            } catch (e) {
+                console.error(e);
+                showError("Merge failed: " + e.message);
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('errorText').innerText = msg;
+            setTimeout(() => document.getElementById('error').classList.add('hidden'), 5000);
         }
     </script>
-
 </body>
 
 </html>

@@ -202,3 +202,33 @@ async def refine_article(request: RefineRequest):
     except Exception as e:
         print(f"❌ Error refining article: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class MergeRequest(BaseModel):
+    selected_articles: List[NewspaperOutput]
+    config: NewspaperConfig
+
+
+@router.post("/merge-refine", response_model=NewspaperOutput)
+async def merge_articles(request: MergeRequest):
+    """
+    Merge multiple selected drafts into one final polished article
+    """
+    try:
+        if not request.selected_articles or len(request.selected_articles) == 0:
+            raise HTTPException(status_code=400, detail="No articles selected to merge")
+
+        print(
+            f"✨ Merging {len(request.selected_articles)} articles for topic: {request.config.topic}"
+        )
+
+        # Call merge service
+        final_output = await newspaper_ai.merge_and_refine_articles(
+            request.selected_articles, request.config
+        )
+
+        return final_output
+
+    except Exception as e:
+        print(f"❌ Error merging articles: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
