@@ -515,38 +515,65 @@ Rewrite the article now.
         current_content = []
 
         for line in lines:
-            line_upper = line.strip().upper()
+            clean_line = line.strip()
+            line_upper = clean_line.upper()
 
-            if line_upper.startswith("HEADLINE:"):
+            # Check Headers - Order matters (Longer matches first)
+            matched_header = None
+            new_section = None
+
+            if line_upper.startswith("HEADLINE CAP:"):
+                matched_header = "HEADLINE CAP:"
+                new_section = "headline_cap"
+            elif line_upper.startswith("HEADLINE:"):
+                matched_header = "HEADLINE:"
+                new_section = "headline"
+            elif line_upper.startswith("SUB HEADING:") or line_upper.startswith(
+                "SUBHEADING:"
+            ):
+                matched_header = (
+                    "SUB HEADING:"
+                    if line_upper.startswith("SUB HEADING:")
+                    else "SUBHEADING:"
+                )
+                new_section = "subheading"
+            elif line_upper.startswith("INTRO PARAGRAPH:") or line_upper.startswith(
+                "INTRO:"
+            ):
+                matched_header = (
+                    "INTRO PARAGRAPH:"
+                    if line_upper.startswith("INTRO PARAGRAPH:")
+                    else "INTRO:"
+                )
+                new_section = "intro"
+            elif (
+                line_upper.startswith("BODY PARAGRAPH:")
+                or line_upper.startswith("BODY:")
+                or line_upper.startswith("CONTENT:")
+            ):
+                if line_upper.startswith("BODY PARAGRAPH:"):
+                    matched_header = "BODY PARAGRAPH:"
+                elif line_upper.startswith("BODY:"):
+                    matched_header = "BODY:"
+                else:
+                    matched_header = "CONTENT:"
+                new_section = "body"
+            elif line_upper.startswith("INFO BOX:") or line_upper.startswith(
+                "INFOBOX:"
+            ):
+                matched_header = (
+                    "INFO BOX:" if line_upper.startswith("INFO BOX:") else "INFOBOX:"
+                )
+                new_section = "info_box"
+
+            if new_section:
                 if current_section:
                     sections[current_section] = "\n".join(current_content).strip()
-                current_section = "headline"
-                current_content = [line.replace("HEADLINE:", "").strip()]
-            elif line_upper.startswith("HEADLINE CAP:"):
-                if current_section:
-                    sections[current_section] = "\n".join(current_content).strip()
-                current_section = "headline_cap"
-                current_content = [line.replace("HEADLINE CAP:", "").strip()]
-            elif line_upper.startswith("SUB HEADING:"):
-                if current_section:
-                    sections[current_section] = "\n".join(current_content).strip()
-                current_section = "subheading"
-                current_content = [line.replace("SUB HEADING:", "").strip()]
-            elif line_upper.startswith("INTRO PARAGRAPH:"):
-                if current_section:
-                    sections[current_section] = "\n".join(current_content).strip()
-                current_section = "intro"
-                current_content = [line.replace("INTRO PARAGRAPH:", "").strip()]
-            elif line_upper.startswith("BODY PARAGRAPH:"):
-                if current_section:
-                    sections[current_section] = "\n".join(current_content).strip()
-                current_section = "body"
-                current_content = [line.replace("BODY PARAGRAPH:", "").strip()]
-            elif line_upper.startswith("INFO BOX:"):
-                if current_section:
-                    sections[current_section] = "\n".join(current_content).strip()
-                current_section = "info_box"
-                current_content = [line.replace("INFO BOX:", "").strip()]
+                current_section = new_section
+                # Extract content after header
+                # We use len(matched_header) which corresponds to the upper case version
+                content_part = clean_line[len(matched_header) :].strip()
+                current_content = [content_part] if content_part else []
             elif current_section and line.strip():
                 current_content.append(line)
 
