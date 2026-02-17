@@ -406,12 +406,46 @@
                     Merge them for the perfect story.</p>
             </div>
 
-            <!-- Loading Overlay -->
+            <!-- Loading Overlay with Checklist -->
             <div id="loading"
-                class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl">
-                <div class="loader w-12 h-12 border-4 mb-4" style="border-top-color: #2563eb;"></div>
-                <h3 class="text-xl font-semibold text-gray-800 animate-pulse">Analyzing Sources...</h3>
-                <p class="text-gray-500 mt-2 text-sm" id="loadingText">Scraping live news & generating drafts</p>
+                class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl pointer-events-none">
+
+                <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 max-w-sm w-full">
+                    <div class="loader w-10 h-10 border-4 mb-6 mx-auto" style="border-top-color: #2563eb;"></div>
+                    <h3 class="text-xl font-bold text-gray-900 text-center mb-6">Generating Content</h3>
+
+                    <div class="space-y-4">
+                        <!-- Step 1 -->
+                        <div class="flex items-center gap-3 transition-all duration-300" id="step1">
+                            <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                id="step1-icon">
+                                <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-500 transition-colors" id="step1-text">Analyzing
+                                Sources...</span>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex items-center gap-3 transition-all duration-300" id="step2">
+                            <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                id="step2-icon">
+                                <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-500 transition-colors" id="step2-text">Scraping
+                                Live News...</span>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex items-center gap-3 transition-all duration-300" id="step3">
+                            <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                id="step3-icon">
+                                <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-500 transition-colors" id="step3-text">Drafting
+                                Articles...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Results View -->
@@ -675,6 +709,29 @@
         });
 
         // --- Core Functions ---
+        function setStepStatus(step, status) {
+            const icon = document.getElementById(`step${step}-icon`);
+            const check = icon.querySelector('span');
+            const text = document.getElementById(`step${step}-text`);
+
+            if (status === 'active') {
+                // Active: Brand Color, Pulse?
+                icon.className = "w-6 h-6 rounded-full border-2 border-brand-500 bg-brand-50 flex items-center justify-center transition-colors animate-pulse";
+                check.classList.add('opacity-0');
+                text.className = "text-sm font-bold text-gray-900 transition-colors";
+            } else if (status === 'done') {
+                // Done: Green Color, Checkmark
+                icon.className = "w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center transition-colors";
+                check.classList.remove('opacity-0');
+                text.className = "text-sm font-medium text-gray-800 transition-colors";
+            } else {
+                // Pending
+                icon.className = "w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors";
+                check.classList.add('opacity-0');
+                text.className = "text-sm font-medium text-gray-400 transition-colors";
+            }
+        }
+
         async function generateNews() {
             const topic = document.getElementById('topicInput').value.trim();
             if (!topic) {
@@ -686,11 +743,17 @@
             document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('btnText').innerText = "Generating...";
             document.getElementById('mergeFab').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
             selectedArticles.clear();
+
+            // Reset Steps
+            setStepStatus(1, 'active');
+            setStepStatus(2, 'pending');
+            setStepStatus(3, 'pending');
 
             const cat = document.getElementById('selectedCategory').value;
             const config = {
@@ -699,7 +762,6 @@
                     column_span: parseInt(document.getElementById('columnSpan').value)
                 },
                 topic: topic,
-                topic: topic,
                 allowed_sources: Array.from(currentSelectedSources),
                 headline_config: { single_line: false },
                 word_count_rules: null,
@@ -707,15 +769,52 @@
             };
 
             try {
-                const res = await fetch('/api/newspaper/generate', {
+                // STEP 1: Scrape
+                setStepStatus(1, 'active'); // Analyzing/Preparing
+                await new Promise(r => setTimeout(r, 500)); // Slight delay for UX
+
+                // We'll skip separate analyzing step for now and jump to scraping visual
+                setStepStatus(1, 'done');
+                setStepStatus(2, 'active'); // Scraping
+
+                const scrapeRes = await fetch('/api/newspaper/scrape', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
 
-                if (!res.ok) throw new Error("Generation failed");
+                if (!scrapeRes.ok) {
+                    const err = await scrapeRes.json();
+                    throw new Error(err.detail || "Scraping failed");
+                }
 
-                const data = await res.json();
+                const articles = await scrapeRes.json();
+
+                if (!articles || articles.length === 0) {
+                    throw new Error("No articles found to process.");
+                }
+
+                setStepStatus(2, 'done');
+                setStepStatus(3, 'active'); // Drafting
+
+                // STEP 2: Generate Content
+                const generateReq = {
+                    config: config,
+                    articles: articles
+                };
+
+                const genRes = await fetch('/api/newspaper/generate-from-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(generateReq)
+                });
+
+                if (!genRes.ok) throw new Error("Generation failed");
+
+                const data = await genRes.json();
+
+                setStepStatus(3, 'done');
+                await new Promise(r => setTimeout(r, 800)); // Show completion briefly
 
                 // Process Data
                 newspaperArticles = {};
@@ -736,13 +835,14 @@
                     variantNames[key] = name;
                 });
 
+                document.getElementById('loading').classList.add('hidden');
                 renderResults();
 
             } catch (e) {
                 console.error(e);
                 showError(e.message || "An unexpected error occurred.");
-            } finally {
                 document.getElementById('loading').classList.add('hidden');
+            } finally {
                 document.getElementById('generateBtn').disabled = false;
                 document.getElementById('btnText').innerText = "Generate Drafts";
             }

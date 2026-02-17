@@ -107,6 +107,13 @@ class NewspaperConfig(BaseModel):
     topic: str = Field(description="News topic to generate article for")
 
 
+class GenerateFromContentRequest(BaseModel):
+    """Request to generate articles from pre-scraped content"""
+
+    articles: List[ScrapedArticle]
+    config: NewspaperConfig
+
+
 class NewspaperSection(BaseModel):
     """Individual section of newspaper output"""
 

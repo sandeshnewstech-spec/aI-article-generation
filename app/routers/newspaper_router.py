@@ -1,6 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.models.data import NewspaperConfig, NewspaperOutput
+from app.models.data import (
+    NewspaperConfig,
+    NewspaperOutput,
+    ScrapedArticle,
+    GenerateFromContentRequest,
+)
 from app.services.newspaper_ai_service import NewspaperAIService
 from app.services.scraper_service_sync import ScraperService
 from app.services.grid_calculator import GridCalculator
@@ -93,6 +98,75 @@ async def generate_newspaper_article(config: NewspaperConfig):
         raise
     except Exception as e:
         print(f"❌ Error generating newspaper article: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/scrape", response_model=List[ScrapedArticle])
+async def scrape_articles_only(config: NewspaperConfig):
+    """
+    Step 1: Scrape articles for a given topic
+    """
+    try:
+        print(f"🔍 Scraping articles for: {config.topic}")
+        articles = await scraper.scrape_topic(
+            config.topic, limit_per_site=5, allowed_sites=config.allowed_sources
+        )
+
+        if not articles and config.allowed_sources:
+            # Return empty list instead of 404 so frontend can handle it gracefully if needed,
+            # or we can raise 404. Let's raise 404 to match original behavior.
+            pass
+
+        if not articles:
+            raise HTTPException(
+                status_code=404, detail="No articles found for this topic"
+            )
+
+        print(f"✅ Found {len(articles)} articles")
+        return articles
+
+    except Exception as e:
+        print(f"❌ Error scraping articles: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-from-content", response_model=List[NewspaperOutput])
+async def generate_from_content(request: GenerateFromContentRequest):
+    """
+    Step 2: Generate articles from scraped content
+    """
+    try:
+        config = request.config
+        articles = request.articles
+
+        if not articles:
+            raise HTTPException(status_code=400, detail="No articles provided")
+
+        print(f"🤖 Processing {len(articles)} articles in batch...")
+
+        # Auto-calculate word count rules if not provided (safety check)
+        if config.word_count_rules is None:
+            config.word_count_rules = grid_calc.get_word_count_rules(
+                config.slot_config.column_span,
+                config.slot_config.slot_count,
+                not config.headline_config.single_line,
+            )
+
+        # Batch generation
+        outputs = await newspaper_ai.generate_batch_newspaper_articles(articles, config)
+
+        # Add metadata back to results
+        results = []
+        for i, output in enumerate(outputs):
+            if i < len(articles):
+                output.source = articles[i].source
+                output.url = articles[i].url
+            results.append(output)
+
+        return results
+
+    except Exception as e:
+        print(f"❌ Error generating from content: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
