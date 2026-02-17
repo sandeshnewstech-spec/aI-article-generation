@@ -317,59 +317,74 @@
                             </button>
                         </div>
                         <input type="hidden" id="selectedCategory" value="National">
-                    </div>
-                </div>
-            </div>
 
-            <!-- Layout Card -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                        </path>
-                    </svg>
-                    Layout Settings
-                </h2>
-
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Columns</label>
-                        <select id="columnSpan" onchange="updateLayoutInfo()"
-                            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
-                            <option value="2">2 Cols</option>
-                            <option value="3" selected>3 Cols</option>
-                            <option value="4">4 Cols</option>
-                            <option value="5">5 Cols</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Grid Slots</label>
-                        <select id="slotCount" onchange="updateLayoutInfo()"
-                            class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
-                            <option value="1" selected>1 Slot</option>
-                            <option value="2">2 Slots</option>
-                            <option value="3">3 Slots</option>
-                        </select>
+                        <!-- Source Selection -->
+                        <div class="mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active
+                                    Sources</label>
+                                <button type="button" id="selectAllBtn"
+                                    class="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors"
+                                    onclick="toggleAllSources()">
+                                    Select All
+                                </button>
+                            </div>
+                            <div id="sourcesContainer" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="text-xs bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-100" id="layoutInfo">
-                    3 Cols, 1 Slot: Headline ~8-12w | Body ~175w
-                </div>
-            </div>
+                <!-- Layout Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                            </path>
+                        </svg>
+                        Layout Settings
+                    </h2>
 
-            <button onclick="generateNews()" id="generateBtn"
-                class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                <span id="btnIcon">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                </span>
-                <span id="btnText">Generate Drafts</span>
-            </button>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Columns</label>
+                            <select id="columnSpan" onchange="updateLayoutInfo()"
+                                class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                                <option value="2">2 Cols</option>
+                                <option value="3" selected>3 Cols</option>
+                                <option value="4">4 Cols</option>
+                                <option value="5">5 Cols</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Grid Slots</label>
+                            <select id="slotCount" onchange="updateLayoutInfo()"
+                                class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                                <option value="1" selected>1 Slot</option>
+                                <option value="2">2 Slots</option>
+                                <option value="3">3 Slots</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-xs bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-100" id="layoutInfo">
+                        3 Cols, 1 Slot: Headline ~8-12w | Body ~175w
+                    </div>
+                </div>
+
+                <button onclick="generateNews()" id="generateBtn"
+                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <span id="btnIcon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </span>
+                    <span id="btnText">Generate Drafts</span>
+                </button>
 
         </aside>
 
@@ -453,14 +468,73 @@
         let newspaperArticles = {};
         let variantNames = {};
         const selectedArticles = new Set();
+        let currentSelectedSources = new Set();
 
         // --- Config ---
         const categorySources = {
-            "National": ["ndtv.com", "timesofindia.indiatimes.com", "bhaskar.com", "navbharattimes.indiatimes.com", "news18.com", "jagran.com", "hindustantimes.com"],
-            "Business": ["moneycontrol.com", "economictimes.indiatimes.com", "business-standard.com"],
-            "International": ["bbc.com", "reuters.com", "cnn.com"],
-            "Local": ["divyabhaskar.co.in", "gujarati.news18.com", "sandesh.com"],
-            "Agency": ["aninews.in", "ptinews.com"]
+            "National": [
+                "ndtv.com",
+                "timesofindia.indiatimes.com",
+                "thehindu.com",
+                "scroll.in",
+                "theprint.in",
+                "thewire.in",
+                "aajtak.in",
+                "abplive.com",
+                "zeenews.india.com",
+                "indianexpress.com",
+                "indiatoday.in",
+                "republicbharat.com",
+                "bhaskar.com",
+                "navbharattimes.indiatimes.com",
+                "news18.com",
+                "jagran.com",
+                "hindustantimes.com",
+                "tribuneindia.com",
+                "telegraphindia.com"
+            ],
+            "Business": [
+                "moneycontrol.com",
+                "economictimes.indiatimes.com",
+                "business-standard.com",
+                "livemint.com",
+                "financialexpress.com",
+                "thehindubusinessline.com",
+                "businesstoday.in",
+                "cnbctv18.com",
+                "ndtvprofit.com",
+                "zeebiz.com",
+                "outlookbusiness.com",
+                "bloomberg.com"
+            ],
+            "International": [
+                "bbc.com",
+                "reuters.com",
+                "nytimes.com",
+                "washingtonpost.com",
+                "aljazeera.com",
+                "theguardian.com",
+                "cnn.com",
+                "foxnews.com",
+                "dailymail.co.uk"
+            ],
+            "Local": [
+                "tv9gujarati.com",
+                "gstv.in",
+                "divyabhaskar.co.in",
+                "gujarati.news18.com",
+                "abpasmita.abplive.in",
+                "zee24kalak.in",
+                "ddnewsgujarati.com"
+            ],
+            "Agency": [
+                "aninews.in",
+                "ptinews.com",
+                "pib.gov.in",
+                "newsonair.gov.in",
+                "nseindia.com",
+                "bseindia.com"
+            ]
         };
 
         const wordCountMatrix = {
@@ -518,7 +592,87 @@
 
             // Add to selected
             document.getElementById(`cat_${cat}`).classList.add('active-cat');
+
+            // Render Sources for this category
+            renderSources(cat);
         }
+
+        function renderSources(cat) {
+            const container = document.getElementById('sourcesContainer');
+            container.innerHTML = '';
+
+            const sources = categorySources[cat] || [];
+
+            // Default: Select all when sticking to category for first time or switching?
+            // User likely wants all selected by default
+            currentSelectedSources = new Set(sources);
+
+            sources.forEach((source, idx) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2 px-2 py-1 rounded hover:bg-white transition-colors';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `src_check_${idx}`;
+                checkbox.value = source;
+                checkbox.checked = true;
+                checkbox.className = 'w-3.5 h-3.5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 cursor-pointer';
+                checkbox.onchange = (e) => toggleSource(source, e.target.checked);
+
+                const label = document.createElement('label');
+                label.htmlFor = `src_check_${idx}`;
+                label.innerText = source;
+                label.className = 'text-xs text-gray-700 cursor-pointer select-none truncate flex-1 font-medium';
+                label.title = source;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+
+            updateSelectAllBtn();
+        }
+
+        function toggleSource(source, checked) {
+            if (checked) currentSelectedSources.add(source);
+            else currentSelectedSources.delete(source);
+            updateSelectAllBtn();
+        }
+
+        function toggleAllSources() {
+            const cat = document.getElementById('selectedCategory').value;
+            const allSources = categorySources[cat] || [];
+            const container = document.getElementById('sourcesContainer');
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+            // Determine state: if all selected, deselect all. Else select all.
+            const isAllSelected = currentSelectedSources.size === allSources.length;
+
+            if (isAllSelected) {
+                // Deselect All
+                currentSelectedSources.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+            } else {
+                // Select All
+                currentSelectedSources = new Set(allSources);
+                checkboxes.forEach(cb => cb.checked = true);
+            }
+            updateSelectAllBtn();
+        }
+
+        function updateSelectAllBtn() {
+            const cat = document.getElementById('selectedCategory').value;
+            const allSources = categorySources[cat] || [];
+            const btn = document.getElementById('selectAllBtn');
+            const isAllSelected = currentSelectedSources.size === allSources.length;
+
+            btn.innerText = isAllSelected ? "Deselect All" : "Select All";
+        }
+
+        // Initialize sources on load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSources('National');
+        });
 
         // --- Core Functions ---
         async function generateNews() {
@@ -545,7 +699,8 @@
                     column_span: parseInt(document.getElementById('columnSpan').value)
                 },
                 topic: topic,
-                allowed_sources: categorySources[cat] || [],
+                topic: topic,
+                allowed_sources: Array.from(currentSelectedSources),
                 headline_config: { single_line: false },
                 word_count_rules: null,
                 editorial_filters: {}
