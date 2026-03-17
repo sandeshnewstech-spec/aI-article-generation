@@ -14,6 +14,7 @@ class ScraperService:
         "news18.com",
         "tv9gujarati.com",
         "sandesh.com",
+        "divyabhaskar.co.in",
     ]
 
     def __init__(self):
