@@ -1,9 +1,6 @@
 import sys
 import asyncio
 
-# CRITICAL: Set event loop policy BEFORE any async operations on Windows
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -11,13 +8,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import api_router, ui_router
 from app.core.config import settings
+from app.core.database import connect_db, close_db
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure event loop policy is set on startup
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # Connect to MongoDB on startup
+    await connect_db()
     yield
+    # Disconnect on shutdown
+    await close_db()
+
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
@@ -32,6 +33,15 @@ app.include_router(ui_router.router)
 from app.routers import newspaper_router
 app.include_router(newspaper_router.router, prefix="/api")
 
+# Include Category & Slot Routers (MongoDB-backed)
+from app.routers import category_router, slot_router, history_router
+app.include_router(category_router.router, prefix="/api")
+app.include_router(slot_router.router, prefix="/api")
+app.include_router(history_router.router, prefix="/api")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True, loop="asyncio")
+
+    uvicorn.run(
+        "app.main:app", host="127.0.0.1", port=8000, reload=True, loop="asyncio"
+    )

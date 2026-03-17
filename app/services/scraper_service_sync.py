@@ -5,6 +5,7 @@ from app.models.data import ScrapedArticle
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+
 class ScraperService:
     SITES = [
         "gujaratsamachar.com",
@@ -18,13 +19,32 @@ class ScraperService:
     def __init__(self):
         self.executor = ThreadPoolExecutor(max_workers=6)
 
-    async def scrape_topic(self, topic: str, limit_per_site: int = 3) -> List[ScrapedArticle]:
+    async def scrape_topic(
+        self,
+        topic: str,
+        limit_per_site: int = 3,
+        allowed_sites: Optional[List[str]] = None,
+    ) -> List[ScrapedArticle]:
         """Async wrapper around sync scraping to avoid Windows event loop issues"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(self.executor, self._scrape_topic_sync, topic, limit_per_site)
+        return await loop.run_in_executor(
+            self.executor, self._scrape_topic_sync, topic, limit_per_site, allowed_sites
+        )
 
-    def _scrape_topic_sync(self, topic: str, limit_per_site: int) -> List[ScrapedArticle]:
-        """Synchronous scraping using sync_playwright"""
+    def _scrape_topic_sync(
+        self, topic: str, limit_per_site: int, allowed_sites: Optional[List[str]] = None
+    ) -> List[ScrapedArticle]:
+        """Synchronous scraping using the generator to build a full list"""
+        results = []
+        sites = allowed_sites if allowed_sites else self.SITES
+        for chunk in self._scrape_sites_generator(topic, limit_per_site, sites):
+            results.extend(chunk["articles"])
+        return results
+
+    def _scrape_sites_generator(
+        self, topic: str, limit_per_site: int, sites: List[str]
+    ):
+        """Generator that yields results site by site for real-time progress"""
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # Visible browser
             context = browser.new_context(
@@ -35,69 +55,74 @@ class ScraperService:
                 )
             )
 
-            results: List[ScrapedArticle] = []
-            
-            # Scrape each site sequentially in sync mode
-            for site in self.SITES:
-                articles = self._scrape_one_site(context, topic, site, limit_per_site)
-                results.extend(articles)
-                
-            browser.close()
-            return results
+            for site in sites:
+                try:
+                    articles = self._scrape_one_site(
+                        context, topic, site, limit_per_site
+                    )
+                    yield {"site": site, "articles": articles}
+                except Exception as e:
+                    print(f"[WARN] Failed site {site}: {e}")
+                    yield {"site": site, "articles": [], "error": str(e)}
 
-    def _scrape_one_site(self, context, topic: str, site: str, limit: int) -> List[ScrapedArticle]:
+            browser.close()
+
+    def _scrape_one_site(
+        self, context, topic: str, site: str, limit: int
+    ) -> List[ScrapedArticle]:
         page = context.new_page()
         articles = []
 
         try:
+            # Use direct search URL to save time and reduce bot detection on homepage
             query = f"{topic} site:{site}"
-            print(f"🔍 Searching {site}...")
+            encoded_query = urllib.parse.quote(query)
+            search_url = f"https://duckduckgo.com/?q={encoded_query}"
             
-            # Use regular DuckDuckGo (not HTML version)
-            page.goto("https://duckduckgo.com/", wait_until="networkidle", timeout=30000)
-            page.wait_for_timeout(2000)
+            print(f"[SCRAPE] Searching {site} via {search_url}")
             
-            # Fill search with explicit wait for input
-            try:
-                page.wait_for_selector("input[name='q']", timeout=10000)
-                page.fill("input[name='q']", query)
-                page.wait_for_timeout(500)
-                page.keyboard.press("Enter")
-                page.wait_for_timeout(4000)  # Wait for results
-            except Exception as e:
-                print(f"⚠️ Search input failed for {site}: {e}")
-                return []
+            # Use domcontentloaded for speed, then wait briefly for results
+            page.goto(search_url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(3000) # Give scripts time to load results
 
-            # Look for result links (regular DuckDuckGo uses different selectors)
-            links = page.locator("article h2 a, [data-testid='result-title-a']").all()
+            # Robust selectors for DDG results
+            result_selectors = [
+                "article h2 a",
+                "[data-testid='result-title-a']",
+                ".result__a",
+                "a.result-link"
+            ]
+            
             hrefs = []
-
-            for link in links:
-                href = link.get_attribute("href")
-                if not href:
-                    continue
-
-                # Regular DuckDuckGo uses direct URLs (no redirect encoding)
-                if href.startswith("http"):
-                    hrefs.append(href)
-
-                if len(hrefs) >= limit:
-                    break
+            for selector in result_selectors:
+                links = page.locator(selector).all()
+                if links:
+                    for link in links:
+                        href = link.get_attribute("href")
+                        if href and href.startswith("http") and site in href:
+                            if href not in hrefs:
+                                hrefs.append(href)
+                        if len(hrefs) >= limit: break
+                if hrefs: break
 
             if not hrefs:
-                print(f"⚠️ No results found for {site}")
+                print(f"[INFO] No results found for {site} in this pass.")
                 return []
+
+            print(f"[INFO] Found {len(hrefs)} candidate links for {site}")
 
             for href in hrefs:
                 article = self._scrape_article(context, href, site)
                 if article:
                     articles.append(article)
-                    print(f"✅ Scraped article from {site}")
-                    
+                    print(f"[OK] Scraped: {article.title[:50]}...")
+                else:
+                    print(f"[SKIP] Failed to extract content from {href}")
+
             return articles
 
         except Exception as e:
-            print(f"❌ Error searching {site}: {e}")
+            print(f"[ERROR] Error searching {site}: {e}")
             return []
         finally:
             page.close()
@@ -107,7 +132,7 @@ class ScraperService:
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=15000)
             page.wait_for_timeout(1000)
-            
+
             self._expand_article_if_needed(page, site)
 
             # Get Title
@@ -115,7 +140,10 @@ class ScraperService:
             if page.locator("h1").count() > 0:
                 title = page.locator("h1").first.text_content() or ""
             elif page.locator("meta[property='og:title']").count() > 0:
-                title = page.locator("meta[property='og:title']").get_attribute("content") or ""
+                title = (
+                    page.locator("meta[property='og:title']").get_attribute("content")
+                    or ""
+                )
 
             if not title.strip():
                 return None
@@ -129,7 +157,7 @@ class ScraperService:
                 source=site,
                 url=url,
                 title=title.strip(),
-                body=" ".join(body_text.split())
+                body=" ".join(body_text.split()),
             )
 
         except Exception as e:
@@ -140,7 +168,9 @@ class ScraperService:
     def _expand_article_if_needed(self, page, site: str):
         try:
             if "sandesh.com" in site:
-                btn = page.locator("#postId button, #postId button span").filter(has_text="View")
+                btn = page.locator("#postId button, #postId button span").filter(
+                    has_text="View"
+                )
                 if btn.count() > 0:
                     btn.first.click()
                     page.wait_for_timeout(800)
@@ -150,7 +180,9 @@ class ScraperService:
                     btn.first.click()
                     page.wait_for_timeout(800)
             elif "news18.com" in site:
-                btn = page.locator("span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')")
+                btn = page.locator(
+                    "span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')"
+                )
                 if btn.count() > 0:
                     btn.first.click()
                     page.wait_for_timeout(800)
@@ -158,36 +190,54 @@ class ScraperService:
             pass
 
     def _extract_body(self, page, url: str, site: str) -> str:
-        if url.lower().endswith(".html"):
-            return page.evaluate("""
-                () => {
-                    const selectors = [
-                        'article', '.article-content', '.article-body', '.story-details',
-                        '.content', '.content-area', '.detailBody', '.news-description',
-                        '.article-inner-detail', '.story'
-                    ];
-                    for (const sel of selectors) {
-                        const el = document.querySelector(sel);
-                        if (el && el.innerText.length > 100) {
-                            return el.innerText;
-                        }
-                    }
-                    return document.body.innerText || '';
-                }
-            """)
-        
+        # 1. Try site-specific selectors first
         selectors = {
             "sandesh.com": "div[class^='story article-']",
             "gujaratsamachar.com": "div.article-inner-detail.card-body",
             "tv9gujarati.com": "div.detailBody",
             "aninews.in": "article",
             "aajtak.in": "div.content-area",
-            "news18.com": "article[id^='story-']"
+            "news18.com": "article[id^='story-'], div.article-content",
+            "indianexpress.com": "div.story-details, div.full-details",
+            "hindustantimes.com": "div.storyDetail, div.detail",
+            "thehindu.com": "div.article-block, div.content-body",
+            "indiatoday.in": "div.description-section, div.story-right"
         }
-        
+
         for k, v in selectors.items():
             if k in site:
                 el = page.query_selector(v)
-                return el.inner_text() if el else ""
-                
-        return page.evaluate("document.body.innerText")
+                if el:
+                    txt = el.inner_text()
+                    if len(txt) > 150: return txt
+
+        # 2. Try common selectors for any site
+        body = page.evaluate(
+            """
+            () => {
+                const selectors = [
+                    'article', '.article-content', '.article-body', '.story-details',
+                    '.content', '.content-area', '.detailBody', '.news-description',
+                    '.article-inner-detail', '.story', '#article-body', '.story_content',
+                    '[itemprop="articleBody"]', '.post-content', '.entry-content',
+                    '.story-full-width', '.article-payload', '.storyDetail'
+                ];
+                for (const sel of selectors) {
+                    const els = document.querySelectorAll(sel);
+                    for (const el of els) {
+                        if (el && el.innerText.length > 200) {
+                             return el.innerText;
+                        }
+                    }
+                }
+                return '';
+            }
+        """
+        ) or ""
+
+        if not body:
+            print(f"[WARN] No body extracted via selectors for {url}. Falling back to P tags.")
+            p_tags = page.locator("p").all()
+            body = " ".join([p.text_content() for p in p_tags if len(p.text_content() or "") > 40])
+
+        return body

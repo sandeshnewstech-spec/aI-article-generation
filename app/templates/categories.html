@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category & Source Manager — AI Newsroom Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; min-height: 100vh; display: flex; color: #1e293b; }
+
+        /* ── Topbar ───────────────────────────────────── */
+        .topbar {
+            background: #fff; border-bottom: 1px solid #e2e8f0;
+            padding: 0 28px; height: 58px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 30;
+        }
+        .topbar-title { font-size: 0.9375rem; font-weight: 700; color: #0f172a; }
+        .topbar-right  { display: flex; align-items: center; gap: 10px; }
+        .badge-v { padding: 3px 11px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+
+        /* ── Buttons ───────────────────────────────────── */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #2563eb; color: #fff; border: none;
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: 'Inter', sans-serif;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary svg { width: 14px; height: 14px; }
+
+        .btn-edit {
+            padding: 5px 11px; background: #fff; color: #475569;
+            border: 1px solid #e2e8f0; border-radius: 7px;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            transition: all 0.15s; font-family: 'Inter', sans-serif;
+        }
+        .btn-edit:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
+        .btn-del {
+            padding: 5px 11px; background: #fff; color: #dc2626;
+            border: 1px solid #fecaca; border-radius: 7px;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            transition: all 0.15s; font-family: 'Inter', sans-serif;
+        }
+        .btn-del:hover { background: #fef2f2; border-color: #dc2626; }
+
+        .btn-add {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #2563eb; color: #fff; border: none;
+            padding: 8px 14px; border-radius: 7px;
+            font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; white-space: nowrap; font-family: 'Inter', sans-serif;
+        }
+        .btn-add:hover { background: #1d4ed8; }
+
+        /* ── Content ───────────────────────────────────── */
+        .content-area { padding: 28px; flex: 1; }
+        .two-col { display: grid; grid-template-columns: 320px 1fr; gap: 18px; align-items: start; }
+
+        /* ── Panel ─────────────────────────────────────── */
+        .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+        .panel-head {
+            padding: 14px 18px; border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .panel-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; }
+        .panel-count  { font-size: 0.72rem; font-weight: 600; color: #94a3b8; }
+
+        /* ── Category list ─────────────────────────────── */
+        .cat-row {
+            display: flex; align-items: center;
+            padding: 13px 18px; border-bottom: 1px solid #f1f5f9;
+            cursor: pointer; transition: background 0.12s;
+        }
+        .cat-row:last-child { border-bottom: none; }
+        .cat-row:hover { background: #f8fafc; }
+        .cat-row.selected { background: #eff6ff; border-left: 3px solid #2563eb; padding-left: 15px; }
+        .dot-green  { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+        .dot-gray   { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; }
+        .cat-avatar {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: #eff6ff; color: #2563eb;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8125rem; font-weight: 800; flex-shrink: 0; margin: 0 10px;
+        }
+        .cat-avatar.inactive { background: #f1f5f9; color: #94a3b8; }
+        .cat-info { flex: 1; min-width: 0; }
+        .cat-name { font-size: 0.8125rem; font-weight: 600; color: #0f172a; }
+        .cat-meta { font-size: 0.7rem; color: #94a3b8; margin-top: 1px; }
+        .cat-btns { display: flex; gap: 5px; }
+
+        /* ── Source panel ──────────────────────────────── */
+        .source-empty {
+            padding: 56px 24px; display: flex; flex-direction: column;
+            align-items: center; text-align: center; gap: 10px;
+        }
+        .source-empty-icon {
+            width: 52px; height: 52px; background: #f8fafc;
+            border: 1px solid #e2e8f0; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .source-empty p   { font-size: 0.875rem; font-weight: 600; color: #475569; }
+        .source-empty span { font-size: 0.78rem; color: #94a3b8; }
+
+        .src-input-row { display: flex; gap: 8px; padding: 14px 18px; border-bottom: 1px solid #f1f5f9; }
+        .src-input {
+            flex: 1; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 7px; padding: 8px 12px; font-size: 0.8125rem;
+            color: #0f172a; outline: none; font-family: 'Inter', sans-serif;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .src-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); background: #fff; }
+        .src-input::placeholder { color: #94a3b8; }
+
+        .src-body { padding: 14px 18px; }
+        .src-count { font-size: 0.72rem; font-weight: 600; color: #64748b; margin-bottom: 10px; }
+        .src-grid  { display: flex; flex-wrap: wrap; gap: 7px; }
+        .src-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px 4px 12px;
+            background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 999px;
+            font-size: 0.74rem; font-weight: 500; color: #334155;
+            transition: border-color 0.15s;
+        }
+        .src-pill:hover { border-color: #fca5a5; background: #fff5f5; }
+        .src-pill button {
+            width: 15px; height: 15px; border-radius: 50%;
+            background: #e2e8f0; border: none; color: #64748b;
+            cursor: pointer; font-size: 0.7rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; font-family: 'Inter', sans-serif; line-height: 1;
+        }
+        .src-pill button:hover { background: #dc2626; color: #fff; }
+        .src-none { font-size: 0.8125rem; color: #94a3b8; text-align: center; padding: 20px; }
+
+        /* ── Modals ────────────────────────────────────── */
+        .overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .overlay.hidden { display: none; }
+        .modal { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; width: 440px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+        .modal-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+        .fld { margin-bottom: 14px; }
+        .fld label { display: block; font-size: 0.72rem; font-weight: 600; color: #475569; margin-bottom: 5px; }
+        .fld input[type=text] {
+            width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 7px; padding: 9px 12px; font-size: 0.875rem; color: #0f172a;
+            outline: none; font-family: 'Inter', sans-serif;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .fld input[type=text]:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); background: #fff; }
+        .fld input[type=text]::placeholder { color: #94a3b8; }
+        .cb-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .cb-row input { width: 15px; height: 15px; accent-color: #2563eb; cursor: pointer; }
+        .cb-row label { font-size: 0.875rem; color: #334155; cursor: pointer; }
+        .modal-btns { display: flex; gap: 9px; margin-top: 24px; }
+        .modal-btns .btn-primary { flex: 1; justify-content: center; }
+        .btn-cancel { flex: 1; padding: 9px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+        .btn-cancel:hover { background: #e2e8f0; }
+
+        /* ── Toast ─────────────────────────────────────── */
+        .toast { position: fixed; bottom: 22px; right: 22px; padding: 11px 16px; border-radius: 9px; font-size: 0.8125rem; font-weight: 600; z-index: 200; transform: translateY(10px); opacity: 0; transition: all 0.22s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.12); font-family: 'Inter', sans-serif; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #16a34a; color: #fff; }
+        .toast.error   { background: #dc2626; color: #fff; }
+
+        @keyframes in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+        .anim { animation: in 0.18s ease-out; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<div class="sb-offset">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <span class="topbar-title">Category &amp; Source Manager</span>
+        <div class="topbar-right">
+            <span class="badge-v">v2.2 MongoDB</span>
+            <button class="btn-primary" onclick="showCreate()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Category
+            </button>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content-area">
+        <div class="two-col">
+
+            <!-- Left: categories -->
+            <div class="panel">
+                <div class="panel-head">
+                    <span class="panel-label">All Categories</span>
+                    <span class="panel-count" id="catCount">—</span>
+                </div>
+                <div id="catList">
+                    <div style="padding:32px;text-align:center;color:#94a3b8;font-size:0.8125rem">Loading…</div>
+                </div>
+            </div>
+
+            <!-- Right: sources -->
+            <div class="panel" id="srcPanel">
+                <div class="source-empty">
+                    <div class="source-empty-icon">
+                        <svg width="22" height="22" fill="none" stroke="#94a3b8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9"/>
+                        </svg>
+                    </div>
+                    <p>Select a category</p>
+                    <span>Click a category on the left to manage its sources</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div id="mdlCreate" class="overlay hidden" onclick="if(event.target===this)hideCreate()">
+    <div class="modal">
+        <p class="modal-title">Create New Category</p>
+        <div class="fld">
+            <label>Category Name *</label>
+            <input id="cName" type="text" placeholder="e.g. Sports">
+        </div>
+        <div class="fld">
+            <label>Slug <span style="font-weight:400;color:#94a3b8">(auto-generated if blank)</span></label>
+            <input id="cSlug" type="text" placeholder="e.g. sports">
+        </div>
+        <div class="modal-btns">
+            <button class="btn-primary" onclick="createCat()">Create Category</button>
+            <button class="btn-cancel" onclick="hideCreate()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="mdlEdit" class="overlay hidden" onclick="if(event.target===this)hideEdit()">
+    <div class="modal">
+        <p class="modal-title">Edit Category</p>
+        <input type="hidden" id="eId">
+        <div class="fld">
+            <label>Category Name</label>
+            <input id="eName" type="text">
+        </div>
+        <div class="fld">
+            <label>Slug</label>
+            <input id="eSlug" type="text">
+        </div>
+        <div class="fld">
+            <div class="cb-row">
+                <input type="checkbox" id="eActive">
+                <label for="eActive">Active</label>
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+            <button class="btn-cancel" onclick="hideEdit()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    let categories = [], selId = null;
+
+    async function api(m, p, b) {
+        const r = await fetch('/api/categories' + p, {
+            method: m, headers: {'Content-Type':'application/json'},
+            body: b ? JSON.stringify(b) : undefined
+        });
+        if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail||'HTTP '+r.status); }
+        return r.json();
+    }
+
+    function toast(msg, t='success') {
+        const el = document.getElementById('toast');
+        el.textContent = msg; el.className = 'toast ' + t + ' show';
+        setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    async function load() {
+        try {
+            categories = await api('GET', '/');
+            renderList();
+            document.getElementById('catCount').textContent = categories.length + ' total';
+            if (selId) { const c = categories.find(x => x.id === selId); if (c) renderSrc(c); }
+        } catch(e) { toast(e.message, 'error'); }
+    }
+
+    function renderList() {
+        const el = document.getElementById('catList');
+        if (!categories.length) { el.innerHTML = '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:0.8125rem">No categories yet.</div>'; return; }
+        el.innerHTML = categories.map(c => `
+            <div class="cat-row anim ${selId===c.id?'selected':''}" id="cr-${c.id}" onclick="selCat('${c.id}')">
+                <div class="${c.is_active?'dot-green':'dot-gray'}"></div>
+                <div class="cat-avatar ${c.is_active?'':'inactive'}">${c.name.charAt(0)}</div>
+                <div class="cat-info">
+                    <div class="cat-name">${c.name}</div>
+                    <div class="cat-meta">${c.sources?.length||0} source${(c.sources?.length||0)!==1?'s':''} &bull; ${c.is_active?'Active':'Inactive'}</div>
+                </div>
+                <div class="cat-btns" onclick="event.stopPropagation()">
+                    <button class="btn-edit" onclick="openEdit('${c.id}')" title="Edit Category"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn-del"  onclick="delCat('${c.id}','${c.name}')" title="Delete Category"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>`).join('');
+    }
+
+    function selCat(id) {
+        selId = id;
+        document.querySelectorAll('.cat-row').forEach(r=>r.classList.remove('selected'));
+        const row = document.getElementById('cr-'+id); if(row) row.classList.add('selected');
+        const cat = categories.find(c=>c.id===id); if(cat) renderSrc(cat);
+    }
+
+    function renderSrc(cat) {
+        const p = document.getElementById('srcPanel');
+        p.innerHTML = `
+            <div class="panel-head">
+                <div>
+                    <div style="font-size:.875rem;font-weight:700;color:#0f172a">${cat.name}</div>
+                    <div style="font-size:.7rem;color:#94a3b8;margin-top:2px">${cat.sources?.length||0} domains</div>
+                </div>
+                <span style="padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:700;
+                    background:${cat.is_active?'#dcfce7':'#f1f5f9'};color:${cat.is_active?'#16a34a':'#94a3b8'}">
+                    ${cat.is_active?'Active':'Inactive'}
+                </span>
+            </div>
+            <div class="src-input-row">
+                <input id="srcIn" type="text" class="src-input" placeholder="Add domain — e.g. ndtv.com"
+                    onkeydown="if(event.key==='Enter')addSrc('${cat.id}')">
+                <button class="btn-add" onclick="addSrc('${cat.id}')">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg> Add
+                </button>
+            </div>
+            <div class="src-body">
+                <div class="src-count">${cat.sources?.length||0} sources configured</div>
+                <div class="src-grid">
+                    ${(cat.sources||[]).length
+                        ? (cat.sources||[]).map(s=>`
+                            <div class="src-pill anim">
+                                <span>${s}</span>
+                                <button onclick="rmSrc('${cat.id}','${s}')" title="Remove">×</button>
+                            </div>`).join('')
+                        : '<div class="src-none">No sources yet. Add one above.</div>'
+                    }
+                </div>
+            </div>`;
+    }
+
+    async function addSrc(catId) {
+        const inp = document.getElementById('srcIn');
+        const src = inp.value.trim().toLowerCase(); if(!src) return;
+        try { await api('POST', '/'+catId+'/sources', {source:src}); inp.value=''; toast('Added: '+src); await load(); }
+        catch(e) { toast(e.message,'error'); }
+    }
+    async function rmSrc(catId, src) {
+        if(!confirm('Remove "'+src+'"?')) return;
+        try { await api('DELETE', '/'+catId+'/sources/'+encodeURIComponent(src)); toast('Removed: '+src); await load(); }
+        catch(e) { toast(e.message,'error'); }
+    }
+
+    /* Create */
+    function showCreate() { document.getElementById('mdlCreate').classList.remove('hidden'); }
+    function hideCreate() { document.getElementById('mdlCreate').classList.add('hidden'); document.getElementById('cName').value=''; document.getElementById('cSlug').value=''; }
+    async function createCat() {
+        const name = document.getElementById('cName').value.trim();
+        const slug = document.getElementById('cSlug').value.trim()||undefined;
+        if(!name) { toast('Name required','error'); return; }
+        try { await api('POST','/',{name,slug,sources:[],is_active:true}); toast('"'+name+'" created!'); hideCreate(); await load(); }
+        catch(e) { toast(e.message,'error'); }
+    }
+
+    /* Edit */
+    function openEdit(id) {
+        const c = categories.find(x=>x.id===id); if(!c) return;
+        document.getElementById('eId').value=c.id;
+        document.getElementById('eName').value=c.name;
+        document.getElementById('eSlug').value=c.slug||'';
+        document.getElementById('eActive').checked=c.is_active;
+        document.getElementById('mdlEdit').classList.remove('hidden');
+    }
+    function hideEdit() { document.getElementById('mdlEdit').classList.add('hidden'); }
+    async function saveEdit() {
+        const id=document.getElementById('eId').value;
+        const name=document.getElementById('eName').value.trim();
+        const slug=document.getElementById('eSlug').value.trim();
+        const is_active=document.getElementById('eActive').checked;
+        try { await api('PUT','/'+id,{name:name||undefined,slug:slug||undefined,is_active}); toast('Updated!'); hideEdit(); await load(); }
+        catch(e) { toast(e.message,'error'); }
+    }
+
+    /* Delete */
+    async function delCat(id, name) {
+        if(!confirm('Delete "'+name+'" and all its sources?')) return;
+        try {
+            await api('DELETE','/'+id);
+            if(selId===id) { selId=null; document.getElementById('srcPanel').innerHTML=`<div class="source-empty"><div class="source-empty-icon"><svg width="22" height="22" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1"/></svg></div><p>Select a category</p></div>`; }
+            toast('Deleted "'+name+'"'); await load();
+        } catch(e) { toast(e.message,'error'); }
+    }
+
+    load();
+</script>
+</body>
+</html>

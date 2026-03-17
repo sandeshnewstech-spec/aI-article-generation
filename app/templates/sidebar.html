@@ -1,0 +1,249 @@
+{# SHARED SIDEBAR PARTIAL — included in every page via Jinja2 include.
+Context var: current_page = "generator" | "categories" | "slots" #}
+<style>
+  /* ── Sidebar Reset & Base ─────────────────────────────────── */
+  .sb {
+    width: 240px;
+    min-height: 100vh;
+    background: #0f172a;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* ── Brand ────────────────────────────────────────────────── */
+  .sb-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+  }
+
+  .sb-brand-icon {
+    width: 36px;
+    height: 36px;
+    background: #2563eb;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  }
+
+  .sb-brand-icon svg {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+  }
+
+  .sb-brand-name {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .sb-brand-sub {
+    font-size: 0.68rem;
+    color: #475569;
+    margin-top: 1px;
+  }
+
+  /* ── Nav ──────────────────────────────────────────────────── */
+  .sb-nav {
+    padding: 14px 12px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .sb-section {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #334155;
+    padding: 10px 10px 5px;
+    margin-top: 4px;
+  }
+
+  .sb-link {
+    display: flex;
+    flex-direction: row;
+    /* icon + text side-by-side */
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #64748b;
+    text-decoration: none;
+    transition: background 0.13s, color 0.13s;
+    margin-bottom: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .sb-link:hover {
+    background: #1e293b;
+    color: #cbd5e1;
+  }
+
+  .sb-link.active {
+    background: #1e40af;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  .sb-link svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+
+  .sb-link.active svg {
+    opacity: 1;
+  }
+
+  .sb-link-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Footer ───────────────────────────────────────────────── */
+  .sb-footer {
+    padding: 14px 20px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .sb-footer-label {
+    font-size: 0.68rem;
+    color: #334155;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 7px;
+  }
+
+  .sb-db-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .sb-db-dot {
+    width: 7px;
+    height: 7px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: sb-pulse 2.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .sb-db-text {
+    font-size: 0.72rem;
+    color: #4ade80;
+    font-weight: 600;
+  }
+
+  @keyframes sb-pulse {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1)
+    }
+
+    50% {
+      opacity: .5;
+      transform: scale(.85)
+    }
+  }
+
+  /* ── App main offset — used by every page ─────────────────── */
+  .sb-offset {
+    margin-left: 240px;
+    width: stretch;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+
+<aside class="sb" id="appSidebar">
+
+  <!-- Brand -->
+  <a href="/" class="sb-brand">
+    <div class="sb-brand-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0
+          01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+    </div>
+    <div>
+      <div class="sb-brand-name">AI Newsroom Pro</div>
+      <div class="sb-brand-sub">Admin Panel</div>
+    </div>
+  </a>
+
+  <!-- Navigation -->
+  <nav class="sb-nav">
+
+    <div class="sb-section">Generate</div>
+    <a href="/" class="sb-link {% if current_page == 'generator' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+      <span class="sb-link-label">News Generator</span>
+    </a>
+    <a href="/editor" class="sb-link {% if current_page == 'editor' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      <span class="sb-link-label">News Editor</span>
+    </a>
+
+    <div class="sb-section" style="margin-top:8px">Admin</div>
+    <a href="/admin/categories" class="sb-link {% if current_page == 'categories' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2
+          2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+      </svg>
+      <span class="sb-link-label">Categories &amp; Sources</span>
+    </a>
+    <a href="/admin/slots" class="sb-link {% if current_page == 'slots' %}active{% endif %}">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z
+          M14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z
+          M4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z
+          M14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+      <span class="sb-link-label">Slot Manager</span>
+    </a>
+
+  </nav>
+
+  <!-- Footer -->
+  <div class="sb-footer">
+    <div class="sb-footer-label">Database</div>
+    <div class="sb-db-row">
+      <div class="sb-db-dot"></div>
+      <span class="sb-db-text">MongoDB Connected</span>
+    </div>
+  </div>
+
+</aside>

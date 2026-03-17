@@ -1,18 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI News Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>AI News Generator Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Rasa:wght@400;500;600;700&family=Mukta+Vaani:wght@300;400;500;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                        headline: ['Rasa', 'serif'],
+                        body: ['Mukta Vaani', 'sans-serif'],
+                        ui: ['Noto Sans Gujarati', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            border: 3px solid rgba(229, 231, 235, 0.5);
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
 
@@ -26,288 +53,1414 @@
             }
         }
 
+        .newspaper-paper {
+            background-color: #ffffff;
+            color: #000000;
+            /* Subtle texture or shadow for realism */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Smooth tab transitions */
+        /* Tab Content Styling - Simplified for reliability */
         .tab-content {
             display: none;
         }
 
         .tab-content.active {
+            display: block !important;
+        }
+
+        /* Tabs styling for categories */
+        .category-pill.active-cat {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            font-weight: 600;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Explicit Article Styling to override any visibility issues */
+        .article-container {
+            font-family: 'Mukta Vaani', sans-serif;
+            color: #000000;
+        }
+
+        .article-container h1 {
+            font-family: 'Rasa', serif;
+            font-weight: 700;
+            font-size: 2.75rem;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            color: #000000 !important;
+            letter-spacing: -0.02em;
+        }
+
+        .article-container h2 {
+            font-family: 'Rasa', serif;
+            font-weight: 600;
+            font-size: 1.75rem;
+            line-height: 1.3;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #374151 !important;
+            /* dark gray */
+        }
+
+        .article-container h6 {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #dc2626 !important;
+            /* red-600 for category/eyebrow */
+            margin-bottom: 0.5rem;
+        }
+
+        .article-container p {
+            margin-bottom: 1.25rem;
+            font-size: 1.25rem;
+            /* Larger for readability */
+            line-height: 1.6;
+            color: #111827 !important;
+            /* gray-900 */
+        }
+
+        .article-intro {
+            font-weight: 600;
+            font-size: 1.35rem;
+            color: #000000 !important;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            border-left: 4px solid #000000;
+            padding-left: 1rem;
+        }
+
+        .article-infobox {
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .article-infobox h4 {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #1f2937 !important;
+            margin-bottom: 0.75rem;
+            border-bottom: 2px solid #d1d5db;
+            padding-bottom: 0.5rem;
+        }
+
+        .article-infobox div {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #374151 !important;
+        }
+
+        .article-separator {
+            width: 4rem;
+            height: 0.25rem;
+            background-color: #000000 !important;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Inner Article Tabs */
+        .subtab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            background: none;
+            cursor: pointer;
+        }
+
+        .subtab-btn:hover {
+            color: #111827;
+            background-color: #f3f4f6;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .subtab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background-color: #eff6ff;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .section-view {
+            display: none;
+            padding-top: 1.5rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .section-view.active {
             display: block;
         }
 
-        .tab-btn.active {
-            border-bottom-width: 2px;
-            border-color: #3b82f6;
-            color: #3b82f6;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Toast ─────────────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            padding: 11px 16px;
+            border-radius: 9px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            z-index: 200;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.22s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .toast.error {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Hide scrollbars for chrome/safari/opera but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
         }
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
 
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">📰 AI News Generator</h1>
-            <p class="text-gray-500">Generate professional Gujarati newspaper articles</p>
-        </header>
 
-        <!-- Newspaper Configuration -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h3 class="font-semibold text-gray-700 mb-3">Layout Configuration</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Column Span</label>
-                    <select id="columnSpan" onchange="updateLayoutInfo()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="2">2 Columns (Small)</option>
-                        <option value="3" selected>3 Columns (Medium)</option>
-                        <option value="4">4 Columns (Large)</option>
-                        <option value="5">5 Columns (Feature)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Slot Count</label>
-                    <select id="slotCount" onchange="updateLayoutInfo()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="1" selected>1 Slot</option>
-                        <option value="2">2 Slots</option>
-                        <option value="3">3 Slots</option>
-                        <option value="4">4 Slots</option>
-                    </select>
+<body class="bg-gray-100 h-full overflow-hidden text-gray-800">
+
+    {% include 'sidebar.html' %}
+
+    <!-- App Main Wrapper -->
+    <div class="sb-offset flex flex-col h-screen max-h-screen overflow-hidden">
+
+        <!-- Navbar -->
+        <nav class="bg-white border-b border-gray-200 shadow-sm z-30">
+            <div class="mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-14">
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">News Generator</h1>
+                        <span
+                            class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Live</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">v2.2
+                            MongoDB</span>
+                    </div>
                 </div>
             </div>
-            <div class="mt-3 p-3 bg-blue-50 rounded-md">
-                <p class="text-sm text-blue-800" id="layoutInfo">
-                    <strong>3 Columns, 1 Slot:</strong> Heading: 8-12 words | Intro: 70-80 words | Body: 170-180 words
-                </p>
-            </div>
+        </nav>
+
+        <div
+            class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-8 overflow-y-auto lg:overflow-hidden min-h-0">
+
+            <!-- Sidebar: Configuration -->
+            <aside class="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6 overflow-hidden h-full">
+                <!-- Inner scrollable area for configs -->
+                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
+
+                    <!-- Input Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                            Topic Details
+                        </h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Topic / Headline</label>
+                                <input type="text" id="topicInput" placeholder="e.g. Gujarat Elections 2026 updates"
+                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition text-gray-900 placeholder-gray-400">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Category Source</label>
+                                <div class="flex flex-wrap gap-2" id="categoryTabs">
+                                    <!-- Category Pills -->
+                                    <button onclick="selectCategory('National')" id="cat_National"
+                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm active-cat">
+                                        National
+                                    </button>
+                                    <button onclick="selectCategory('Business')" id="cat_Business"
+                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                        Business
+                                    </button>
+                                    <button onclick="selectCategory('International')" id="cat_International"
+                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                        International
+                                    </button>
+                                    <button onclick="selectCategory('Local')" id="cat_Local"
+                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                        Local
+                                    </button>
+                                    <button onclick="selectCategory('Agency')" id="cat_Agency"
+                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+                                        Agency
+                                    </button>
+                                </div>
+                                <input type="hidden" id="selectedCategory" value="National">
+
+                                <!-- Source Selection -->
+                                <div class="mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active
+                                            Sources</label>
+                                        <button type="button" id="selectAllBtn"
+                                            class="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors"
+                                            onclick="toggleAllSources()">
+                                            Select All
+                                        </button>
+                                    </div>
+                                    <div id="sourcesContainer"
+                                        class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Layout Card -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                                    </path>
+                                </svg>
+                                Layout Settings
+                            </h2>
+
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Columns</label>
+                                    <select id="columnSpan" onchange="updateLayoutInfo()"
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                                        <option value="1" selected>1 Col</option>
+                                        <option value="2">2 Cols</option>
+                                        <option value="3">3 Cols</option>
+                                        <option value="4">4 Cols</option>
+                                        <option value="5">5 Cols</option>
+                                        <option value="6">6 Cols</option>
+                                        <option value="7">7 Cols</option>
+                                        <option value="8">8 Cols</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Grid Slots</label>
+                                    <select id="slotCount" onchange="updateLayoutInfo()"
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
+                                        <option value="1" selected>1 Slot</option>
+                                        <option value="2">2 Slots</option>
+                                        <option value="3">3 Slots</option>
+                                        <option value="4">4 Slots</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Custom Word Counts -->
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Headline</label>
+                                    <input type="number" id="wc_headline" value="10"
+                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
+                                        title="Target headline words">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Intro</label>
+                                    <input type="number" id="wc_intro" value="75"
+                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
+                                        title="Target intro words">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Body</label>
+                                    <input type="number" id="wc_body" value="175"
+                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
+                                        title="Target body words">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Key
+                                        Points</label>
+                                    <input type="number" id="wc_infobox" value="60"
+                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
+                                        title="Target key points words">
+                                </div>
+                            </div>
+
+                            <div class="text-xs bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-100"
+                                id="layoutInfo">
+                                3 Cols, 1 Slot: Headline ~8-12w | Body ~175w
+                            </div>
+                        </div>
+
+                        <button onclick="generateNews()" id="generateBtn"
+                            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <span id="btnIcon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                            </span>
+                            <span id="btnText">Generate Drafts</span>
+                        </button>
+
+                        <!-- History Card -->
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2
+                                    class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Recent Searches
+                                </h2>
+                                <button onclick="loadHistory()"
+                                    class="text-xs text-brand-600 hover:underline">Refresh</button>
+                            </div>
+                            <div id="historyList" class="space-y-3 max-h-64 overflow-y-auto pr-2 no-scrollbar">
+                                <div class="text-center py-4 text-xs text-gray-400">Loading history...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- End inner scrollable -->
+            </aside>
+
+            <!-- Main Content: Results -->
+            <main class="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+                <!-- Inner scrollable area for results -->
+                <div id="resultsWrapper" class="flex-1 overflow-y-auto pr-2 custom-scrollbar relative">
+
+                    <!-- Welcome State -->
+                    <div id="welcomeState"
+                        class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-white border border-dashed border-gray-300 rounded-2xl">
+                        <div class="bg-gray-50 p-6 rounded-full mb-6">
+                            <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Ready to Create</h3>
+                        <p class="text-gray-500 max-w-sm">Enter a topic and generate 3 professional article drafts
+                            instantly.
+                            Merge them for the perfect story.</p>
+                    </div>
+
+                    <!-- Loading Overlay with Checklist -->
+                    <div id="loading"
+                        class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-2xl pointer-events-none">
+
+                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 max-w-sm w-full">
+                            <div class="loader w-10 h-10 border-4 mb-6 mx-auto" style="border-top-color: #2563eb;">
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 text-center mb-4">Generating Content</h3>
+
+                            <!-- Progress Bar Container -->
+                            <div class="mb-6 px-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Overall
+                                        Progress</span>
+                                    <span class="text-xs font-black text-blue-600" id="progressText">0%</span>
+                                </div>
+                                <div
+                                    class="w-full bg-gray-100 rounded-full h-2 shadow-inner overflow-hidden border border-gray-50">
+                                    <div id="progressBar"
+                                        class="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
+                                        style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- Step 1 -->
+                                <div class="flex items-center gap-3 transition-all duration-300" id="step1">
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                        id="step1-icon">
+                                        <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-500 transition-colors"
+                                        id="step1-text">Analyzing
+                                        Sources...</span>
+                                </div>
+
+                                <!-- Step 2 -->
+                                <div class="flex items-center gap-3 transition-all duration-300" id="step2">
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                        id="step2-icon">
+                                        <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-500 transition-colors"
+                                        id="step2-text">Scraping
+                                        Live News...</span>
+                                </div>
+
+                                <!-- Step 3 -->
+                                <div class="flex items-center gap-3 transition-all duration-300" id="step3">
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors"
+                                        id="step3-icon">
+                                        <span class="text-xs font-bold text-white opacity-0 transition-opacity">✓</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-500 transition-colors"
+                                        id="step3-text">Drafting
+                                        Articles...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results View -->
+                    <div id="results"
+                        class="hidden flex-1 flex flex-col bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+
+                        <!-- Tab Headers -->
+                        <div class="bg-gray-50 border-b border-gray-200 px-6 pt-4 flex space-x-6 overflow-x-auto"
+                            id="tabsHeader">
+                            <!-- Dynamic Tabs -->
+                        </div>
+
+                        <!-- Tab Contents -->
+                        <div class="flex-1 overflow-y-auto relative custom-scrollbar bg-gray-50" id="tabsContent">
+                            <!-- Dynamic Article Content -->
+                        </div>
+
+                    </div>
+
+                    <!-- FAB: Merge Action -->
+                    <div id="mergeFab" class="hidden fixed bottom-8 right-8 z-50 animate-bounce-in">
+                        <button onclick="mergeArticles()"
+                            class="bg-gray-900 hover:bg-black text-white text-lg font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-3 transition-transform hover:scale-105 ring-4 ring-white border border-gray-800">
+                            <span
+                                class="bg-brand-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                                id="selectedCount">0</span>
+                            <span>Merge Selected</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Error Toast -->
+                    <div id="error"
+                        class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3 max-w-lg">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div class="flex-1 text-sm font-medium" id="errorText">Error message here</div>
+                        <button onclick="document.getElementById('error').classList.add('hidden')"
+                            class="opacity-75 hover:opacity-100">✕</button>
+                    </div>
+
+                    <div id="toast" class="toast"></div>
+                </div> <!-- End resultsWrapper -->
+            </main>
         </div>
 
-        <!-- Search Input -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="topicInput"
-                    placeholder="Enter topic (e.g., 'અમદાવાદમાં વરસાદ', 'ગુજરાતમાં ચૂંટણી')"
-                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <button onclick="generateNews()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 ease-in-out transform hover:scale-105">
-                    Generate 3 Articles
-                </button>
-            </div>
-        </div>
+    </div><!-- end .app-main -->
 
-        <!-- Loading State -->
-        <div id="loading" class="hidden flex flex-col items-center justify-center py-12">
-            <div class="loader mb-4"></div>
-            <p class="text-gray-600 animate-pulse">Generating articles...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-8" role="alert">
-            <p id="errorText">Something went wrong.</p>
-        </div>
-
-        <!-- Results Section -->
-        <div id="results" class="hidden bg-white rounded-lg shadow-lg overflow-hidden">
-            <!-- Tabs Header -->
-            <div class="flex overflow-x-auto border-b border-gray-200 bg-gray-50" id="tabsHeader">
-                <!-- Tabs will be injected here -->
-            </div>
-
-            <!-- Tabs Content -->
-            <div class="p-6 md:p-8" id="tabsContent">
-                <!-- Content will be injected here -->
-            </div>
-        </div>
-    </div>
-
+    <!-- Logic -->
     <script>
-        let newspaperArticles = {
-            'variant1': null,
-            'variant2': null,
-            'variant3': null
-        };
-        const variantNames = {
-            'variant1': 'Article Option 1',
-            'variant2': 'Article Option 2',
-            'variant3': 'Article Option 3'
-        };
+        // --- State ---
+        let newspaperArticles = {};
+        let variantNames = {};
+        const selectedArticles = new Set();
+        let currentSelectedSources = new Set();
+        let currentHistoryId = null;
 
-        // Word count matrix for layout info
-        const wordCountMatrix = {
-            '2-1': { heading: '8-10', intro: '40-60', body: '130-150' },
-            '3-1': { heading: '8-12', intro: '70-80', body: '170-180' },
-            '4-1': { heading: '12-16', intro: '70-80', body: '170-180' },
-            '5-1': { heading: '8-10 (single) or 12-16 (double)', intro: '70-80', body: '170-180', infoBox: '60-80' }
-        };
+        let categorySources = {};      // { "National": ["ndtv.com", ...], ... }
+        let categoryMeta = [];         // full list from API: [{id, name, slug, sources, is_active}]
+        let allSlots = [];             // full list of slots from API
 
-        function updateLayoutInfo() {
-            const columnSpan = document.getElementById('columnSpan').value;
-            const slotCount = document.getElementById('slotCount').value;
-            const key = `${columnSpan}-${slotCount}`;
-
-            const info = wordCountMatrix[key] || wordCountMatrix['3-1'];
-            let infoText = `<strong>${columnSpan} Columns, ${slotCount} Slot(s):</strong> `;
-            infoText += `Heading: ${info.heading} words | `;
-            infoText += `Intro: ${info.intro} words | `;
-            infoText += `Body: ${info.body} words`;
-            if (info.infoBox) {
-                infoText += ` | Info Box: ${info.infoBox} words`;
+        async function loadCategoriesFromDB() {
+            try {
+                const res = await fetch('/api/categories/');
+                if (!res.ok) throw new Error('Failed to load categories');
+                categoryMeta = await res.json();
+                categorySources = {};
+                categoryMeta
+                    .filter(c => c.is_active)
+                    .forEach(c => { categorySources[c.name] = c.sources || []; });
+                renderCategoryPills();
+                // Select first active category
+                const firstCat = categoryMeta.find(c => c.is_active);
+                if (firstCat) selectCategory(firstCat.name);
+            } catch (e) {
+                console.error('Could not load categories from DB, using fallback', e);
+                // Fallback minimal set if DB is down
+                categorySources = { "National": ["ndtv.com", "thehindu.com"] };
+                renderCategoryPills();
+                selectCategory('National');
             }
+        }
 
-            document.getElementById('layoutInfo').innerHTML = infoText;
+        async function loadSlotsFromDB() {
+            try {
+                const res = await fetch('/api/slots/');
+                if (!res.ok) throw new Error('Failed to load slots');
+                allSlots = await res.json();
+                updateLayoutInfo(); // Initial update
+            } catch (e) {
+                console.error('Could not load slots from DB', e);
+            }
+        }
+
+        function renderCategoryPills() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = '';
+            Object.keys(categorySources).forEach((catName, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `cat_${catName.replace(/\s+/g, '_')}`;
+                btn.className = 'category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm';
+                btn.textContent = catName;
+                btn.onclick = () => selectCategory(catName);
+                if (idx === 0) btn.classList.add('active-cat');
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Helpers ---
+        function updateLayoutInfo() {
+            const cols = parseInt(document.getElementById('columnSpan').value);
+            const slots = parseInt(document.getElementById('slotCount').value);
+
+            // Find matching slot from DB data
+            const matchedSlot = allSlots.find(s => s.column_span === cols && s.slot_count === slots);
+
+            if (matchedSlot) {
+                document.getElementById('wc_headline').value = matchedSlot.wc_headline || 10;
+                document.getElementById('wc_intro').value = matchedSlot.wc_intro || 75;
+                document.getElementById('wc_body').value = matchedSlot.wc_body || 175;
+                document.getElementById('wc_infobox').value = matchedSlot.wc_infobox || 60;
+
+                document.getElementById('layoutInfo').innerHTML =
+                    `<span class="font-bold text-blue-900">${cols} Col | ${slots} Slot</span>: Optimized for 
+                     <span class="font-medium text-blue-700">H: ${matchedSlot.wc_headline}w, I: ${matchedSlot.wc_intro}w, B: ${matchedSlot.wc_body}w, K: ${matchedSlot.wc_infobox || 60}w</span>`;
+            } else {
+                // Fallback scaling if combination not found
+                const sizeFactor = cols / slots;
+                const wc_h = Math.min(15, 8 + Math.floor(cols / 2));
+                const wc_i = Math.min(200, Math.floor(35 + (sizeFactor * 25)));
+                const wc_b = Math.min(500, Math.floor(70 + (sizeFactor * 80)));
+                const wc_k = Math.min(100, Math.floor(30 + (sizeFactor * 15)));
+
+                document.getElementById('wc_headline').value = wc_h;
+                document.getElementById('wc_intro').value = wc_i;
+                document.getElementById('wc_body').value = wc_b;
+                document.getElementById('wc_infobox').value = wc_k;
+
+                document.getElementById('layoutInfo').innerText =
+                    `${cols} Cols, ${slots} Slot: Using calculated defaults.`;
+            }
+        }
+
+        function switchTab(index) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('border-brand-600', 'text-brand-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500');
+                } else {
+                    btn.classList.remove('border-brand-600', 'text-brand-600');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+
+            // Update content directly
+            document.querySelectorAll('.tab-content').forEach((div, i) => {
+                if (i === index) {
+                    // Force visible
+                    div.style.display = 'block';
+                    div.classList.add('active');
+                } else {
+                    // Force hidden
+                    div.style.display = 'none';
+                    div.classList.remove('active');
+                }
+            });
+        }
+
+        // --- Category Logic ---
+        function selectCategory(cat) {
+            document.getElementById('selectedCategory').value = cat;
+
+            // Remove active from all
+            document.querySelectorAll('.category-pill').forEach(btn => {
+                btn.classList.remove('active-cat');
+            });
+
+            // Add to selected (ID-safe)
+            const safeId = `cat_${cat.replace(/\s+/g, '_')}`;
+            const el = document.getElementById(safeId);
+            if (el) el.classList.add('active-cat');
+
+            // Render Sources for this category
+            renderSources(cat);
+        }
+
+        function renderSources(cat) {
+            const container = document.getElementById('sourcesContainer');
+            container.innerHTML = '';
+
+            const sources = categorySources[cat] || [];
+
+            // Default: Select all when sticking to category for first time or switching?
+            // User likely wants all selected by default
+            currentSelectedSources = new Set(sources);
+
+            sources.forEach((source, idx) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2 px-2 py-1 rounded hover:bg-white transition-colors';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `src_check_${idx}`;
+                checkbox.value = source;
+                checkbox.checked = true;
+                checkbox.className = 'w-3.5 h-3.5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 cursor-pointer';
+                checkbox.onchange = (e) => toggleSource(source, e.target.checked);
+
+                const label = document.createElement('label');
+                label.htmlFor = `src_check_${idx}`;
+                label.innerText = source;
+                label.className = 'text-xs text-gray-700 cursor-pointer select-none truncate flex-1 font-medium';
+                label.title = source;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+
+            updateSelectAllBtn();
+        }
+
+        function toggleSource(source, checked) {
+            if (checked) currentSelectedSources.add(source);
+            else currentSelectedSources.delete(source);
+            updateSelectAllBtn();
+        }
+
+        function toggleAllSources() {
+            const cat = document.getElementById('selectedCategory').value;
+            const allSources = categorySources[cat] || [];
+            const container = document.getElementById('sourcesContainer');
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+            // Determine state: if all selected, deselect all. Else select all.
+            const isAllSelected = currentSelectedSources.size === allSources.length;
+
+            if (isAllSelected) {
+                // Deselect All
+                currentSelectedSources.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+            } else {
+                // Select All
+                currentSelectedSources = new Set(allSources);
+                checkboxes.forEach(cb => cb.checked = true);
+            }
+            updateSelectAllBtn();
+        }
+
+        function updateSelectAllBtn() {
+            const cat = document.getElementById('selectedCategory').value;
+            const allSources = categorySources[cat] || [];
+            const btn = document.getElementById('selectAllBtn');
+            const isAllSelected = currentSelectedSources.size === allSources.length;
+
+            btn.innerText = isAllSelected ? "Deselect All" : "Select All";
+        }
+
+        // Initialize: load categories from MongoDB, then render sources
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategoriesFromDB();
+            loadSlotsFromDB();
+            loadHistory();
+        });
+
+        async function loadHistory() {
+            const list = document.getElementById('historyList');
+            try {
+                const res = await fetch('/api/history/?limit=10');
+                if (!res.ok) throw new Error("History fetch failed");
+                const history = await res.json();
+
+                if (history.length === 0) {
+                    list.innerHTML = '<div class="text-center py-4 text-xs text-gray-400">No recent searches.</div>';
+                    return;
+                }
+
+                list.innerHTML = history.map(item => {
+                    const itemId = item.id || item._id;
+                    const hasFinal = !!item.final_article;
+                    const displayTopic = item.topic;
+
+                    return `
+                        <div class="group flex flex-col p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-brand-200 transition-all cursor-pointer relative" onclick="viewHistoryItem('${itemId}')">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-xs font-bold text-gray-900 truncate flex-1" title="${item.topic}">
+                                    ${hasFinal ? `<span class="text-brand-600 mr-1">[FINAL]</span>` : ''}${displayTopic}
+                                </span>
+                                <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                                <span class="${hasFinal ? 'bg-brand-100 text-brand-700' : 'bg-gray-200 text-gray-600'} px-1.5 py-0.5 rounded font-medium">
+                                    ${hasFinal ? '1 Finalized' : `${item.articles.length} Drafts`}
+                                </span>
+                                <span class="truncate">${item.config_used?.slot_config?.column_span || 3} Cols</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = `<div class="text-center py-4 text-xs text-red-500">Failed to load history</div>`;
+            }
+        }
+
+        async function viewHistoryItem(id) {
+            if (!id || id === 'undefined') return;
+            try {
+                const res = await fetch(`/api/history/${id}`);
+                if (!res.ok) throw new Error("History item not found");
+                const item = await res.json();
+
+                // Restore UI state
+                document.getElementById('topicInput').value = item.topic;
+
+                // Restore layout config if available
+                if (item.config_used && item.config_used.slot_config) {
+                    document.getElementById('columnSpan').value = item.config_used.slot_config.column_span;
+                    document.getElementById('slotCount').value = item.config_used.slot_config.slot_count;
+                    if (typeof updateLayoutInfo === 'function') updateLayoutInfo();
+                }
+
+                document.getElementById('welcomeState').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('loading').classList.add('hidden');
+
+                currentHistoryId = item.id || item._id; // Set ID for future merges
+                newspaperArticles = {};
+                variantNames = {};
+                selectedArticles.clear();
+                updateFab();
+
+                if (item.final_reports && item.final_reports.length > 0) {
+                    item.final_reports.forEach((report, ridx) => {
+                        const fKey = `final_report_${ridx}`;
+                        newspaperArticles[fKey] = report;
+                        variantNames[fKey] = ridx === 0 ? "Final Report" : `Final Report ${ridx + 1}`;
+                    });
+                } else if (item.final_article) {
+                    // Backward compatibility
+                    const fKey = 'final_report_0';
+                    newspaperArticles[fKey] = item.final_article;
+                    variantNames[fKey] = "Final Report";
+                }
+
+                item.articles.forEach((article, idx) => {
+                    const key = `history_draft_${idx}`;
+                    newspaperArticles[key] = article;
+                    let name = article.source || `Draft ${idx + 1}`;
+                    if (name.length > 20) name = name.substring(0, 18) + "...";
+                    if (name.includes('www')) name = name.replace('www.', '').split('.')[0];
+                    variantNames[key] = name;
+                });
+
+                renderResults();
+                toast(`Restored: ${item.topic}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {
+                console.error("View History Error:", e);
+                showError("Could not restore history item");
+            }
+        }
+
+        function toast(msg, t = 'success') {
+            const el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = msg; el.className = 'toast ' + t + ' show';
+            setTimeout(() => el.classList.remove('show'), 2800);
+        }
+
+        function updateProgress(percent) {
+            const bar = document.getElementById('progressBar');
+            const txt = document.getElementById('progressText');
+            if (bar) bar.style.width = percent + '%';
+            if (txt) txt.innerText = percent + '%';
+        }
+
+        // --- Core Functions ---
+        function setStepStatus(step, status) {
+            const icon = document.getElementById(`step${step}-icon`);
+            const check = icon.querySelector('span');
+            const text = document.getElementById(`step${step}-text`);
+
+            if (status === 'active') {
+                // Active: Brand Color, Pulse?
+                icon.className = "w-6 h-6 rounded-full border-2 border-brand-500 bg-brand-50 flex items-center justify-center transition-colors animate-pulse";
+                check.classList.add('opacity-0');
+                text.className = "text-sm font-bold text-gray-900 transition-colors";
+            } else if (status === 'done') {
+                // Done: Green Color, Checkmark
+                icon.className = "w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center transition-colors";
+                check.classList.remove('opacity-0');
+                text.className = "text-sm font-medium text-gray-800 transition-colors";
+            } else {
+                // Pending
+                icon.className = "w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center transition-colors";
+                check.classList.add('opacity-0');
+                text.className = "text-sm font-medium text-gray-400 transition-colors";
+            }
         }
 
         async function generateNews() {
             const topic = document.getElementById('topicInput').value.trim();
-            if (!topic) return alert("Please enter a topic");
+            if (!topic) {
+                showError("Please enter a topic first.");
+                return;
+            }
 
-            const columnSpan = parseInt(document.getElementById('columnSpan').value);
-            const slotCount = parseInt(document.getElementById('slotCount').value);
-
-            // Reset UI
-            document.getElementById('loading').classList.remove('hidden');
+            // UI Reset
+            document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
-            document.getElementById('tabsHeader').innerHTML = '';
-            document.getElementById('tabsContent').innerHTML = '';
-            newspaperArticles = { 'variant1': null, 'variant2': null, 'variant3': null };
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('btnText').innerText = "Generating...";
+            document.getElementById('mergeFab').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            selectedArticles.clear();
+
+            // Reset Steps
+            updateProgress(0);
+            setStepStatus(1, 'active');
+            setStepStatus(2, 'pending');
+            setStepStatus(3, 'pending');
+
+            const cat = document.getElementById('selectedCategory').value;
+            const wc_h = parseInt(document.getElementById('wc_headline').value) || 10;
+            const wc_i = parseInt(document.getElementById('wc_intro').value) || 75;
+            const wc_b = parseInt(document.getElementById('wc_body').value) || 175;
+            const wc_k = parseInt(document.getElementById('wc_infobox').value) || 60;
 
             const config = {
                 slot_config: {
-                    slot_count: slotCount,
-                    column_span: columnSpan
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
                 },
                 topic: topic,
-                allowed_sources: ["sandesh.com", "gujaratsamachar.com"]
+                allowed_sources: Array.from(currentSelectedSources),
+                headline_config: { single_line: false },
+                word_count_rules: {
+                    heading_min: Math.max(1, wc_h - 2),
+                    heading_max: wc_h + 2,
+                    subheading_min: 5,
+                    subheading_max: 15,
+                    intro_min: Math.max(1, wc_i - 10),
+                    intro_max: wc_i + 15,
+                    body_min: Math.max(1, wc_b - 20),
+                    body_max: wc_b + 40,
+                    info_box_min: Math.max(1, wc_k - 15),
+                    info_box_max: wc_k + 20
+                },
+                editorial_filters: {}
             };
 
             try {
-                // Generate 3 variants sequentially
-                for (let i = 1; i <= 3; i++) {
-                    document.querySelector('#loading p').innerText = `Generating Article Option ${i}/3...`;
+                // STEP 1: Scrape
+                setStepStatus(1, 'active');
+                updateProgress(10);
+                await new Promise(r => setTimeout(r, 400));
+                setStepStatus(1, 'done');
 
-                    const response = await fetch('/api/newspaper/generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(config)
-                    });
+                setStepStatus(2, 'active');
+                const scrapeStepText = document.getElementById('step2-text');
 
-                    if (!response.ok) {
-                        throw new Error(`Failed to generate article ${i}`);
-                    }
+                const scrapeRes = await fetch('/api/newspaper/scrape-stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
 
-                    const data = await response.json();
-                    newspaperArticles[`variant${i}`] = data;
+                if (!scrapeRes.ok) throw new Error("Scraping connection failed");
 
-                    // Show progressive results
-                    renderProgressiveResults();
+                const reader = scrapeRes.body.getReader();
+                const decoder = new TextDecoder();
+                let articles = [];
 
-                    // Wait 60 seconds between variants (except after last one)
-                    if (i < 3) {
-                        document.querySelector('#loading p').innerText = `Waiting 60s before generating Article Option ${i + 1}...`;
-                        await new Promise(resolve => setTimeout(resolve, 60000));
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const event = JSON.parse(line);
+                            if (event.type === 'progress') {
+                                // Progress bar mapping: 15% to 80% during scraping
+                                let displayPct = 15 + (event.percentage * 0.65);
+                                updateProgress(Math.floor(displayPct));
+                                scrapeStepText.innerText = `Scraping ${event.site}... (${event.index + 1}/${event.total})`;
+                            } else if (event.type === 'site_done') {
+                                articles = articles.concat(event.articles);
+                            } else if (event.type === 'all_done') {
+                                updateProgress(80);
+                            }
+                        } catch (e) { }
                     }
                 }
 
-                document.getElementById('loading').classList.add('hidden');
+                if (!articles || articles.length === 0) {
+                    throw new Error("No articles found to process.");
+                }
 
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('error').classList.remove('hidden');
-                document.getElementById('errorText').innerText = error.message;
+                setStepStatus(2, 'done');
+                scrapeStepText.innerText = `Scraped ${articles.length} source(s).`;
+
+                setStepStatus(3, 'active');
+                updateProgress(90);
+
+                // STEP 2: Generate Content
+                const generateReq = {
+                    config: config,
+                    articles: articles
+                };
+
+                const genRes = await fetch('/api/newspaper/generate-from-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(generateReq)
+                });
+
+                if (!genRes.ok) throw new Error("Generation failed");
+
+                const responseData = await genRes.json();
+                const data = responseData.articles;
+                currentHistoryId = responseData.history_id;
+
+                setStepStatus(3, 'done');
+                updateProgress(100);
+                await new Promise(r => setTimeout(r, 800));
+
+                // Process Data
+                newspaperArticles = {};
+                variantNames = {};
+
+                const validData = Array.isArray(data) ? data.filter(a => a.validation_passed !== false || a.headline !== "Generation Failed") : [data];
+
+                if (validData.length === 0) throw new Error("No valid articles could be generated. Try a different topic.");
+
+                validData.forEach((article, idx) => {
+                    const key = `draft_${idx}`;
+                    newspaperArticles[key] = article;
+
+                    let name = article.source || `Draft ${idx + 1}`;
+                    if (name.length > 20) name = name.substring(0, 18) + "...";
+                    // Clean URL
+                    if (name.includes('www')) name = name.replace('www.', '').split('.')[0];
+                    variantNames[key] = name;
+                });
+
                 document.getElementById('loading').classList.add('hidden');
+                renderResults();
+                loadHistory(); // Refresh history list after generation
+
+            } catch (e) {
+                console.error(e);
+                showError(e.message || "An unexpected error occurred.");
+                document.getElementById('loading').classList.add('hidden');
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('btnText').innerText = "Generate Drafts";
             }
         }
 
-        function renderProgressiveResults() {
-            const tabsHeader = document.getElementById('tabsHeader');
-            const tabsContent = document.getElementById('tabsContent');
-
-            // Show results container
+        function renderResults() {
             document.getElementById('results').classList.remove('hidden');
+            const header = document.getElementById('tabsHeader');
+            const content = document.getElementById('tabsContent');
 
-            // Get available variants
-            const availableVariants = Object.keys(newspaperArticles).filter(key => newspaperArticles[key] !== null);
-            if (availableVariants.length === 0) return;
+            header.innerHTML = '';
+            content.innerHTML = '';
 
-            // Remember current active tab
-            const currentActive = document.querySelector('.tab-btn.active')?.innerText;
+            const keys = Object.keys(newspaperArticles);
+            // Sort to ensure Final Reports are always first and in order
+            keys.sort((a, b) => {
+                const isAFinal = a.startsWith('final_report_');
+                const isBFinal = b.startsWith('final_report_');
 
-            // Clear and rebuild
-            tabsHeader.innerHTML = '';
-            tabsContent.innerHTML = '';
+                if (isAFinal && !isBFinal) return -1;
+                if (!isAFinal && isBFinal) return 1;
+                if (isAFinal && isBFinal) {
+                    const aIdx = parseInt(a.split('_')[2]);
+                    const bIdx = parseInt(b.split('_')[2]);
+                    return aIdx - bIdx;
+                }
+                return 0;
+            });
 
-            // Create Tabs and Content for each variant
-            availableVariants.forEach((variantKey, index) => {
-                const output = newspaperArticles[variantKey];
-                const displayName = variantNames[variantKey];
-                const isActive = currentActive === displayName || (index === 0 && !currentActive);
-
+            keys.forEach((key, index) => {
                 // Tab Button
                 const btn = document.createElement('button');
-                btn.className = `tab-btn px-6 py-4 font-medium text-gray-600 hover:text-blue-600 focus:outline-none whitespace-nowrap transition ${isActive ? 'active' : ''}`;
-                btn.innerText = displayName;
+                btn.className = `tab-btn flex-shrink-0 whitespace-nowrap pb-4 px-4 border-b-2 font-medium text-sm transition-colors duration-200 ${index === 0 ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`;
+                btn.innerText = variantNames[key].toUpperCase();
                 btn.onclick = () => switchTab(index);
-                tabsHeader.appendChild(btn);
+                header.appendChild(btn);
 
-                // Tab Content
-                const contentDiv = document.createElement('div');
-                contentDiv.className = `tab-content ${isActive ? 'active' : ''}`;
-
-                let content = `<div class="newspaper-article">`;
-                content += `<h1 class="text-3xl font-bold mb-4 text-gray-900">${output.headline}</h1>`;
-
-                if (output.headline_cap) {
-                    content += `<h2 class="text-xl font-semibold mb-3 text-gray-700">${output.headline_cap}</h2>`;
-                }
-
-                if (output.subheading) {
-                    content += `<h3 class="text-lg font-medium mb-4 text-gray-600">${output.subheading}</h3>`;
-                }
-
-                content += `<p class="text-lg mb-4 leading-relaxed text-gray-800"><strong>Intro:</strong> ${output.intro}</p>`;
-                content += `<div class="text-base leading-relaxed text-gray-700 whitespace-pre-wrap">${output.body}</div>`;
-
-                if (output.info_box) {
-                    content += `<div class="mt-6 p-4 bg-gray-100 border-l-4 border-blue-500">`;
-                    content += `<h4 class="font-semibold mb-2">Info Box</h4>`;
-                    content += `<p class="text-sm">${output.info_box}</p>`;
-                    content += `</div>`;
-                }
-
-                if (!output.validation_passed && output.validation_errors.length > 0) {
-                    content += `<div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">`;
-                    content += `<p class="text-sm text-yellow-800"><strong>Validation Warnings:</strong></p>`;
-                    content += `<ul class="text-sm text-yellow-700 list-disc list-inside">`;
-                    output.validation_errors.forEach(err => {
-                        content += `<li>${err}</li>`;
-                    });
-                    content += `</ul></div>`;
-                }
-
-                content += `</div>`;
-
-                contentDiv.innerHTML = content;
-                tabsContent.appendChild(contentDiv);
+                // Content
+                const div = document.createElement('div');
+                div.className = `tab-content ${index === 0 ? 'active' : ''} p-6 md:p-10`;
+                // Explicitly set style for first item
+                div.style.display = index === 0 ? 'block' : 'none';
+                div.innerHTML = buildArticleHTML(newspaperArticles[key], key);
+                content.appendChild(div);
             });
         }
 
-        function switchTab(index) {
-            const btns = document.querySelectorAll('.tab-btn');
-            const contents = document.querySelectorAll('.tab-content');
-
-            btns.forEach((btn, i) => {
-                if (i === index) btn.classList.add('active');
-                else btn.classList.remove('active');
+        // Global Sub-Tab Logic
+        window.switchArticleSubTab = function (key, section) {
+            // Update Buttons
+            document.querySelectorAll(`.subtab-btn-${key}`).forEach(btn => {
+                if (btn.dataset.section === section) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
 
-            contents.forEach((div, i) => {
-                if (i === index) div.classList.add('active');
-                else div.classList.remove('active');
+            // Update Content
+            document.querySelectorAll(`.section-view-${key}`).forEach(view => {
+                if (view.dataset.section === section) {
+                    view.classList.add('active');
+                } else {
+                    view.classList.remove('active');
+                }
             });
+        };
+
+        function buildArticleHTML(article, key) {
+            const isSelected = selectedArticles.has(key);
+
+            // Safe key for IDs
+            const safeKey = key.replace(/[^a-zA-Z0-9]/g, '_');
+
+            return `
+                <div class="newspaper-paper p-8 md:p-12 relative mb-12 max-w-4xl mx-auto rounded-xl shadow-sm">
+                    
+                    <!-- Meta Header -->
+                    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                            ${article.source || 'AI NEWSWIRE'} • ${new Date().toLocaleDateString()}
+                        </div>
+                        
+                        <label class="cursor-pointer group">
+                            <input type="checkbox" class="peer sr-only" onchange="toggleSelection('${key}')" ${isSelected ? 'checked' : ''}>
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-300 text-gray-500 text-sm font-medium transition-all peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 group-hover:bg-gray-50">
+                                <span class="w-4 h-4 rounded-full border border-gray-400 peer-checked:bg-brand-600 peer-checked:border-brand-600 flex items-center justify-center">
+                                    <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </span>
+                                Select for Merge
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Inner Tabs Navigation -->
+                    <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-8 sticky top-[-2.5rem] bg-white z-10 pt-4 -mx-8 px-8 shadow-sm">
+                        <button onclick="switchArticleSubTab('${safeKey}', 'all')" data-section="all" 
+                            class="subtab-btn subtab-btn-${safeKey} active">
+                            All Sections
+                        </button>
+                        <button onclick="switchArticleSubTab('${safeKey}', 'headline')" data-section="headline" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Headline
+                        </button>
+                        ${article.subheading ? `
+                        <button onclick="switchArticleSubTab('${safeKey}', 'subheading')" data-section="subheading" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Sub-Heading
+                        </button>` : ''}
+                        <button onclick="switchArticleSubTab('${safeKey}', 'intro')" data-section="intro" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Intro
+                        </button>
+                        <button onclick="switchArticleSubTab('${safeKey}', 'body')" data-section="body" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Content
+                        </button>
+                        ${article.info_box ? `
+                        <button onclick="switchArticleSubTab('${safeKey}', 'infobox')" data-section="infobox" 
+                            class="subtab-btn subtab-btn-${safeKey}">
+                            Key Points
+                        </button>` : ''}
+                    </div>
+
+                    <!-- Article Body Container -->
+                    <article class="article-container min-h-[300px]">
+                        
+                        <!-- 1. ALL View (Active by default) -->
+                        <div class="section-view section-view-${safeKey} active" data-section="all">
+                            ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
+                            <h1>${article.headline}</h1>
+                            ${article.subheading ? `<h2>${article.subheading}</h2>` : ''}
+                            <div class="article-separator"></div>
+                            <p class="article-intro">
+                                <span class="font-bold text-black uppercase mr-1" style="color: black !important;">${(article.source || "AHMEDABAD").split('.')[0]}:</span> 
+                                ${article.intro}
+                            </p>
+                            <div style="color: black !important;">
+                                ${article.body.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')}
+                            </div>
+                            ${article.info_box ? `
+                                <div class="article-infobox">
+                                    <h4>Key Points</h4>
+                                    <div>${article.info_box}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- 2. Headline View -->
+                        <div class="section-view section-view-${safeKey}" data-section="headline">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Headline Component</span>
+                                <div class="mt-4">
+                                    ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
+                                    <h1>${article.headline}</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Subheading View -->
+                        ${article.subheading ? `
+                        <div class="section-view section-view-${safeKey}" data-section="subheading">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Sub-Heading</span>
+                                <h2 class="mt-4">${article.subheading}</h2>
+                            </div>
+                        </div>` : ''}
+
+                        <!-- 4. Intro View -->
+                        <div class="section-view section-view-${safeKey}" data-section="intro">
+                            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Introduction Paragraph</span>
+                                <p class="article-intro mt-4">
+                                    <span class="font-bold text-black uppercase mr-1" style="color: black !important;">${(article.source || "AHMEDABAD").split('.')[0]}:</span> 
+                                    ${article.intro}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 5. Body View -->
+                        <div class="section-view section-view-${safeKey}" data-section="body">
+                             <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Main Content</span>
+                                <div class="mt-4" style="color: black !important;">
+                                    ${article.body.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Info Box View -->
+                        ${article.info_box ? `
+                        <div class="section-view section-view-${safeKey}" data-section="infobox">
+                            <div class="article-infobox mt-0">
+                                <h4>Key Points / Summary Box</h4>
+                                <div>${article.info_box}</div>
+                            </div>
+                        </div>` : ''}
+
+                    </article>
+                </div>
+            `;
+        }
+
+        // --- Merging Logic ---
+        function toggleSelection(key) {
+            if (selectedArticles.has(key)) selectedArticles.delete(key);
+            else selectedArticles.add(key);
+            updateFab();
+            // Re-render only to update styling if needed, or rely on simple class toggles
+            // Here simpler: just update UI state via checkbox listener (already done in HTML)
+        }
+
+        function updateFab() {
+            const fab = document.getElementById('mergeFab');
+            const count = document.getElementById('selectedCount');
+
+            if (selectedArticles.size > 0) {
+                fab.classList.remove('hidden');
+                count.innerText = selectedArticles.size;
+            } else {
+                fab.classList.add('hidden');
+            }
+        }
+
+        async function mergeArticles() {
+            if (selectedArticles.size === 0) return;
+
+            const drafts = Array.from(selectedArticles).map(k => newspaperArticles[k]);
+            const btn = document.querySelector('#mergeFab button');
+            const originalHTML = btn.innerHTML;
+
+            // Loading
+            btn.innerHTML = `<div class="loader w-5 h-5"></div><span class="ml-2">Synthesizing...</span>`;
+            btn.disabled = true;
+
+            const config = {
+                topic: document.getElementById('topicInput').value,
+                slot_config: {
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
+                },
+                word_count_rules: null,
+                headline_config: { single_line: false },
+                editorial_filters: {}
+            };
+
+            try {
+                const res = await fetch('/api/newspaper/merge-refine', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        selected_articles: drafts,
+                        config: config,
+                        history_id: currentHistoryId
+                    })
+                });
+
+                if (!res.ok) throw new Error("Merge failed");
+                const finalArticle = await res.json();
+
+                // Add to results as indexed final report
+                const frCount = Object.keys(newspaperArticles).filter(k => k.startsWith('final_report_')).length;
+                const newKey = `final_report_${frCount}`;
+                newspaperArticles[newKey] = finalArticle;
+                variantNames[newKey] = frCount === 0 ? "Final Report" : `Final Report ${frCount + 1}`;
+
+                renderResults();
+
+                // Switch to first tab (Final is sorted first)
+                switchTab(0);
+
+                // Clear state
+                selectedArticles.clear();
+                updateFab();
+                loadHistory(); // Refresh history list after merge
+
+            } catch (e) {
+                console.error(e);
+                showError("Merge failed: " + e.message);
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('errorText').innerText = msg;
+            setTimeout(() => document.getElementById('error').classList.add('hidden'), 5000);
         }
     </script>
-
 </body>
 
 </html>

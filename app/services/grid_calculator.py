@@ -9,50 +9,60 @@ class GridCalculator:
         2: 8.7,
         3: 13.3,
         4: 17.7,
-        5: 22.4
+        5: 22.4,
+        6: 27.0,
+        7: 31.6,
+        8: 36.2
     }
     
     # Word count matrix: (column_span, slot_count) -> WordCountRules
     WORD_COUNT_MATRIX = {
-        # 2 Column - 1 Slot
+        # 1 Column layouts
+        (1, 1): {
+            "heading": (6, 8),
+            "subheading": (8, 12),
+            "intro": (30, 45),
+            "body": (80, 100),
+            "info_box": (30, 50)
+        },
+        # 2 Column layouts
         (2, 1): {
             "heading": (8, 10),
             "subheading": (10, 14),
             "intro": (40, 60),
-            "body": (130, 150),
-            "info_box": None
+            "body": (130, 160),
+            "info_box": (40, 60)
         },
-        # 3 Column - 1 Slot
+        # 3 Column layouts
         (3, 1): {
             "heading": (8, 12),
             "subheading": (10, 14),
-            "intro": (70, 80),
-            "body": (170, 180),
-            "info_box": None
+            "intro": (70, 85),
+            "body": (170, 200),
+            "info_box": (50, 70)
         },
-        # 4 Column - 1 Slot
+        # 4 Column layouts
         (4, 1): {
             "heading": (12, 16),
             "subheading": (15, 20),
-            "intro": (70, 80),
-            "body": (170, 180),
-            "info_box": None
+            "intro": (70, 85),
+            "body": (170, 220),
+            "info_box": (60, 80)
         },
-        # 5 Column - 1 Slot (single-line)
+        # 5 Column layouts
         (5, 1): {
             "heading": (8, 10),
             "subheading": (16, 20),
-            "intro": (70, 80),
-            "body": (170, 180),
-            "info_box": (60, 80)
+            "intro": (70, 90),
+            "body": (180, 250),
+            "info_box": (60, 90)
         },
-        # 5 Column - 1 Slot (double-line)
         (5, 1, "double"): {
             "heading": (12, 16),
-            "subheading": (16, 20),
-            "intro": (70, 80),
-            "body": (170, 180),
-            "info_box": (60, 80)
+            "subheading": (16, 22),
+            "intro": (70, 95),
+            "body": (200, 300),
+            "info_box": (70, 100)
         }
     }
     
@@ -108,7 +118,13 @@ class GridCalculator:
             key = (column_span, slot_count)
         
         # Get rules from matrix, default to 3-column if not found
-        rules = GridCalculator.WORD_COUNT_MATRIX.get(key, GridCalculator.WORD_COUNT_MATRIX[(3, 1)])
+        # For columns > 5, we'll use 5-column rules but scale body slightly
+        if column_span > 5:
+            rules = GridCalculator.WORD_COUNT_MATRIX.get((5, 1, "double" if double_line else "single"), GridCalculator.WORD_COUNT_MATRIX[(3, 1)])
+            # Scale body max for larger layouts if it's the default 5-col
+            if column_span == 8: rules["body"] = (rules["body"][0], rules["body"][1] + 100)
+        else:
+            rules = GridCalculator.WORD_COUNT_MATRIX.get(key, GridCalculator.WORD_COUNT_MATRIX[(3, 1)])
         
         return WordCountRules(
             heading_min=rules["heading"][0],
