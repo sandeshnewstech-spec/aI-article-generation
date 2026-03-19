@@ -8,6 +8,7 @@ class ScrapedArticle(BaseModel):
     url: str
     title: str
     body: str
+    image_url: Optional[str] = None  # Main article image scraped from the page
 
 
 class GenerationResult(BaseModel):
@@ -145,6 +146,7 @@ class NewspaperOutput(BaseModel):
     info_box: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
+    image_url: Optional[str] = None  # Scraped article image from source page
     validation_passed: bool = True
     validation_errors: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)

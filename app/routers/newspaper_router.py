@@ -98,6 +98,7 @@ async def generate_newspaper_article(config: NewspaperConfig):
             if i < len(articles):
                 output.source = articles[i].source
                 output.url = articles[i].url
+                output.image_url = articles[i].image_url  # carry scraped image
             results.append(output)
 
         # Save results to history

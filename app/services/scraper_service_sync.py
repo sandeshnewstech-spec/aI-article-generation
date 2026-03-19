@@ -154,11 +154,15 @@ class ScraperService:
             if not body_text or len(body_text) < 100:
                 return None
 
+            # Get Main Article Image (og:image → twitter:image → first large img)
+            image_url = self._extract_image(page, site)
+
             return ScrapedArticle(
                 source=site,
                 url=url,
                 title=title.strip(),
                 body=" ".join(body_text.split()),
+                image_url=image_url,
             )
 
         except Exception as e:
@@ -242,3 +246,65 @@ class ScraperService:
             body = " ".join([p.text_content() for p in p_tags if len(p.text_content() or "") > 40])
 
         return body
+
+    def _extract_image(self, page, site: str) -> Optional[str]:
+        """Extract the main article image URL from various meta tags and img selectors."""
+        try:
+            # 1. og:image (most reliable — used by all major news sites)
+            el = page.locator("meta[property='og:image']").first
+            if el.count() > 0 or page.locator("meta[property='og:image']").count() > 0:
+                src = page.locator("meta[property='og:image']").get_attribute("content")
+                if src and src.startswith("http"):
+                    print(f"[IMAGE-SCRAPE] og:image found: {src[:80]}")
+                    return src
+
+            # 2. twitter:image
+            el2 = page.locator("meta[name='twitter:image']").first
+            if page.locator("meta[name='twitter:image']").count() > 0:
+                src = page.locator("meta[name='twitter:image']").get_attribute("content")
+                if src and src.startswith("http"):
+                    return src
+
+            # 3. Site-specific selectors
+            site_image_selectors = {
+                "sandesh.com":         ".article-image img, .story-main-image img",
+                "gujaratsamachar.com": ".article-img img, .post-thumbnail img",
+                "tv9gujarati.com":     ".detailBody img, .news-detail-img img",
+                "aninews.in":          ".story-image img, article img",
+                "aajtak.in":           ".jsx-story-head img, .main-image img",
+                "news18.com":          ".article-header-image img, .jsx-story img",
+                "divyabhaskar.co.in":  ".story-img img, .article-image img",
+            }
+            for k, sel in site_image_selectors.items():
+                if k in site:
+                    imgs = page.locator(sel).all()
+                    for img in imgs:
+                        src = img.get_attribute("src")
+                        if src and src.startswith("http") and any(
+                            ext in src for ext in [".jpg", ".jpeg", ".png", ".webp"]
+                        ):
+                            return src
+
+            # 4. Generic: first <img> inside article tag that looks large
+            src = page.evaluate("""
+                () => {
+                    const imgs = document.querySelectorAll('article img, .article img, .story img');
+                    for (const img of imgs) {
+                        const src = img.getAttribute('src') || img.getAttribute('data-src') || '';
+                        if (src.startsWith('http') && (src.includes('.jpg') || src.includes('.jpeg') || src.includes('.png') || src.includes('.webp'))) {
+                            // Prefer bigger images
+                            if ((img.naturalWidth || img.width || 0) > 200 || src.length > 0) {
+                                return src;
+                            }
+                        }
+                    }
+                    return null;
+                }
+            """)
+            if src:
+                return src
+
+        except Exception as e:
+            print(f"[IMAGE-SCRAPE] Error extracting image: {e}")
+
+        return None

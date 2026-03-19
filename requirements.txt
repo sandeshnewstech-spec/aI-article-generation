@@ -8,3 +8,4 @@ google-genai
 pydantic
 motor
 pymongo
+httpx

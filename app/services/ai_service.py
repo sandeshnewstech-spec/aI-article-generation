@@ -103,3 +103,20 @@ SOURCES AND CONTENT:
         except Exception as e:
             print(f"Gemini Error: {e}")
             return f"Error generating content with Gemini: {str(e)}"
+            data = resp.json()
+            return data.get("message", {}).get("content", "")
+        except Exception as e:
+            print(f"Ollama Error: {e}")
+            return "Error generating content with Ollama."
+
+    def _generate_gemini(self, prompt: str) -> str:
+        try:
+            import google.generativeai as genai
+
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"Gemini Error: {e}")
+            return f"Error generating content with Gemini: {str(e)}"

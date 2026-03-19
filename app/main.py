@@ -39,6 +39,10 @@ app.include_router(category_router.router, prefix="/api")
 app.include_router(slot_router.router, prefix="/api")
 app.include_router(history_router.router, prefix="/api")
 
+# Include Image Router (search + generate)
+from app.routers import image_router
+app.include_router(image_router.router, prefix="/api")
+
 if __name__ == "__main__":
     import uvicorn
 
