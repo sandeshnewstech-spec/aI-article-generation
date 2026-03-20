@@ -1,141 +1,97 @@
-"""
-Image Router
-Endpoints:
-  POST /api/image/search         - Search relevant images for a query
-  POST /api/image/generate       - Generate AI image using Gemini Imagen
-  POST /api/image/auto-generate  - Auto-generate from article content (Gujarati -> English prompt -> Imagen)
-"""
-
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Response
+from pydantic import BaseModel
 from typing import List, Optional
 from app.services.image_service import ImageService
+import requests
+import os
 
 router = APIRouter(prefix="/image", tags=["image"])
+service = ImageService()
 
-image_service = ImageService()
-
-
-# ─────────────────────────────────────────────
-# Request / Response Models
-# ─────────────────────────────────────────────
-
-class ImageSearchRequest(BaseModel):
-    query: str = Field(description="Search query / news topic")
-    max_results: int = Field(default=10, ge=1, le=30, description="Max number of images")
-
-
-class ImageResult(BaseModel):
-    title: str
-    image_url: str
-    thumbnail_url: str
-    source_url: str
-    width: int
-    height: int
-    source: str
-
-
-class ImageSearchResponse(BaseModel):
+class SearchRequest(BaseModel):
     query: str
-    total: int
-    images: List[ImageResult]
-
-
-class ImageGenerateRequest(BaseModel):
-    prompt: str = Field(description="Prompt for AI image generation")
-    count: int = Field(default=1, ge=1, le=4, description="Number of images (max 4)")
-
-
-class GeneratedImage(BaseModel):
-    base64_image: Optional[str] = None
-    image_url: Optional[str] = None
-    mime_type: str = "image/jpeg"
-    prompt: str
-
-
-class ImageGenerateResponse(BaseModel):
-    prompt: str
-    count: int
-    images: List[GeneratedImage]
-
+    count: Optional[int] = 10
 
 class AutoGenerateRequest(BaseModel):
-    """Auto generate image from Gujarati article content"""
-    headline: str = Field(description="Article headline (Gujarati OK)")
-    topic: str = Field(description="Article topic (Gujarati OK)")
-    intro: Optional[str] = Field(default="", description="Article intro paragraph (optional)")
+    headline: str
+    topic: str
+    intro: Optional[str] = ""
 
-
-class AutoGenerateResponse(BaseModel):
-    success: bool
-    image_url: Optional[str] = None      # Pollinations.ai URL (FREE)
-    base64_image: Optional[str] = None  # Gemini Imagen base64 (PAID, legacy)
-    mime_type: Optional[str] = None
-    prompt_used: Optional[str] = None
-    error: Optional[str] = None
-
-
-# ─────────────────────────────────────────────
-# Routes
-# ─────────────────────────────────────────────
-
-@router.post("/search", response_model=ImageSearchResponse)
-async def search_images(request: ImageSearchRequest):
-    """Search for relevant images using DuckDuckGo Image Search."""
+@router.post("/search")
+async def search_images(request: SearchRequest):
     try:
-        print(f"[IMAGE] Searching images for: '{request.query}'")
-        results = await image_service.get_images(request.query, request.max_results)
-        return ImageSearchResponse(
-            query=request.query,
-            total=len(results),
-            images=[ImageResult(**img) for img in results],
-        )
+        return await service.get_images(request.query, request.count)
     except Exception as e:
-        print(f"[ERROR] Image search failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Image search failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.post("/generate", response_model=ImageGenerateResponse)
-async def generate_image(request: ImageGenerateRequest):
-    """Generate an AI image using Google Gemini Imagen API."""
-    try:
-        if not request.prompt.strip():
-            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
-        print(f"[IMAGE] Generating {request.count} image(s) for: '{request.prompt[:60]}'")
-        results = await image_service.generate_image(request.prompt, request.count)
-        return ImageGenerateResponse(
-            prompt=request.prompt,
-            count=len(results),
-            images=[GeneratedImage(**img) for img in results],
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"[ERROR] Image generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
-
-
-@router.post("/auto-generate", response_model=AutoGenerateResponse)
+@router.post("/auto-generate")
 async def auto_generate_image(request: AutoGenerateRequest):
-    """
-    Automatically generate a relevant news image from Gujarati article content.
-
-    Flow:
-      1. Gemini text reads Gujarati headline/topic/intro
-      2. Creates a descriptive English prompt
-      3. Gemini Imagen generates the image
-      4. Returns base64 PNG
-
-    NOTE: Requires Gemini Imagen API access (paid tier).
-    """
     try:
-        print(f"[IMAGE-AUTO] Auto-generating for: '{request.headline[:60]}'")
-        result = await image_service.auto_generate_for_article(
-            headline=request.headline,
-            topic=request.topic,
-            intro=request.intro or "",
+        return await service.auto_generate_for_article(
+            request.headline, request.topic, request.intro
         )
-        return AutoGenerateResponse(**result)
     except Exception as e:
-        print(f"[ERROR] Auto image generation failed: {e}")
-        return AutoGenerateResponse(success=False, error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/download")
+async def download_image_proxy(url: str):
+    """
+    Proxy endpoint to download images from news sites.
+    Bypasses hotlink protection and forces a browser download.
+    """
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+        
+    try:
+        # Handle local static files differently (don't use requests for local files!)
+        if url.startswith("/static"):
+            # Normalize path (remove leading /)
+            clean_path = url[1:] if url.startswith("/") else url
+            full_path = clean_path # Should already be relative to project root
+            
+            # Fallback if app/ is not in the path
+            if not os.path.exists(full_path) and not full_path.startswith("app/"):
+                full_path = os.path.join("app", full_path)
+            
+            if os.path.exists(full_path):
+                from fastapi.responses import FileResponse
+                filename = full_path.split("/")[-1]
+                # Let FileResponse automatically detect media_type from extension
+                return FileResponse(
+                    path=full_path,
+                    filename=filename
+                )
+            else:
+                print(f"[ERROR] Local download failed: file not found at {full_path}")
+                raise HTTPException(status_code=404, detail="File not found")
+
+        # Handle external URLs
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': url 
+        }
+        
+        # Use streaming for better reliability
+        response = requests.get(url, headers=headers, timeout=12, stream=True)
+        response.raise_for_status()
+        
+        content_type = response.headers.get('Content-Type', 'image/jpeg')
+        filename = url.split('/')[-1].split('?')[0] or "news_image.jpg"
+        if not any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+             # Map content-type to common extension
+             if "png" in content_type: filename += ".png"
+             elif "webp" in content_type: filename += ".webp"
+             else: filename += ".jpg"
+
+        from fastapi.responses import StreamingResponse
+        return StreamingResponse(
+            response.iter_content(chunk_size=8192),
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+    except Exception as e:
+        print(f"[ERROR] Proxy download failed for {url}: {e}")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=url)

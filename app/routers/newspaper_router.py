@@ -60,7 +60,7 @@ async def generate_newspaper_article(config: NewspaperConfig):
         print(f"[SCRAPE] Scraping articles for: {config.topic}")
         # Pass allowed_sources directly to scraper to filter at source
         articles = await scraper.scrape_topic(
-            config.topic, limit_per_site=5, allowed_sites=config.allowed_sources
+            config.topic, limit_per_site=config.limit, allowed_sites=config.allowed_sources
         )
 
         if not articles:
@@ -93,12 +93,38 @@ async def generate_newspaper_article(config: NewspaperConfig):
         outputs = await newspaper_ai.generate_batch_newspaper_articles(articles, config)
 
         # Add metadata back to results
+        from app.services.image_service import ImageService
+        img_service = ImageService()
         results = []
         for i, output in enumerate(outputs):
             if i < len(articles):
                 output.source = articles[i].source
                 output.url = articles[i].url
-                output.image_url = articles[i].image_url  # carry scraped image
+                
+                # --- SMART IMAGE FALLBACK ---
+                # If scraper found NO image, try a quick headline search
+                image_url = articles[i].image_url
+                if not image_url or len(image_url) < 5:
+                    print(f"[AI-IMAGE] No photo scraped for '{output.headline[:30]}...', trying search fallback...")
+                    try:
+                        search_query = " ".join(output.headline.split()[:8])
+                        results_imgs = await img_service.get_images(search_query, max_results=1)
+                        if results_imgs and len(results_imgs) > 0:
+                            image_url = results_imgs[0].get("image_url")
+                            print(f"[AI-IMAGE] Fallback found: {image_url[:60] if image_url else 'None'}")
+                    except Exception as e:
+                        print(f"[AI-IMAGE] Fallback failed: {e}")
+
+                # --- PERSIST IMAGE LOCALLY ---
+                # Download to local disk so it always loads (no hotlink issues)
+                if image_url and image_url.startswith("http"):
+                    try:
+                        local_url = await img_service.persist_scraped_image(image_url)
+                        image_url = local_url
+                    except Exception as e:
+                        print(f"[AI-IMAGE] Persist failed, using original URL: {e}")
+
+                output.image_url = image_url
             results.append(output)
 
         # Save results to history
@@ -134,33 +160,43 @@ async def scrape_articles_stream(config: NewspaperConfig):
     """
     async def event_generator():
         sites = config.allowed_sources if config.allowed_sources else scraper.SITES
-        for i, site in enumerate(sites):
-            try:
-                # 1. Notify progress
+        
+        try:
+            print(f"[STREAM] Starting scrape for {len(sites)} sites...")
+            # 1. Start streaming from scraper service
+            async for result in scraper.scrape_topic_stream(
+                config.topic, limit_per_site=config.limit, allowed_sites=sites
+            ):
+                site_name = result["site"]
+                articles_list = result["articles"]
+                
+                event_generator.counter = getattr(event_generator, 'counter', 0) + 1
+                i = event_generator.counter - 1
+                
+                # Send Heartbeat/Progress
                 yield json.dumps({
                     "type": "progress", 
-                    "site": site, 
+                    "site": site_name, 
                     "index": i, 
                     "total": len(sites),
                     "percentage": int(((i + 1) / len(sites)) * 100)
                 }) + "\n"
                 
-                # 2. Scrape individual site
-                articles = await scraper.scrape_topic(
-                    config.topic, limit_per_site=5, allowed_sites=[site]
-                )
-                
-                # 3. Send results for this site
+                # Send Result
                 yield json.dumps({
                     "type": "site_done", 
-                    "site": site, 
-                    "articles": [a.dict() for a in articles]
+                    "site": site_name, 
+                    "articles": [a.dict() for a in articles_list]
                 }) + "\n"
                 
-            except Exception as e:
-                yield json.dumps({"type": "error", "site": site, "message": str(e)}) + "\n"
+                print(f"[STREAM] Successfully pushed results for {site_name}")
+
+        except Exception as e:
+            print(f"[CRITICAL_ERROR] Stream processing failed: {e}")
+            yield json.dumps({"type": "error", "message": f"Global error: {str(e)}"}) + "\n"
 
         yield json.dumps({"type": "all_done", "percentage": 100}) + "\n"
+        print(f"[STREAM] Scrape-stream completed.")
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
@@ -173,7 +209,7 @@ async def scrape_articles_only(config: NewspaperConfig):
     try:
         print(f"[SCRAPE] Scraping articles for: {config.topic}")
         articles = await scraper.scrape_topic(
-            config.topic, limit_per_site=5, allowed_sites=config.allowed_sources
+            config.topic, limit_per_site=config.limit, allowed_sites=config.allowed_sources
         )
 
         if not articles and config.allowed_sources:
@@ -219,12 +255,38 @@ async def generate_from_content(request: GenerateFromContentRequest):
         # Batch generation
         outputs = await newspaper_ai.generate_batch_newspaper_articles(articles, config)
 
-        # Add metadata back to results
+        # Add metadata back to results (including image!)
+        from app.services.image_service import ImageService
+        img_service = ImageService()
         results = []
         for i, output in enumerate(outputs):
             if i < len(articles):
                 output.source = articles[i].source
                 output.url = articles[i].url
+
+                # Carry scraped image URL
+                image_url = articles[i].image_url
+
+                # Fallback: search for image using headline if scraper found nothing
+                if not image_url or len(image_url) < 5:
+                    print(f"[AI-IMAGE] No photo for '{output.headline[:30]}...', trying search...")
+                    try:
+                        search_query = " ".join(output.headline.split()[:8])
+                        imgs = await img_service.get_images(search_query, max_results=1)
+                        if imgs:
+                            image_url = imgs[0].get("image_url")
+                            print(f"[AI-IMAGE] Found fallback: {image_url[:60] if image_url else 'None'}")
+                    except Exception as e:
+                        print(f"[AI-IMAGE] Fallback search failed: {e}")
+
+                # Save image locally so it always loads (bypasses hotlinks)
+                if image_url and image_url.startswith("http"):
+                    try:
+                        image_url = await img_service.persist_scraped_image(image_url)
+                    except Exception as e:
+                        print(f"[AI-IMAGE] Persist failed, using original: {e}")
+
+                output.image_url = image_url
             results.append(output)
 
         # Save to history
@@ -300,6 +362,40 @@ async def generate_from_keypoints_endpoint(request: GenerateFromKeypointsRequest
         print(f"[ERROR] Error generating from keypoints: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/rewrite", response_model=GenerateResponse)
+async def high_quality_rewrite_endpoint(request: GenerateFromKeypointsRequest):
+    """
+    Rewrite text using the Senior Gujarati Editor prompt
+    """
+    try:
+        config = request.config
+        text = request.keypoints  # Use keypoints field for input text
+        
+        output = await newspaper_ai.high_quality_rewrite(text, config)
+        
+        # Save to history
+        history_id = ""
+        try:
+            db = get_db()
+            history_item = {
+                "topic": output.headline,
+                "articles": [output.dict()],
+                "created_at": datetime.utcnow(),
+                "config_used": config.dict(),
+                "final_article": None,
+            }
+            res = await db["editor_history"].insert_one(history_item)
+            history_id = str(res.inserted_id)
+            print(f"[OK] Saved SENIOR EDITOR history for: {output.headline}")
+        except Exception as e:
+            print(f"[WARN] Failed to save history: {e}")
+            
+        return GenerateResponse(articles=[output], history_id=history_id)
+        
+    except Exception as e:
+        print(f"[ERROR] Error in High-quality rewrite: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/validate-config")
 async def validate_config(config: NewspaperConfig):

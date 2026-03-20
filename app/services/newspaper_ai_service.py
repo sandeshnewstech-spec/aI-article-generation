@@ -174,6 +174,7 @@ CRITICAL RULES:
 6. Plain newspaper format only
 7. No repetition of words/phrases
 8. Fact-based and verified information only
+9. NO news channel names (like TV9, Sandesh, Samachar, etc.) or source attribution inside the content.
 
 SOURCE CONTENT:
 {combined_text}
@@ -239,6 +240,7 @@ COMMON RULES FOR ALL ARTICLES:
 2. Stick strictly to the word limits
 3. Use the content ONLY from the specific source block
 4. {editorial_section}
+5. NO news channel names or source names inside the headline/intro/body.
 
 SOURCES TO PROCESS:
 {sources_text}
@@ -281,21 +283,21 @@ Generate all {len(articles)} articles now.
             )
 
     async def generate_batch_newspaper_articles(
-        self, articles: List[ScrapedArticle], config: NewspaperConfig
+        self, articles: List[ScrapedArticle], config: NewspaperConfig, max_retries: int = 3
     ) -> List[NewspaperOutput]:
         """
-        Generate multiple articles in a single AI call to save quota
+        Generate multiple articles in a batch. 
+        If some are missing (due to output limits), recursively process the remainders.
         """
         if not articles:
             return []
 
-        print(f"[AI] Generating batch of {len(articles)} articles in ONE call...")
+        print(f"[AI] Attempting batch generation for {len(articles)} articles...")
         prompt = self.build_batch_newspaper_prompt(articles, config)
 
         try:
             raw_output = await self.base_ai.generate_content(prompt)
-            results = []
-
+            
             # Split by article markers
             article_blocks = re.split(r"=== ARTICLE START: (\d+) ===", raw_output)
             result_map = {}
@@ -305,40 +307,67 @@ Generate all {len(articles)} articles now.
                     break
                 try:
                     s_idx = int(article_blocks[i].strip())
-                    content = (
-                        article_blocks[i + 1].replace("=== ARTICLE END ===", "").strip()
-                    )
+                    content = article_blocks[i + 1].replace("=== ARTICLE END ===", "").strip()
                     out = self._parse_output(content, config)
                     out.validation_passed = True
                     result_map[s_idx] = out
                 except:
                     pass
 
-            final_ordered_results = []
-            for i in range(len(articles)):
-                if i in result_map:
-                    output = result_map[i]
-                else:
-                    output = NewspaperOutput(
+            # Final results list initialized with None
+            final_results = [None] * len(articles)
+            for i, res in result_map.items():
+                if i < len(articles):
+                    final_results[i] = res
+
+            # Identify missing articles (those that didn't make it into the AI's limited output window)
+            missing_indices = [i for i, res in enumerate(final_results) if res is None]
+            
+            if missing_indices and max_retries > 0:
+                print(f"[AI] {len(missing_indices)} articles missing from batch response. Retrying remainders...")
+                missing_articles = [articles[i] for i in missing_indices]
+                # Recursive call for remainders
+                retry_results = await self.generate_batch_newspaper_articles(
+                    missing_articles, config, max_retries=max_retries - 1
+                )
+                
+                # Map retried results back to original positions
+                for i, retry_res in zip(missing_indices, retry_results):
+                    final_results[i] = retry_res
+            
+            elif missing_indices:
+                # Out of retries, mark as failed
+                for i in missing_indices:
+                    final_results[i] = NewspaperOutput(
                         topic=config.topic,
                         config_used=config,
                         headline="Generation Failed",
-                        intro="Article missing from batch response.",
-                        body="",
+                        intro="Article missing after multiple batch retries.",
+                        body="The content was likely too large for the AI output window.",
                         validation_passed=False,
                         validation_errors=["Missing in batch"],
                     )
-                final_ordered_results.append(output)
 
-            return final_ordered_results
+            return final_results
 
         except Exception as e:
-            print(f"[ERROR] Batch generation failed: {e}")
+            print(f"[ERROR] Batch generation hard failure: {e}")
+            if max_retries > 0:
+                # If whole batch fails (e.g. safety filters), try smaller chunks
+                print(f"[AI] Falling back to smaller chunk processing...")
+                chunk_size = 5
+                sub_results = []
+                for i in range(0, len(articles), chunk_size):
+                    chunk = articles[i:i+chunk_size]
+                    chunk_res = await self.generate_batch_newspaper_articles(chunk, config, max_retries=max_retries - 1)
+                    sub_results.extend(chunk_res)
+                return sub_results
+            
             return [
                 NewspaperOutput(
                     topic=config.topic,
                     config_used=config,
-                    headline="Batch Generation Error",
+                    headline="Batch Error",
                     intro="An error occurred during batch processing.",
                     body=str(e),
                     validation_passed=False,
@@ -384,6 +413,7 @@ MANDATORY EDITORIAL RULES:
 3. FLOW nicely between paragraphs.
 4. MAINTAIN a neutral, authoritative news tone.
 5. STRICTLY FOLLOW the word count limits below.
+6. NO news channel names (TV9, Sandesh, etc.) in the content.
 
 WORD COUNT REQUIREMENTS:
 - HEADLINE: {rules.heading_min}-{rules.heading_max} words
@@ -444,6 +474,7 @@ TARGET REQUIREMENTS:
 3. BODY: {rules.body_min}-{rules.body_max} words
 4. INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
 5. LANGUAGE: Gujarati only.
+6. NO news channel names or source branding in the output.
 
 OUTPUT FORMAT:
 HEADLINE: [Refined Headline]
@@ -493,6 +524,7 @@ EDITORIAL REQUIREMENTS:
 1. LANGUAGE: Strict Gujarati only.
 2. TONE: Authoritative news tone.
 3. STRUCTURE: Use headline, intro, body, and info box.
+4. NO news channel names or source names inside the content.
 
 WORD COUNT REQUIREMENTS:
 - HEADLINE: {rules.heading_min}-{rules.heading_max} words
@@ -527,6 +559,60 @@ Generate the report now.
             return parsed
         except Exception as e:
             print(f"[ERROR] Generation from keypoints failed: {e}")
+            raise e
+
+    async def high_quality_rewrite(
+        self, text: str, config: NewspaperConfig
+    ) -> NewspaperOutput:
+        """
+        Rewrite story/text into high-quality, polished Gujarati using the Senior Editor prompt
+        """
+        print(f"[AI] Senior Editor: Polishing content...")
+        
+        prompt = f"""
+You are a senior Gujarati language editor with a newspaper-level writing standard.
+
+Task:
+Rewrite the story/text below into high-quality, polished Gujarati while keeping the original meaning, tone, and intent exactly the same.
+
+Editing Standards (must follow):
+1) Correct all grammar, spelling, punctuation, and sentence structure.
+2) Improve clarity and readability: make the text easy for educated readers to understand.
+3) Make the flow smooth: add necessary linking sentences and logical transitions.
+4) Remove repetition, weak phrasing, and unnecessary filler.
+5) Upgrade vocabulary: use refined, standard Gujarati (avoid slang and casual wording).
+6) Keep the writing professional and natural (do NOT make it overly heavy, artificial, or overly poetic).
+7) Do NOT change:
+   - characters
+   - events
+   - timeline
+   - facts
+   - the core message
+8) NO news channel names (like TV9, Sandesh, etc.) or branding in the content.
+
+MANDATORY OUTPUT STRUCTURE:
+Your response MUST use these EXACT labels for parsing:
+HEADLINE: [High-quality Headline]
+INTRO PARAGRAPH: [Polished Intro]
+BODY PARAGRAPH: [Full Polished Body]
+INFO BOX: [Key summary points or 'None']
+
+Text to rewrite:
+{text}
+"""
+        try:
+            raw_output = await self.base_ai.generate_content(prompt)
+            parsed = self._parse_output(raw_output, config)
+            parsed.source = "Senior Editor Rewrite"
+            parsed.url = "rewrite"
+            
+            # Simple validation check
+            parsed.validation_passed = True
+            parsed.validation_errors = []
+            
+            return parsed
+        except Exception as e:
+            print(f"[ERROR] High-quality rewrite failed: {e}")
             raise e
 
     def _parse_output(

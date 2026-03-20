@@ -22,8 +22,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
-# Mount static files (if any in future)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files for local image storage
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Include Routers
 app.include_router(api_router.router, prefix="/api")

@@ -9,6 +9,8 @@ import urllib.parse
 import asyncio
 import httpx
 import re
+import os
+import uuid
 from typing import List, Optional
 from app.core.config import settings
 
@@ -293,5 +295,49 @@ Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
         except Exception as e:
             print(f"[IMAGE ERROR] generate_image failed: {e}")
             raise RuntimeError(str(e))
+
+    # ─────────────────────────────────────────────────────────────────
+    # PERSISTENCE: Save external images to local disk
+    # ─────────────────────────────────────────────────────────────────
+
+    async def persist_scraped_image(self, url: str) -> Optional[str]:
+        """
+        Download an external image and save it locally in app/static/scraped_images/.
+        Returns the local URL path (e.g. /static/scraped_images/abc.jpg)
+        """
+        if not url or not url.startswith("http"):
+            return url
+
+        try:
+            # Create local dir if not exists
+            base_dir = "app/static/scraped_images"
+            if not os.path.exists(base_dir):
+                os.makedirs(base_dir, exist_ok=True)
+
+            async with httpx.AsyncClient(headers=self.HEADERS, timeout=12.0) as client:
+                resp = await client.get(url)
+                if resp.status_code != 200:
+                    return url # return original if download fails
+
+                # Get extension from content-type
+                ext = ".jpg"
+                ctype = resp.headers.get("Content-Type", "").lower()
+                if "png" in ctype: ext = ".png"
+                elif "webp" in ctype: ext = ".webp"
+                elif "gif" in ctype: ext = ".gif"
+
+                # Generate unique filename
+                filename = f"{uuid.uuid4().hex}{ext}"
+                filepath = os.path.join(base_dir, filename)
+
+                with open(filepath, "wb") as f:
+                    f.write(resp.content)
+
+                print(f"[IMAGE-STORE] Saved locally: {filename}")
+                return f"/static/scraped_images/{filename}"
+
+        except Exception as e:
+            print(f"[IMAGE-STORE ERROR] Failed to persist {url}: {e}")
+            return url # Fallback to original
 
 

@@ -107,6 +107,7 @@ class NewspaperConfig(BaseModel):
         default_factory=list, description="Whitelisted source domains"
     )
     topic: str = Field(description="News topic to generate article for")
+    limit: int = Field(default=5, ge=1, le=20, description="Max articles to scrape per site")
 
 
 class GenerateFromContentRequest(BaseModel):
