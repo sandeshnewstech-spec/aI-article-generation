@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Newspaper Generator | Sandesh Style</title>
+    <script src="/static/tailwind.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Rasa:wght@400;500;600;700&family=Mukta+Vaani:wght@300;400;500;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                        headline: ['Rasa', 'serif'],
+                        body: ['Mukta Vaani', 'sans-serif'],
+                        ui: ['Noto Sans Gujarati', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        sandesh: {
+                            red: '#ed1c24',
+                            blue: '#0054a6',
+                            yellow: '#fff200'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gujarati {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+        }
+
+        .newspaper-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 4px double #000;
+        }
+
+        .sandesh-logo {
+            font-family: 'Rasa', serif;
+            font-weight: 900;
+            font-size: 4rem;
+            color: #ed1c24;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 0.875rem;
+            padding: 5px 0;
+            font-weight: 600;
+        }
+
+        .article-card {
+            border: 1px solid #e2e8f0;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .article-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-color: #3b82f6;
+        }
+
+        .loader {
+            border: 3px solid rgba(229, 231, 235, 0.5);
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-v-small {
+            border: 2px solid rgba(229, 231, 235, 0.5);
+            border-top: 2px solid #2563eb;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .preview-area {
+            background-color: #cbd5e1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 56px);
+        }
+
+        .newspaper-page-preview {
+            width: 1000px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            min-height: 1400px;
+            position: relative;
+        }
+
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-auto-rows: 100px;
+            gap: 15px;
+            border-top: 2px solid #000;
+            padding-top: 15px;
+        }
+
+        .news-article {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-article:last-child {
+            border-bottom: none;
+        }
+
+        .news-headline {
+            font-family: 'Rasa', serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            line-height: 1.1;
+            margin-bottom: 5px;
+            color: #000;
+            word-wrap: break-word;
+        }
+
+        /* Scale headline based on size */
+        .news-article-span-8 .news-headline { font-size: 3.5rem; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+        .news-article-span-6 .news-headline { font-size: 2.5rem; }
+        .news-article-span-4 .news-headline { font-size: 2rem; }
+        .news-article-span-2 .news-headline { font-size: 1.25rem; }
+
+        .news-intro {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1.3;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .news-body {
+            font-family: 'Noto Sans Gujarati', sans-serif;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            color: #444;
+            flex: 1;
+        }
+
+        .news-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+
+        /* Large articles get multiple columns for text */
+        .news-article-span-8 .news-body, 
+        .news-article-span-6 .news-body {
+            column-count: 3;
+            column-gap: 20px;
+        }
+        .news-article-span-4 .news-body {
+            column-count: 2;
+            column-gap: 15px;
+        }
+
+        .control-panel {
+            background: #fff;
+            border-right: 1px solid #e2e8f0;
+            width: 420px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 h-full overflow-hidden text-gray-800">
+
+    {% include 'sidebar.html' %}
+
+    <div class="sb-offset flex flex-col h-screen max-h-screen overflow-hidden">
+        <!-- Navbar -->
+        <nav class="bg-white border-b border-gray-200 shadow-sm z-30">
+            <div class="mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-14">
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">Full Newspaper ePaper Generator</h1>
+                        <span
+                            class="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold uppercase tracking-wider">Sandesh
+                            Live</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="savePage()"
+                            class="px-5 py-2 bg-green-600 text-white rounded-full text-xs font-bold hover:bg-green-700 transition shadow-md">SAVE E-PAPER</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar: Editor -->
+            <aside class="control-panel overflow-y-auto p-6 custom-scrollbar">
+                <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                    <div class="w-2 h-8 bg-red-600 rounded"></div>
+                    <h2 class="text-xl font-black text-gray-900 uppercase">Page Config</h2>
+                </div>
+
+                <div class="space-y-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Edition Date</label>
+                            <input type="date" id="pageDate"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Vol / Year</label>
+                            <input type="text" id="pageYear" value="99"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 font-bold">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Page Num</label>
+                            <input type="number" id="pageNumber" value="1"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Edition</label>
+                            <select id="pageEdition"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 font-bold">
+                                <option value="Ahmedabad">Ahmedabad</option>
+                                <option value="Surat">Surat</option>
+                                <option value="Vadodara">Vadodara</option>
+                                <option value="Rajkot">Rajkot</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Day of Week</label>
+                        <select id="pageDay"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 font-bold">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday" selected>Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-4 mt-8">
+                    <h2 class="text-xl font-black text-gray-900 uppercase">Articles</h2>
+                    <button onclick="openAddModal()"
+                        class="px-4 py-2 bg-brand-600 text-white rounded-full text-xs font-bold hover:bg-brand-700 transition shadow-lg active:scale-95">Add News</button>
+                </div>
+
+                <div id="articlesList" class="space-y-3">
+                    <div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl">
+                        <p class="text-sm text-gray-400 font-medium">No articles added yet.</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main: Preview -->
+            <main class="flex-1 preview-area custom-scrollbar">
+                <div class="newspaper-page-preview" id="printablePage">
+                    <div class="newspaper-header">
+                        <div class="header-top">
+                            <div class="text-left w-1/3">
+                                <p class="text-[10px] font-black tracking-widest uppercase mb-1 text-gray-500" id="editionDisplayTop">Ahmedabad Edition</p>
+                                <p class="text-[9px] bg-black text-white px-2 py-0.5 inline-block font-black uppercase tracking-tighter">DAILY SAMACHAR
+                                </p>
+                            </div>
+                            <div class="text-center w-1/3">
+                                <h1 class="sandesh-logo">સંદેશ</h1>
+                            </div>
+                            <div class="text-right w-1/3">
+                                <p class="text-[10px] font-black uppercase mb-1 text-gray-500">Reg. No. GUJ/123/2026</p>
+                                <p class="text-[10px] font-black text-blue-600">www.sandesh.com</p>
+                            </div>
+                        </div>
+                        <div class="header-meta">
+                            <div id="headerDateDisplay" class="gujarati">માર્ચ ૨૫, ૨૦૨૬, બુધવાર</div>
+                            <div id="headerYearDisplay">વર્ષ: ૯૯</div>
+                            <div id="headerPageDisplay">પૃષ્ઠ: ૧</div>
+                        </div>
+                    </div>
+
+                    <div id="newspaperContent" class="mt-4">
+                        <div class="article-grid" id="mainGrid">
+                            <!-- Articles correctly spanned will go here -->
+                        </div>
+                        
+                        <!-- Welcome / Empty State -->
+                        <div id="emptyState" class="absolute inset-0 top-[200px] flex flex-col items-center justify-center text-gray-300 pointer-events-none">
+                            <svg class="w-32 h-32 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5"
+                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                            <p class="text-2xl font-serif italic text-gray-300 mt-4">Draft Your First Article</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200">
+            <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-xl font-black text-gray-900 uppercase">Add News Article</h3>
+                <button onclick="closeAddModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors text-2xl">&times;</button>
+            </div>
+            <div class="p-8 overflow-y-auto custom-scrollbar space-y-6">
+                <div class="flex p-1 bg-gray-100 rounded-2xl mb-4">
+                    <button onclick="switchMode('manual')" id="modeManual"
+                        class="flex-1 py-3 rounded-xl text-sm font-black transition-all bg-white shadow-sm text-brand-600 border border-gray-200">MANUAL</button>
+                    <button onclick="switchMode('ai')" id="modeAI"
+                        class="flex-1 py-3 rounded-xl text-sm font-black transition-all text-gray-500 hover:text-gray-900 px-2">AI (FACTS)</button>
+                    <button onclick="switchMode('search')" id="modeSearch"
+                        class="flex-1 py-3 rounded-xl text-sm font-black transition-all text-gray-500 hover:text-gray-900 px-2">AI (SEARCH)</button>
+                </div>
+
+                <div id="manualInput">
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-2 gap-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                            <div>
+                                <label class="block text-[10px] font-black text-blue-400 uppercase mb-2">Column Span (1-8)</label>
+                                <select id="artColSpan" class="w-full px-4 py-3 border border-blue-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-blue-100">
+                                    <option value="1">1 Column (Mini)</option>
+                                    <option value="2">2 Columns (Slim)</option>
+                                    <option value="3">3 Columns (Standard)</option>
+                                    <option value="4" selected>4 Columns (Half Page)</option>
+                                    <option value="6">6 Columns (Major)</option>
+                                    <option value="8">8 Columns (Lead Story)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-blue-400 uppercase mb-2">Slot Count (Height)</label>
+                                <select id="artSlotCount" class="w-full px-4 py-3 border border-blue-200 rounded-xl text-sm font-bold focus:ring-4 focus:ring-blue-100">
+                                    <option value="1">Tiny (1 Slot)</option>
+                                    <option value="2" selected>Medium (2 Slots)</option>
+                                    <option value="3">Large (3 Slots)</option>
+                                    <option value="4">Huge (4 Slots)</option>
+                                    <option value="5">Column Fill (5 Slots)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">News Photo URL</label>
+                                <div class="relative group">
+                                    <input type="text" id="artImage" placeholder="Paste URL..."
+                                        class="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-xl text-sm">
+                                    <button onclick="searchImageForArticle()" class="absolute right-2 top-2 text-sky-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">News Source</label>
+                                <input type="text" id="artSource" placeholder="e.g. PTI, Sandesh News"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Headline (Gujarati)</label>
+                            <input type="text" id="artHeadline" placeholder="મુખ્ય સમાચારનું શીર્ષક અહીં લખો..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-black gujarati focus:ring-4 focus:ring-brand-100">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Brief Summary (Gujarati)</label>
+                            <textarea id="artIntro" rows="2" placeholder="મહત્વના મુદ્દાઓ..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-bold gujarati resize-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Main Body Content (Gujarati)</label>
+                            <textarea id="artBody" rows="5" placeholder="સંપૂર્ણ સમાચારની વિગતો..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm gujarati"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aiInput" class="hidden">
+                    <div class="bg-purple-50 p-6 rounded-3xl border border-purple-100">
+                        <label class="block text-[10px] font-black text-purple-400 uppercase mb-3 text-center">AI Fact Transformation</label>
+                        <textarea id="artKeypoints" rows="8" placeholder="Enter rough facts, dates, names, or paste a link here... AI will write it in perfect Sandesh tone."
+                            class="w-full px-5 py-4 border border-purple-200 rounded-2xl text-sm gujarati focus:ring-8 focus:ring-purple-100 shadow-inner"></textarea>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button onclick="generateFromKeypoints()" id="aiGenBtn"
+                            class="w-full bg-purple-600 text-white rounded-2xl py-4 font-black hover:bg-purple-700 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
+                            <span id="aiBtnText">CREATE AI DRAFT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="searchInput" class="hidden">
+                    <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100 text-center">
+                        <label class="block text-[10px] font-black text-orange-400 uppercase mb-3">AI Agent Research</label>
+                        <input type="text" id="artSearchTopic" placeholder="e.g. today's business news gujarat"
+                            class="w-full px-5 py-4 border border-orange-200 rounded-2xl text-sm gujarati focus:ring-8 focus:ring-orange-100 shadow-inner text-center font-bold">
+                        <p class="text-[10px] text-orange-400 mt-2">AI will search, scrape, and write based on this topic.</p>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button onclick="searchAndGenerateNews()" id="searchGenBtn"
+                            class="w-full bg-orange-500 text-white rounded-2xl py-4 font-black hover:bg-orange-600 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
+                            <span id="searchBtnText">SEARCH & GENERATE</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="px-8 py-6 border-t border-gray-100 flex justify-end gap-4 bg-gray-50/50">
+                <button onclick="closeAddModal()"
+                    class="px-6 py-3 text-sm font-black text-gray-400 hover:text-gray-900 uppercase tracking-widest">Discard</button>
+                <button onclick="addArticleToList()"
+                    class="px-10 py-3 bg-brand-600 text-white rounded-2xl text-sm font-black hover:bg-brand-700 transition shadow-lg active:scale-95">ADD TO PAGE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let articles = [];
+        let currentMode = 'manual';
+
+        // Set default date today
+        document.getElementById('pageDate').valueAsDate = new Date();
+        updateHeaderDisplay();
+
+        document.getElementById('pageDate').addEventListener('change', updateHeaderDisplay);
+        document.getElementById('pageYear').addEventListener('input', updateHeaderDisplay);
+        document.getElementById('pageNumber').addEventListener('input', updateHeaderDisplay);
+        document.getElementById('pageDay').addEventListener('change', updateHeaderDisplay);
+        document.getElementById('pageEdition').addEventListener('change', () => {
+            document.getElementById('editionDisplayTop').innerText = document.getElementById('pageEdition').value + " Edition";
+        });
+
+        function updateHeaderDisplay() {
+            const dateInput = document.getElementById('pageDate').value;
+            const dayInput = document.getElementById('pageDay').value;
+            const yearInput = document.getElementById('pageYear').value;
+            const pnumInput = document.getElementById('pageNumber').value;
+
+            const dateObj = new Date(dateInput);
+            const gujMonths = ["જાન્યુઆરી", "ફેબ્રુઆરી", "માર્ચ", "એપ્રિલ", "મે", "જૂન", "જુલાઈ", "ઓગસ્ટ", "સપ્ટેમ્બર", "ઓક્ટોબર", "નવેમ્બર", "ડિસેમ્બર"];
+            const gujDays = {
+                "Monday": "સોમવાર", "Tuesday": "મંગળવાર", "Wednesday": "બુધવાર", "Thursday": "ગુરુવાર",
+                "Friday": "શુક્રવાર", "Saturday": "શનિવાર", "Sunday": "રવિવાર"
+            };
+
+            const gujDate = `${gujMonths[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}, ${gujDays[dayInput]}`;
+            
+            document.getElementById('headerDateDisplay').innerText = gujDate;
+            document.getElementById('headerYearDisplay').innerText = `વર્ષ: ${yearInput}`;
+            document.getElementById('headerPageDisplay').innerText = `પૃષ્ઠ: ${pnumInput}`;
+        }
+
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('open');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('open');
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnM = document.getElementById('modeManual');
+            const btnA = document.getElementById('modeAI');
+            const btnS = document.getElementById('modeSearch');
+            const divM = document.getElementById('manualInput');
+            const divA = document.getElementById('aiInput');
+            const divS = document.getElementById('searchInput');
+
+            [btnM, btnA, btnS].forEach(b => {
+                b.classList.remove('bg-white', 'shadow-sm', 'text-brand-600', 'border-gray-200');
+                b.classList.add('text-gray-500');
+            });
+            [divM, divA, divS].forEach(d => d.classList.add('hidden'));
+
+            if (mode === 'manual') {
+                divM.classList.remove('hidden');
+                btnM.classList.add('bg-white', 'shadow-sm', 'text-brand-600', 'border-gray-200');
+            } else if (mode === 'ai') {
+                divA.classList.remove('hidden');
+                btnA.classList.add('bg-white', 'shadow-sm', 'text-brand-600', 'border-gray-200');
+            } else {
+                divS.classList.remove('hidden');
+                btnS.classList.add('bg-white', 'shadow-sm', 'text-brand-600', 'border-gray-200');
+            }
+        }
+
+        async function searchImageForArticle() {
+            const headline = document.getElementById('artHeadline').value;
+            if(!headline) return alert("Enter a headline first to search for images.");
+            
+            const btn = document.querySelector('[onclick="searchImageForArticle()"]');
+            btn.innerHTML = '<div class="loader-v-small"></div>';
+            btn.disabled = true;
+
+            try {
+                const query = headline.split(' ').slice(0, 5).join(' ');
+                const response = await fetch(`/api/images?q=${encodeURIComponent(query)}&count=1`);
+                const data = await response.json();
+                
+                if(data && data.length > 0) {
+                    document.getElementById('artImage').value = data[0].image_url;
+                } else {
+                    alert("No images found for this headline.");
+                }
+            } catch(e) {
+                console.error(e);
+            } finally {
+                btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>';
+                btn.disabled = false;
+            }
+        }
+
+        async function searchAndGenerateNews() {
+            const topic = document.getElementById('artSearchTopic').value;
+            if (!topic) return alert("Please enter a research topic.");
+
+            const btn = document.getElementById('searchGenBtn');
+            const btnText = document.getElementById('searchBtnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<div class="loader"></div> Researching...';
+
+            const config = {
+                topic: topic,
+                slot_config: { column_span: 4, slot_count: 2 },
+                limit: 5
+            };
+
+            try {
+                const response = await fetch('/api/newspaper/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) throw new Error("Search/Generation failed");
+                const data = await response.json();
+                
+                if (data.articles && data.articles.length > 0) {
+                    const article = data.articles[0];
+                    document.getElementById('artHeadline').value = article.headline;
+                    document.getElementById('artIntro').value = article.intro;
+                    document.getElementById('artBody').value = article.body;
+                    document.getElementById('artSource').value = article.source || "AI Research";
+                    document.getElementById('artImage').value = article.image_url || "";
+                    switchMode('manual');
+                } else {
+                    alert("No news found for this topic.");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Failed: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'SEARCH & GENERATE';
+            }
+        }
+
+        async function generateFromKeypoints() {
+            const keypoints = document.getElementById('artKeypoints').value;
+            if (!keypoints) return alert("Please enter some keypoints.");
+
+            const btn = document.getElementById('aiGenBtn');
+            const btnText = document.getElementById('aiBtnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<div class="loader"></div> Writing...';
+
+            const config = {
+                topic: "Manual Keypoints",
+                slot_config: { column_span: 4, slot_count: 2 }
+            };
+
+            try {
+                const response = await fetch('/api/newspaper/generate-from-keypoints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keypoints: keypoints, config: config })
+                });
+
+                if (!response.ok) throw new Error("API Failed");
+                const data = await response.json();
+                const article = data.articles[0];
+
+                document.getElementById('artHeadline').value = article.headline;
+                document.getElementById('artIntro').value = article.intro;
+                document.getElementById('artBody').value = article.body;
+                document.getElementById('artSource').value = "AI Generated";
+                switchMode('manual');
+            } catch (error) {
+                console.error(error);
+                alert("Failed: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'CREATE AI DRAFT';
+            }
+        }
+
+        function addArticleToList() {
+            const headline = document.getElementById('artHeadline').value;
+            const intro = document.getElementById('artIntro').value;
+            const body = document.getElementById('artBody').value;
+            const image = document.getElementById('artImage').value;
+            const source = document.getElementById('artSource').value;
+            const colSpan = parseInt(document.getElementById('artColSpan').value);
+            const slotCount = parseInt(document.getElementById('artSlotCount').value);
+
+            if (!headline || !body) {
+                alert("Please fill headline and body.");
+                return;
+            }
+
+            const article = {
+                headline: headline,
+                intro: intro,
+                body: body,
+                image: image,
+                source: source,
+                colSpan: colSpan,
+                slotCount: slotCount,
+                id: Date.now()
+            };
+
+            articles.push(article);
+            renderArticles();
+            closeAddModal();
+            
+            // Clear inputs
+            ['artHeadline', 'artIntro', 'artBody', 'artImage', 'artSource', 'artKeypoints', 'artSearchTopic'].forEach(id => {
+               const el = document.getElementById(id);
+               if(el) el.value = '';
+            });
+        }
+
+        function removeArticle(id) {
+            articles = articles.filter(a => a.id !== id);
+            renderArticles();
+        }
+
+        function renderArticles() {
+            const list = document.getElementById('articlesList');
+            const grid = document.getElementById('mainGrid');
+            const empty = document.getElementById('emptyState');
+
+            if (articles.length === 0) {
+                list.innerHTML = '<div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl"><p class="text-sm text-gray-400 font-medium">No articles added yet.</p></div>';
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            // Sidebar List
+            list.innerHTML = articles.map(a => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start group hover:border-brand-200 transition-all">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 bg-gray-100 rounded text-[9px] font-black text-gray-500 uppercase">${a.colSpan}C x ${a.slotCount}S</span>
+                            ${a.source ? `<span class="text-[9px] font-bold text-sky-500 uppercase">via ${a.source}</span>` : ''}
+                        </div>
+                        <p class="text-xs font-black text-gray-900 truncate gujarati">${a.headline}</p>
+                    </div>
+                    <button onclick="removeArticle(${a.id})" class="text-gray-300 hover:text-red-500 ml-2 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                </div>
+            `).join('');
+
+            // Preview Grid
+            grid.innerHTML = articles.map(a => {
+                const imgHtml = a.image ? `<img src="${a.image}" class="news-image">` : '';
+                const sourceHtml = a.source ? `<div class="text-[10px] uppercase font-black text-gray-400 mb-2 border-b border-gray-100 pb-1">Source: ${a.source}</div>` : '';
+                return `
+                <div class="news-article news-article-span-${a.colSpan}" style="grid-column: span ${a.colSpan}; grid-row: span ${a.slotCount * 2};">
+                    ${sourceHtml}
+                    <h2 class="news-headline gujarati">${a.headline}</h2>
+                    ${imgHtml}
+                    ${a.intro ? `<p class="news-intro gujarati">${a.intro}</p>` : ''}
+                    <div class="news-body gujarati">${a.body}</div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        async function savePage() {
+            if (articles.length === 0) {
+                alert("Add some articles first.");
+                return;
+            }
+
+            const page = {
+                config: {
+                    date: document.getElementById('pageDate').value,
+                    year: document.getElementById('pageYear').value,
+                    page_number: parseInt(document.getElementById('pageNumber').value),
+                    day: document.getElementById('pageDay').value,
+                    edition: document.getElementById('pageEdition').value
+                },
+                articles: articles.map(a => ({
+                    topic: "Manual",
+                    headline: a.headline,
+                    intro: a.intro,
+                    body: a.body,
+                    image_url: a.image,
+                    config_used: { 
+                        topic: "Manual", 
+                        slot_config: { slot_count: a.slotCount, column_span: a.colSpan } 
+                    }
+                })),
+                created_at: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('/api/newspaper/save-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(page)
+                });
+
+                if (!response.ok) throw new Error("Save failed");
+                const data = await response.json();
+                alert("E-Paper saved successfully!");
+            } catch (error) {
+                console.error(error);
+                alert("Failed to save page: " + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1269,17 +1269,17 @@
                                 updateProgress(80);
                             }
                         } catch (e) {
-                             console.warn("Partial stream chunk:", e);
+                            console.warn("Partial stream chunk:", e);
                         }
                     }
                 }
-                
+
                 // Final buffer check
                 if (buffer.trim()) {
                     try {
                         const event = JSON.parse(buffer);
                         if (event.type === 'site_done') articles = articles.concat(event.articles);
-                    } catch(e){}
+                    } catch (e) { }
                 }
 
                 if (!articles || articles.length === 0) {
@@ -1353,14 +1353,14 @@
             if (!article) return;
 
             toast("Polishing with Senior Editor...", "info");
-            
+
             try {
                 const fullText = `${article.headline}\n\n${article.intro}\n\n${article.body}`;
                 const res = await fetch('/api/newspaper/rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        config: { 
+                        config: {
                             topic: article.topic || "Rewrite",
                             limit: 1,
                             allowed_sources: [article.source || "Unknown"],
@@ -1377,7 +1377,7 @@
 
                 if (!res.ok) throw new Error("Senior Edit failed");
                 const data = await res.json();
-                
+
                 if (data.articles && data.articles.length > 0) {
                     newspaperArticles[key] = data.articles[0];
                     renderResults();

@@ -12,6 +12,10 @@ class SearchRequest(BaseModel):
     query: str
     count: Optional[int] = 10
 
+class GenerateRequest(BaseModel):
+    prompt: str
+    count: Optional[int] = 1
+
 class AutoGenerateRequest(BaseModel):
     headline: str
     topic: str
@@ -20,7 +24,15 @@ class AutoGenerateRequest(BaseModel):
 @router.post("/search")
 async def search_images(request: SearchRequest):
     try:
-        return await service.get_images(request.query, request.count)
+        return {"images": await service.get_images(request.query, request.count)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/generate")
+async def generate_images(request: GenerateRequest):
+    try:
+        images = await service.generate_image(request.prompt, request.count)
+        return {"images": images}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -56,10 +68,23 @@ async def download_image_proxy(url: str):
             if os.path.exists(full_path):
                 from fastapi.responses import FileResponse
                 filename = full_path.split("/")[-1]
-                # Let FileResponse automatically detect media_type from extension
+                
+                # SMART MIME DETECTION (Fallback for files with wrong extensions)
+                media_type = None
+                try:
+                    with open(full_path, "rb") as f:
+                        header = f.read(16)
+                        if b"ftypavif" in header: media_type = "image/avif"
+                        elif b"RIFF" in header and b"WEBP" in header: media_type = "image/webp"
+                        elif header.startswith(b"\x89PNG"): media_type = "image/png"
+                        elif header.startswith(b"\xff\xd8"): media_type = "image/jpeg"
+                except:
+                    pass
+
                 return FileResponse(
                     path=full_path,
-                    filename=filename
+                    filename=filename,
+                    media_type=media_type # If None, FileResponse guesses from extension
                 )
             else:
                 print(f"[ERROR] Local download failed: file not found at {full_path}")

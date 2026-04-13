@@ -31,3 +31,10 @@ async def admin_slots(request: Request):
         "request": request,
         "current_page": "slots"
     })
+
+@router.get("/full-newspaper")
+async def full_newspaper(request: Request):
+    return templates.TemplateResponse("full_newspaper.html", {
+        "request": request,
+        "current_page": "full_newspaper"
+    })

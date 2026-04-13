@@ -3,6 +3,24 @@ from typing import List, Dict, Optional
 from datetime import datetime
 
 
+class NewspaperPageConfig(BaseModel):
+    """Configuration for a full newspaper page"""
+
+    date: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
+    year: str = Field(default_factory=lambda: str(datetime.now().year))
+    page_number: int = Field(default=1, ge=1)
+    day: str = Field(default="Monday")
+    edition: str = Field(default="Ahmedabad")
+
+
+class NewspaperPage(BaseModel):
+    """A full newspaper page containing multiple articles"""
+
+    config: NewspaperPageConfig
+    articles: List[NewspaperOutput]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class ScrapedArticle(BaseModel):
     source: str
     url: str

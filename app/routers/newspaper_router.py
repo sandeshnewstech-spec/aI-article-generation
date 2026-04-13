@@ -10,6 +10,8 @@ from app.models.data import (
     GenerateFromKeypointsRequest,
     GenerateResponse,
     MergeRequest,
+    NewspaperPage,
+    NewspaperPageConfig,
 )
 from app.services.newspaper_ai_service import NewspaperAIService
 from app.services.scraper_service_sync import ScraperService
@@ -574,4 +576,50 @@ async def merge_articles(request: MergeRequest):
 
         print(f"[ERROR] Error merging articles: {e}")
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/save-page", response_model=dict)
+async def save_newspaper_page(page: NewspaperPage):
+    """Save a full newspaper page with multiple articles"""
+    try:
+        db = get_db()
+        page_dict = page.dict()
+        page_dict["created_at"] = datetime.utcnow()
+        res = await db["newspaper_pages"].insert_one(page_dict)
+        return {"id": str(res.inserted_id), "status": "success"}
+    except Exception as e:
+        print(f"[ERROR] Failed to save page: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/pages", response_model=List[dict])
+async def list_newspaper_pages():
+    """List all saved newspaper pages"""
+    try:
+        db = get_db()
+        cursor = db["newspaper_pages"].find().sort("created_at", -1)
+        pages = []
+        async for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            pages.append(doc)
+        return pages
+    except Exception as e:
+        print(f"[ERROR] Failed to list pages: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/page/{page_id}", response_model=dict)
+async def get_newspaper_page(page_id: str):
+    """Get a specific newspaper page by ID"""
+    try:
+        from bson import ObjectId
+        db = get_db()
+        doc = await db["newspaper_pages"].find_one({"_id": ObjectId(page_id)})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Page not found")
+        doc["_id"] = str(doc["_id"])
+        return doc
+    except Exception as e:
+        print(f"[ERROR] Failed to get page: {e}")
         raise HTTPException(status_code=500, detail=str(e))

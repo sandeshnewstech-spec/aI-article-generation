@@ -247,54 +247,76 @@ Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
 
     async def generate_image(self, prompt: str, count: int = 1) -> List[dict]:
         """
-        Generate image(s) using Hugging Face Inference API (SDXL).
-        Returns list of dicts with base64 encoded images.
+        Generate image(s) using Hugging Face (FLUX) or Pollinations.ai (FREE).
         """
-        # We'll use SDXL as requested
-        model_id = "stabilityai/stable-diffusion-xl-base-1.0"
-        api_url = f"https://api-inference.huggingface.co/models/{model_id}"
-        
-        headers = {}
-        if settings.HUGGINGFACE_API_KEY:
-            headers["Authorization"] = f"Bearer {settings.HUGGINGFACE_API_KEY}"
-            
         results = []
-        try:
-            async with httpx.AsyncClient(timeout=45.0) as client:
-                for i in range(min(count, 4)):
-                    print(f"[IMAGE-HF] Generating image {i+1} via Hugging Face '{model_id}'...")
-                    
-                    # Generate random seed per image for variations
-                    payload = {"inputs": prompt, "parameters": {"seed": i + 100}}
-                    
-                    # Retry logic for 503 (Model is loading)
-                    max_retries = 2
-                    for attempt in range(max_retries):
+        
+        # 1. Hugging Face - Best if API Key is set
+        # NEW 2026 Router URL: https://router.huggingface.co/hf-inference/models/
+        if settings.HUGGINGFACE_API_KEY:
+            model_id = "stabilityai/stable-diffusion-xl-base-1.0"
+            api_url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
+            headers = {
+                "Authorization": f"Bearer {settings.HUGGINGFACE_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            
+            try:
+                async with httpx.AsyncClient(timeout=45.0) as client:
+                    for i in range(min(count, 4)):
+                        print(f"[IMAGE-HF] Generating {i+1} via HF '{model_id}'...")
+                        payload = {
+                            "inputs": prompt, 
+                            "parameters": {"seed": i + 100},
+                            "options": {"wait_for_model": True}
+                        }
+                        
                         resp = await client.post(api_url, headers=headers, json=payload)
                         if resp.status_code == 200:
                             import base64
                             b64 = base64.b64encode(resp.content).decode("utf-8")
                             results.append({
                                 "base64_image": b64,
-                                "mime_type": "image/jpeg",
+                                "mime_type": "image/png", # Match user snippet preference
                                 "prompt": prompt,
                             })
+                        elif resp.status_code == 403:
+                            print(f"[IMAGE-HF] ERROR 403: Insufficient permissions. Please enable 'Inference Providers' in your HF account settings.")
                             break
-                        elif resp.status_code == 503:
-                            print(f"[IMAGE-HF] Model is loading... (Attempt {attempt+1}/{max_retries})")
-                            await asyncio.sleep(5) # wait for model to load
+                        elif resp.status_code in [503, 410, 404]:
+                            print(f"[IMAGE-HF] Status {resp.status_code}, skipping to Pollinations.")
+                            break 
                         else:
-                            err_msg = resp.json() if resp.text else resp.status_code
-                            print(f"[IMAGE-HF ERROR] Status {resp.status_code}: {err_msg}")
-                            if not headers:
-                                raise RuntimeError(f"Hugging Face API failed (Status {resp.status_code}). Note: API key might be required for SDXL. Please set HUGGINGFACE_API_KEY in .env")
-                            raise RuntimeError(f"Hugging Face API failed: {err_msg}")
-                            
-            print(f"[IMAGE] Hugging Face generated {len(results)} image(s)")
-            return results
-        except Exception as e:
-            print(f"[IMAGE ERROR] generate_image failed: {e}")
-            raise RuntimeError(str(e))
+                            print(f"[IMAGE-HF] Status {resp.status_code}: {resp.text[:50]}")
+                            break
+            except Exception as e:
+                print(f"[IMAGE-HF ERROR] {e}")
+
+        # 2. POLLINATIONS Fallback (100% Free, NO key needed)
+        # If we didn't get enough images from HF, or HF is not configured
+        if len(results) < count:
+            remaining = count - len(results)
+            print(f"[IMAGE-FREE] Generating {remaining} images via Pollinations (Unlimited Free Tier)")
+            
+            # Clean and shorten prompt for Pollinations reliability
+            clean_prompt = prompt[:200] # Long prompts often fail on cloud workers
+            encoded = urllib.parse.quote(clean_prompt, safe="")
+
+            for i in range(remaining):
+                seed = i + 1000 
+                # Try a more stable model (turbo) if flux is failing
+                url = (
+                    f"https://pollinations.ai/p/{encoded}"
+                    f"?width=1024&height=768&model=turbo&nologo=true&seed={seed}"
+                )
+                
+                results.append({
+                    "image_url": url,
+                    "prompt": prompt,
+                    "source": "Pollinations.ai (Free)",
+                })
+        
+        return results
 
     # ─────────────────────────────────────────────────────────────────
     # PERSISTENCE: Save external images to local disk
@@ -319,12 +341,16 @@ Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
                 if resp.status_code != 200:
                     return url # return original if download fails
 
-                # Get extension from content-type
+                # Get extension from content-type (Modern news sites use AVIF/HEIC)
                 ext = ".jpg"
                 ctype = resp.headers.get("Content-Type", "").lower()
                 if "png" in ctype: ext = ".png"
                 elif "webp" in ctype: ext = ".webp"
+                elif "avif" in ctype: ext = ".avif"
+                elif "heic" in ctype: ext = ".heic"
+                elif "heif" in ctype: ext = ".heif"
                 elif "gif" in ctype: ext = ".gif"
+                elif "svg" in ctype: ext = ".svg"
 
                 # Generate unique filename
                 filename = f"{uuid.uuid4().hex}{ext}"
@@ -339,5 +365,4 @@ Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
         except Exception as e:
             print(f"[IMAGE-STORE ERROR] Failed to persist {url}: {e}")
             return url # Fallback to original
-
 
