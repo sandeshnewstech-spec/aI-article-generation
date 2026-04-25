@@ -412,39 +412,59 @@
 
         function renderSources(sources) {
             const container = document.getElementById('sourcesContainer');
-            selectedSources = new Set(sources);
-            allSourcesSelected = true;
-            document.getElementById('selectAllBtn').innerText = "Deselect All";
-
-            container.innerHTML = sources.map(src => `
+            
+            container.innerHTML = sources.map(src => {
+                const isChecked = selectedSources.has(src);
+                return `
                 <label class="flex items-center gap-2 cursor-pointer group p-1">
-                    <input type="checkbox" checked onchange="toggleSource('${src}')" 
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSource('${src}', this.checked)" 
                         class="source-checkbox w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
                     <span class="text-[11px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors truncate">
                         ${src}
                     </span>
                 </label>
-            `).join('');
+            `}).join('');
+
+            updateSelectAllBtn();
         }
 
-        function toggleSource(name) {
-            if (selectedSources.has(name)) selectedSources.delete(name);
-            else selectedSources.add(name);
+        function toggleSource(name, checked) {
+            if (checked) selectedSources.add(name);
+            else selectedSources.delete(name);
+            updateSelectAllBtn();
         }
 
         function toggleAllSources() {
             const checkboxes = document.querySelectorAll('.source-checkbox');
-            allSourcesSelected = !allSourcesSelected;
-            checkboxes.forEach(cb => cb.checked = allSourcesSelected);
-
             const currentCat = categories.find(c => c.name === document.getElementById('selectedCategory').value);
-            if (allSourcesSelected) {
-                currentCat.sources.forEach(s => selectedSources.add(s));
-                document.getElementById('selectAllBtn').innerText = "Deselect All";
+            const allSources = currentCat ? currentCat.sources : [];
+            
+            let selectedInCat = 0;
+            allSources.forEach(src => { if (selectedSources.has(src)) selectedInCat++; });
+            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
+
+            if (isAllSelected) {
+                // Deselect All
+                allSources.forEach(src => selectedSources.delete(src));
+                checkboxes.forEach(cb => cb.checked = false);
             } else {
-                selectedSources.clear();
-                document.getElementById('selectAllBtn').innerText = "Select All";
+                // Select All
+                allSources.forEach(src => selectedSources.add(src));
+                checkboxes.forEach(cb => cb.checked = true);
             }
+            updateSelectAllBtn();
+        }
+
+        function updateSelectAllBtn() {
+            const currentCat = categories.find(c => c.name === document.getElementById('selectedCategory').value);
+            const allSources = currentCat ? currentCat.sources : [];
+            const btn = document.getElementById('selectAllBtn');
+            
+            let selectedInCat = 0;
+            allSources.forEach(src => { if (selectedSources.has(src)) selectedInCat++; });
+            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
+
+            btn.innerText = isAllSelected ? "Deselect All" : "Select All";
         }
 
         function updateLayoutInfo() {
@@ -594,6 +614,60 @@
             const container = document.getElementById('resultsContent');
             const safeKey = 'editor_result';
 
+            // ── Alternative Headlines ──────────────────────────────────────
+            let altHeadlinesHtml = '';
+            if (article.alternative_headlines && article.alternative_headlines.length > 0) {
+                const chips = article.alternative_headlines.map((h, i) => `
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group"
+                         onclick="useHeadline(this, '${h.replace(/'/g, "\\'")}')">
+                        <span class="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black flex items-center justify-center mt-0.5">${i+1}</span>
+                        <p class="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors leading-snug">${h}</p>
+                    </div>
+                `).join('');
+                altHeadlinesHtml = `
+                    <div class="mb-6 p-4 bg-blue-50/60 border border-blue-100 rounded-2xl">
+                        <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Alternative Headlines (click to use)
+                        </h3>
+                        <div class="space-y-2">${chips}</div>
+                    </div>
+                `;
+            }
+
+            // ── Editorial Notes ────────────────────────────────────────────
+            let editorialNotesHtml = '';
+            if (article.editorial_notes) {
+                editorialNotesHtml = `
+                    <div class="mt-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl">
+                        <h4 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Editorial Notes <span class="text-[9px] font-medium text-amber-400 ml-1">(internal — not for print)</span>
+                        </h4>
+                        <div class="text-sm text-amber-800 leading-relaxed">${article.editorial_notes.split('\n').map(l => l.trim() ? `<p class="mb-1">${l}</p>` : '').join('')}</div>
+                    </div>
+                `;
+            }
+
+            // ── Subheading ─────────────────────────────────────────────────
+            const subheadingHtml = article.subheading
+                ? `<p class="text-base font-semibold text-slate-500 mb-6 border-l-4 border-blue-400 pl-4 italic">${article.subheading}</p>`
+                : '';
+
+            // ── Info Box ───────────────────────────────────────────────────
+            const infoBoxHtml = article.info_box ? `
+                <div class="article-infobox mt-8">
+                    <h4>Key Points / Info Box</h4>
+                    <div class="text-sm leading-relaxed text-slate-700">
+                        ${article.info_box.split('\n').map(l => l.trim() ? `<div class="mb-2 flex gap-2"><span class="text-blue-500 font-black">•</span><span>${l}</span></div>` : '').join('')}
+                    </div>
+                </div>
+            ` : '';
+
             container.innerHTML = `
                 <div class="newspaper-paper p-8 md:p-12 relative mb-12 max-w-4xl mx-auto rounded-xl shadow-sm">
                     <!-- Tabs -->
@@ -607,38 +681,73 @@
                     <article class="article-container">
                         <!-- ALL View -->
                         <div class="section-view section-view-${safeKey} active" data-section="all">
-                            <h1 class="text-3xl font-bold mb-4 font-headline" style="line-height: 1.2;">${article.headline}</h1>
+
+                            <!-- Main Headline -->
+                            <h1 class="text-3xl font-bold mb-2 font-headline" style="line-height: 1.2;">${article.headline}</h1>
+
+                            ${subheadingHtml}
+
+                            <!-- Alternative Headlines -->
+                            ${altHeadlinesHtml}
+
                             <div class="h-px bg-slate-200 mb-6"></div>
+
+                            <!-- Intro -->
                             <p class="text-lg leading-relaxed mb-6 font-body" style="color: #000 !important;">
                                 <span class="font-bold text-black uppercase mr-1">INTRO:</span> ${article.intro}
                             </p>
+
+                            <!-- Body -->
                             <div class="font-body text-lg leading-relaxed" style="color: #000 !important;">
                                 ${article.body.split('\n').map(p => p.trim() ? `<p class="mb-4">${p}</p>` : '').join('')}
                             </div>
-                            ${article.info_box ? `
-                                <div class="article-infobox">
-                                    <h4>Key Points</h4>
-                                    <div class="text-sm leading-relaxed text-slate-700">${article.info_box.split('\n').map(l => `<div class="mb-2 flex gap-2"><span>•</span><span>${l}</span></div>`).join('')}</div>
-                                </div>
-                            ` : ''}
+
+                            <!-- Info Box -->
+                            ${infoBoxHtml}
+
+                            <!-- Editorial Notes (internal) -->
+                            ${editorialNotesHtml}
                         </div>
 
-                        <!-- Components View -->
+                        <!-- Headline View -->
                         <div class="section-view section-view-${safeKey}" data-section="headline">
-                            <h1 class="text-3xl font-bold font-headline">${article.headline}</h1>
+                            <h1 class="text-3xl font-bold font-headline mb-4">${article.headline}</h1>
+                            ${subheadingHtml}
+                            ${altHeadlinesHtml}
                         </div>
+
+                        <!-- Intro View -->
                         <div class="section-view section-view-${safeKey}" data-section="intro">
                             <p class="text-lg leading-relaxed font-body">${article.intro}</p>
                         </div>
+
+                        <!-- Body View -->
                         <div class="section-view section-view-${safeKey}" data-section="body">
-                             <div class="font-body text-lg leading-relaxed">
+                            <div class="font-body text-lg leading-relaxed">
                                 ${article.body.split('\n').map(p => p.trim() ? `<p class="mb-4">${p}</p>` : '').join('')}
-                             </div>
+                            </div>
+                            ${infoBoxHtml}
                         </div>
                     </article>
                 </div>
             `;
         }
+
+        window.useHeadline = function(el, headline) {
+            // Highlight selected alt headline
+            document.querySelectorAll('.article-container .bg-slate-50').forEach(d => {
+                d.classList.remove('bg-blue-100', 'border-blue-400');
+                d.classList.add('bg-slate-50', 'border-slate-200');
+            });
+            el.classList.remove('bg-slate-50', 'border-slate-200');
+            el.classList.add('bg-blue-100', 'border-blue-400');
+
+            // Update main headline displays
+            document.querySelectorAll('.font-headline').forEach(h => h.textContent = headline);
+            toast('✅ Headline updated!');
+        }
+
+
 
         window.switchArticleSubTab = function (key, section) {
             document.querySelectorAll(`.subtab-btn-${key}`).forEach(btn => {
@@ -660,29 +769,57 @@
                     return;
                 }
 
-                list.innerHTML = history.map(item => `
-                    <div class="p-3 bg-white border border-slate-100 rounded-xl hover:border-blue-200 transition-all cursor-pointer shadow-sm group" 
-                         onclick='loadFromHistory(${JSON.stringify(item.articles[0]).replace(/'/g, "&apos;")})'>
-                        <div class="flex items-start justify-between gap-2">
-                            <h3 class="text-[11px] font-bold text-slate-700 leading-tight line-clamp-2">${item.articles[0].headline}</h3>
-                            <span class="text-[9px] text-slate-400 whitespace-nowrap font-medium">${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                list.innerHTML = history.map(item => {
+                    const article   = item.articles[0];
+                    const keypoints = item.keypoints || '';
+                    const timeStr   = new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const dateStr   = new Date(item.created_at).toLocaleDateString([], { day: '2-digit', month: 'short' });
+
+                    // Encode both article + keypoints safely as one payload
+                    const payload = JSON.stringify({ article, keypoints }).replace(/'/g, "&apos;");
+
+                    const kpPreview = keypoints
+                        ? `<p class="text-[9px] text-slate-400 mt-1 line-clamp-1 font-normal italic">${keypoints.substring(0, 60)}...</p>`
+                        : '';
+
+                    return `
+                        <div class="p-3 bg-white border border-slate-100 rounded-xl hover:border-blue-300 transition-all cursor-pointer shadow-sm group"
+                             onclick='loadFromHistory(${payload})'>
+                            <div class="flex items-start justify-between gap-2">
+                                <h3 class="text-[11px] font-bold text-slate-700 leading-tight line-clamp-2">${article.headline}</h3>
+                                <span class="text-[9px] text-slate-400 whitespace-nowrap font-medium shrink-0">${dateStr}, ${timeStr}</span>
+                            </div>
+                            ${kpPreview}
+                            <div class="mt-2 flex items-center gap-2 flex-wrap">
+                                <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[8px] font-extrabold uppercase">${item.config_used.topic || 'News'}</span>
+                                <span class="text-[8px] text-slate-400 font-bold uppercase">${item.config_used.slot_config.column_span} Col | ${item.config_used.slot_config.slot_count} Slot</span>
+                                ${keypoints ? `<span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[8px] font-extrabold uppercase">Keypoints Saved</span>` : ''}
+                            </div>
                         </div>
-                        <div class="mt-2 flex items-center gap-2">
-                            <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[8px] font-extrabold uppercase">${item.config_used.topic || 'News'}</span>
-                            <span class="text-[8px] text-slate-400 font-bold uppercase">${item.config_used.slot_config.column_span} Col | ${item.config_used.slot_config.slot_count} Slot</span>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (e) {
                 console.error("Failed to load editor history", e);
             }
         }
 
-        window.loadFromHistory = function (article) {
+        window.loadFromHistory = function ({ article, keypoints }) {
+            // Restore keypoints in the input textarea
+            const kpInput = document.getElementById('keypointsInput');
+            if (kpInput && keypoints) {
+                kpInput.value = keypoints;
+                // Subtle flash animation to show it was restored
+                kpInput.style.transition = 'background 0.4s';
+                kpInput.style.background = '#eff6ff';
+                setTimeout(() => kpInput.style.background = '', 800);
+            }
+
+            // Show article in result panel
             document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('loading').classList.add('hidden');
             document.getElementById('results').classList.remove('hidden');
             renderResults(article);
-            toast("Loaded from history!");
+            toast(keypoints ? '✅ Loaded — keypoints & article restored!' : '✅ Loaded from history!');
         }
 
         async function clearEditorHistory() {

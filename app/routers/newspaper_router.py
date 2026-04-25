@@ -347,6 +347,7 @@ async def generate_from_keypoints_endpoint(request: GenerateFromKeypointsRequest
             db = get_db()
             history_item = {
                 "topic": output.headline,
+                "keypoints": keypoints,              # ← Store original keypoints
                 "articles": [output.dict()],
                 "created_at": datetime.utcnow(),
                 "config_used": config.dict(),
@@ -382,6 +383,7 @@ async def high_quality_rewrite_endpoint(request: GenerateFromKeypointsRequest):
             db = get_db()
             history_item = {
                 "topic": output.headline,
+                "keypoints": text,              # ← Store original text for restore
                 "articles": [output.dict()],
                 "created_at": datetime.utcnow(),
                 "config_used": config.dict(),

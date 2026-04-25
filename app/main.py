@@ -25,6 +25,10 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 # Mount static files for local image storage
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+@app.get("/check")
+async def check_health():
+    return {"status": "ok", "message": "Server is responding!"}
+
 # Include Routers
 app.include_router(api_router.router, prefix="/api")
 app.include_router(ui_router.router)

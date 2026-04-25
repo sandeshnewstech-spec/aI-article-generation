@@ -9,3 +9,4 @@ pydantic
 motor
 pymongo
 httpx
+python-docx

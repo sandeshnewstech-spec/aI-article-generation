@@ -961,10 +961,6 @@
 
             const sources = categorySources[cat] || [];
 
-            // Default: Select all when sticking to category for first time or switching?
-            // User likely wants all selected by default
-            currentSelectedSources = new Set(sources);
-
             sources.forEach((source, idx) => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-2 px-2 py-1 rounded hover:bg-white transition-colors';
@@ -973,7 +969,7 @@
                 checkbox.type = 'checkbox';
                 checkbox.id = `src_check_${idx}`;
                 checkbox.value = source;
-                checkbox.checked = true;
+                checkbox.checked = currentSelectedSources.has(source);
                 checkbox.className = 'w-3.5 h-3.5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 cursor-pointer';
                 checkbox.onchange = (e) => toggleSource(source, e.target.checked);
 
@@ -1003,16 +999,17 @@
             const container = document.getElementById('sourcesContainer');
             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
 
-            // Determine state: if all selected, deselect all. Else select all.
-            const isAllSelected = currentSelectedSources.size === allSources.length;
+            let selectedInCat = 0;
+            allSources.forEach(src => { if (currentSelectedSources.has(src)) selectedInCat++; });
+            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
 
             if (isAllSelected) {
                 // Deselect All
-                currentSelectedSources.clear();
+                allSources.forEach(src => currentSelectedSources.delete(src));
                 checkboxes.forEach(cb => cb.checked = false);
             } else {
                 // Select All
-                currentSelectedSources = new Set(allSources);
+                allSources.forEach(src => currentSelectedSources.add(src));
                 checkboxes.forEach(cb => cb.checked = true);
             }
             updateSelectAllBtn();
@@ -1022,7 +1019,10 @@
             const cat = document.getElementById('selectedCategory').value;
             const allSources = categorySources[cat] || [];
             const btn = document.getElementById('selectAllBtn');
-            const isAllSelected = currentSelectedSources.size === allSources.length;
+
+            let selectedInCat = 0;
+            allSources.forEach(src => { if (currentSelectedSources.has(src)) selectedInCat++; });
+            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
 
             btn.innerText = isAllSelected ? "Deselect All" : "Select All";
         }
@@ -1398,8 +1398,28 @@
             header.innerHTML = '';
             content.innerHTML = '';
 
-            const keys = Object.keys(newspaperArticles);
-            if (keys.length === 0) return;
+            const skipConditions = [
+                "શીર્ષક ઉપલબ્ધ નથી",
+                "પ્રસ્તાવના ઉપલબ્ધ નથી",
+                "વિષયવસ્તુ ઉપલબ્ધ નથી",
+                "Generation Error",
+                "Generation Failed",
+                "Batch Error",
+                "Selected sources insufficient – unable to generate verified news."
+            ];
+
+            const keys = Object.keys(newspaperArticles).filter(key => {
+                const art = newspaperArticles[key];
+                return !skipConditions.includes(art.headline) &&
+                    !skipConditions.includes(art.intro) &&
+                    !skipConditions.includes(art.body);
+            });
+
+            if (keys.length === 0) {
+                document.getElementById('welcomeState').classList.remove('hidden');
+                document.getElementById('results').classList.add('hidden');
+                return;
+            }
 
             // Sort keys so finals are first
             keys.sort((a, b) => {
@@ -1477,6 +1497,31 @@
                 }
             });
         };
+
+        function formatHeadline(text) {
+            if (!text) return '';
+            // Detect patterns like 1) 2) or 1. 2.
+            const parts = text.split(/(\d+[\)\.])/g);
+            if (parts.length <= 1) return `<h1>${text}</h1>`;
+
+            let html = `<h1>${parts[0].trim()}</h1>`;
+            if (parts.length > 1) {
+                html += `<div class="space-y-2 mb-6 border-l-4 border-brand-200 pl-4 mt-2">`;
+                for (let i = 1; i < parts.length; i += 2) {
+                    const num = parts[i];
+                    const content = parts[i + 1] ? parts[i + 1].trim() : '';
+                    if (content) {
+                        html += `
+                            <div class="flex items-start gap-2">
+                                <span class="text-xl font-bold text-brand-600 shrink-0">${num}</span>
+                                <span class="text-xl font-bold text-gray-800 leading-tight gujarati">${content}</span>
+                            </div>`;
+                    }
+                }
+                html += `</div>`;
+            }
+            return html;
+        }
 
         function buildArticleHTML(article, key) {
             const isSelected = selectedArticles.has(key);
@@ -1560,7 +1605,7 @@
                         <!-- 1. ALL View (Active by default) -->
                         <div class="section-view section-view-${safeKey} active" data-section="all">
                             ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
-                            <h1>${article.headline}</h1>
+                            ${formatHeadline(article.headline)}
                             ${article.subheading ? `<h2>${article.subheading}</h2>` : ''}
                             
                             <!-- 📸 Main News Image (Scraped) -->
@@ -1620,7 +1665,7 @@
                                 <span class="text-xs font-bold text-gray-400 uppercase">Analysis: Headline Component</span>
                                 <div class="mt-4">
                                     ${article.headline_cap ? `<h6>${article.headline_cap}</h6>` : ''}
-                                    <h1>${article.headline}</h1>
+                                    ${formatHeadline(article.headline)}
                                 </div>
                             </div>
                         </div>

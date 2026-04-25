@@ -13,11 +13,23 @@ db = None
 
 async def connect_db():
     global client, db
-    client = AsyncIOMotorClient(MONGODB_URL)
-    db = client[DB_NAME]
-    print(f"[OK] MongoDB connected: {MONGODB_URL} / {DB_NAME}")
-    # Seed default data if collections are empty
-    await seed_defaults()
+    try:
+        # Set a short timeout for initial contact
+        client = AsyncIOMotorClient(MONGODB_URL, serverSelectionTimeoutMS=10000)
+        db = client[DB_NAME]
+        
+        # Verify connection by pinging the server
+        await client.admin.command('ping')
+        print(f"[OK] MongoDB connected: {MONGODB_URL} / {DB_NAME}")
+        
+        # Seed default data if collections are empty
+        await seed_defaults()
+    except Exception as e:
+        print(f"❌ [CRITICAL] Could not connect to MongoDB at {MONGODB_URL}")
+        print(f"   Please ensure MongoDB service is running (e.g., 'net start MongoDB' or 'brew services start mongodb-community')")
+        print(f"   Error: {e}")
+        # In a real app, you might want to exit here, but for now we'll let it raise so the user sees it.
+        raise e
 
 
 async def close_db():

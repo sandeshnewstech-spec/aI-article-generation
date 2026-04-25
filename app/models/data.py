@@ -159,10 +159,12 @@ class NewspaperOutput(BaseModel):
     config_used: NewspaperConfig
     headline: str
     headline_cap: Optional[str] = None
+    alternative_headlines: Optional[List[str]] = None   # 3 alt headlines from SANDESH framework
     subheading: Optional[str] = None
     intro: str
     body: str
     info_box: Optional[str] = None
+    editorial_notes: Optional[str] = None              # Internal notes — never shown in print
     source: Optional[str] = None
     url: Optional[str] = None
     image_url: Optional[str] = None  # Scraped article image from source page
@@ -182,6 +184,7 @@ class MergeRequest(BaseModel):
 class HistoryItem(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     topic: str
+    keypoints: Optional[str] = None          # Original user keypoints — stored for restore
     articles: List[NewspaperOutput]
     final_article: Optional[NewspaperOutput] = None
     final_reports: List[NewspaperOutput] = Field(default_factory=list)

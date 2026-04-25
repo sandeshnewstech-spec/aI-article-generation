@@ -2,6 +2,7 @@ import requests
 from typing import List, Dict
 from app.core.config import settings
 from app.models.data import ScrapedArticle
+from app.services.ai_rules_loader import inject_system_prompt
 
 
 class AIService:
@@ -43,7 +44,7 @@ Write in an ANALYTICAL, IN-DEPTH style:
 """,
         }
 
-        return f"""
+        task_prompt = f"""
 You are an expert Gujarati journalist.
 You fully understand Gujarati, Hindi, and English.
 
@@ -65,6 +66,8 @@ RULES:
 SOURCES AND CONTENT:
 {combined_text}
 """
+        # Inject the SANDESH editorial framework as system context
+        return inject_system_prompt(task_prompt)
 
     async def generate_content(self, prompt: str) -> str:
         import asyncio
@@ -94,28 +97,17 @@ SOURCES AND CONTENT:
 
     def _generate_gemini(self, prompt: str) -> str:
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types
 
-            genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel(settings.GEMINI_MODEL)
-            response = model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            print(f"Gemini Error: {e}")
-            return f"Error generating content with Gemini: {str(e)}"
-            data = resp.json()
-            return data.get("message", {}).get("content", "")
-        except Exception as e:
-            print(f"Ollama Error: {e}")
-            return "Error generating content with Ollama."
-
-    def _generate_gemini(self, prompt: str) -> str:
-        try:
-            import google.generativeai as genai
-
-            genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel(settings.GEMINI_MODEL)
-            response = model.generate_content(prompt)
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model=settings.GEMINI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                ),
+            )
             return response.text.strip()
         except Exception as e:
             print(f"Gemini Error: {e}")

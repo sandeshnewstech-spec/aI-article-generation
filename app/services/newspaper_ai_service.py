@@ -4,6 +4,7 @@ from app.services.grid_calculator import GridCalculator
 from app.services.headline_engineer import HeadlineEngineer
 from app.services.newspaper_validator import NewspaperValidator
 from app.services.ai_service import AIService
+from app.services.ai_rules_loader import inject_system_prompt
 from app.core.config import settings
 import asyncio
 import re
@@ -182,7 +183,8 @@ SOURCE CONTENT:
 Generate the newspaper article now following ALL rules above.
 """
 
-        return prompt
+        # Inject the full SANDESH editorial framework as system context
+        return inject_system_prompt(prompt)
 
     def build_batch_newspaper_prompt(
         self, articles: List[ScrapedArticle], config: NewspaperConfig
@@ -247,7 +249,8 @@ SOURCES TO PROCESS:
 
 Generate all {len(articles)} articles now.
 """
-        return prompt
+        # Inject the full SANDESH editorial framework as system context
+        return inject_system_prompt(prompt)
 
     async def generate_newspaper_article(
         self, articles: List[ScrapedArticle], config: NewspaperConfig
@@ -400,7 +403,7 @@ INFO BOX: {art.info_box or 'None'}
 """
 
         rules = config.word_count_rules
-        prompt = f"""
+        task_prompt = f"""
 You are an expert Gujarati Chief Editor.
 Your task is to MERGE the following source articles into ONE single, cohesive, and high-quality news report.
 
@@ -429,6 +432,7 @@ INFO BOX: [Merged Info Box or None]
 
 Generate the merged article now.
 """
+        prompt = inject_system_prompt(task_prompt)
         try:
             raw_output = await self.base_ai.generate_content(prompt)
             parsed = self._parse_output(raw_output, config)
@@ -458,7 +462,7 @@ Generate the merged article now.
         print(f"[AI] Refining article from source: {draft.source or 'Unknown'}")
         rules = config.word_count_rules
 
-        prompt = f"""
+        task_prompt = f"""
 You are an expert Gujarati Chief Editor.
 REWRITE and POLISH the draft article below to strictly meet all standards and word count limits.
 
@@ -484,6 +488,7 @@ INFO BOX: [Refined Info Box or None]
 
 Rewrite the article now.
 """
+        prompt = inject_system_prompt(task_prompt)
         try:
             raw_output = await self.base_ai.generate_content(prompt)
             parsed = self._parse_output(raw_output, config)
@@ -513,34 +518,56 @@ Rewrite the article now.
         print(f"[AI] Generating article from user keypoints...")
 
         rules = config.word_count_rules
-        prompt = f"""
+        task_prompt = f"""
 You are an expert Gujarati Chief Editor.
 Transform the following RAW KEYPOINTS into a HIGH-QUALITY, professional news report.
 
 USER KEYPOINTS/NOTES:
 {keypoints}
 
-EDITORIAL REQUIREMENTS:
-1. LANGUAGE: Strict Gujarati only.
-2. TONE: Authoritative news tone.
-3. STRUCTURE: Use headline, intro, body, and info box.
-4. NO news channel names or source names inside the content.
+⚠️ STRICT FACT DISCIPLINE — THIS IS MANDATORY:
+- Use ONLY the facts, names, numbers, dates, and events present in the KEYPOINTS above.
+- Do NOT invent, assume, or add ANY information that is not explicitly stated in the keypoints.
+- Do NOT add quotes, statistics, background stories, or context that is not in the keypoints.
+- If a detail is missing (e.g. exact time, name), leave it out — do NOT guess or fill in.
+- Your job is to WRITE, not to RESEARCH or INVENT.
+
+5. LANGUAGE: Strict Gujarati only.
+6. TONE: Authoritative news tone.
+7. WRITING STYLE: Transform the bullet points into a professional, COHESIVE narrative. Do NOT just list the points.
+8. FACTUAL RESTRAINT (CRITICAL): Do NOT add "news filler" or standard police cliches like "high-level teams are formed", "thorough investigation started", or "technical surveillance". Only write what is explicitly provided. If the input is short, the report MUST be short. 
+9. STRUCTURE: Use all labeled sections below.
+10. NO news channel names or source names inside the content.
 
 WORD COUNT REQUIREMENTS:
 - HEADLINE: {rules.heading_min}-{rules.heading_max} words
+- SUBHEADING: {rules.subheading_min}-{rules.subheading_max} words
 - INTRO: {rules.intro_min}-{rules.intro_max} words
 - BODY: {rules.body_min}-{rules.body_max} words
 - INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
 
-OUTPUT FORMAT:
-HEADLINE: [Your Headline]
-SUBHEADING: [Your Subheading]
-INTRO PARAGRAPH: [Your Intro]
-BODY PARAGRAPH: [Your Body Content]
-INFO BOX: [Key points summary]
+CRITICAL OUTPUT RULES:
+- Every section label MUST start on its own NEW LINE.
+- HEADLINE line must contain ONLY the headline — nothing else on that line.
+- ALTERNATIVE HEADLINES must be on separate lines AFTER the HEADLINE line.
+- Do NOT write "3 alternative headlines:" or any number inline after the HEADLINE.
+- Do NOT merge multiple sections on one line.
 
-Generate the report now.
+OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line:
+HEADLINE: [Best Gujarati Headline only]
+ALTERNATIVE HEADLINES:
+1. [Alt Headline 1]
+2. [Alt Headline 2]
+3. [Alt Headline 3]
+SUBHEADING: [Gujarati Subheading]
+INTRO PARAGRAPH: [Gujarati Intro]
+BODY PARAGRAPH: [Gujarati Body Content — only facts from the keypoints]
+INFO BOX: [Key points summary in Gujarati]
+EDITORIAL NOTES: [Note any missing facts that should be verified before publishing]
+
+Generate the complete report now.
 """
+        prompt = inject_system_prompt(task_prompt)
         try:
             raw_output = await self.base_ai.generate_content(prompt)
             parsed = self._parse_output(raw_output, config)
@@ -569,7 +596,7 @@ Generate the report now.
         """
         print(f"[AI] Senior Editor: Polishing content...")
         
-        prompt = f"""
+        task_prompt = f"""
 You are a senior Gujarati language editor with a newspaper-level writing standard.
 
 Task:
@@ -577,29 +604,37 @@ Rewrite the story/text below into high-quality, polished Gujarati while keeping 
 
 Editing Standards (must follow):
 1) Correct all grammar, spelling, punctuation, and sentence structure.
-2) Improve clarity and readability: make the text easy for educated readers to understand.
-3) Make the flow smooth: add necessary linking sentences and logical transitions.
-4) Remove repetition, weak phrasing, and unnecessary filler.
-5) Upgrade vocabulary: use refined, standard Gujarati (avoid slang and casual wording).
-6) Keep the writing professional and natural (do NOT make it overly heavy, artificial, or overly poetic).
-7) Do NOT change:
-   - characters
-   - events
-   - timeline
-   - facts
-   - the core message
-8) NO news channel names (like TV9, Sandesh, etc.) or branding in the content.
+2) Improve clarity and readability.
+3) Make the flow smooth with logical transitions.
+4) Remove repetition, weak phrasing, and filler.
+5) Upgrade vocabulary to refined, standard Gujarati.
+6) Keep it professional and natural.
+7) Do NOT change: characters, events, timeline, facts, or the core message.
+8) NO news channel names or branding in the content.
 
-MANDATORY OUTPUT STRUCTURE:
-Your response MUST use these EXACT labels for parsing:
-HEADLINE: [High-quality Headline]
+CRITICAL OUTPUT RULES:
+- Every section label MUST start on its own NEW LINE.
+- HEADLINE line must contain ONLY the headline — nothing else on that line.
+- ALTERNATIVE HEADLINES must be on separate lines AFTER the HEADLINE line.
+- Do NOT write "3 alternative headlines:" or any number inline after the HEADLINE.
+- Do NOT merge multiple sections on one line.
+
+OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line:
+HEADLINE: [High-quality Headline only]
+ALTERNATIVE HEADLINES:
+1. [Alt Headline 1]
+2. [Alt Headline 2]
+3. [Alt Headline 3]
+SUBHEADING: [Gujarati Subheading]
 INTRO PARAGRAPH: [Polished Intro]
 BODY PARAGRAPH: [Full Polished Body]
 INFO BOX: [Key summary points or 'None']
+EDITORIAL NOTES: [Brief notes on what was improved, missing facts, legal cautions]
 
 Text to rewrite:
 {text}
 """
+        prompt = inject_system_prompt(task_prompt)
         try:
             raw_output = await self.base_ai.generate_content(prompt)
             parsed = self._parse_output(raw_output, config)
@@ -629,25 +664,35 @@ Text to rewrite:
         sections = {
             "headline": "",
             "headline_cap": None,
+            "alternative_headlines": None,
             "subheading": None,
             "intro": "",
             "body": "",
             "info_box": None,
+            "editorial_notes": None,
         }
 
         # Regex patterns for various section headers (very flexible)
         patterns = {
-            "headline_cap": r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*CAP\s*[:\-]*",
-            "headline": r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*[:\-]*",
-            "subheading": r"(?i)^\s*[\*\#\-\s\d\.]*SUB\s*HEADING\s*[:\-]*",
-            "intro": r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION)(?:\s*PARAGRAPH)?\s*[:\-]*",
-            "body": r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN)(?:\s*PARAGRAPH)?\s*[:\-]*",
-            "info_box": r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY)(?:\s*BOX|POINTS|HIGHLIGHTS)?\s*[:\-]*",
+            "headline_cap":          r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*CAP\s*[:\-]*",
+            "alternative_headlines": r"(?i)^\s*[\*\#\-\s\d\.]*ALT(?:ERNATIVE)?\s*HEADLINES?\s*[:\-]*",
+            "editorial_notes":       r"(?i)^\s*[\*\#\-\s\d\.]*EDITORIAL\s*NOTES?\s*[:\-]*",
+            "headline":              r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*[:\-]*",
+            "subheading":            r"(?i)^\s*[\*\#\-\s\d\.]*SUB\s*HEADING\s*[:\-]*",
+            "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION)(?:\s*PARAGRAPH)?\s*[:\-]*",
+            "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN)(?:\s*PARAGRAPH)?\s*[:\-]*",
+            "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY)(?:\s*BOX|POINTS|HIGHLIGHTS)?\s*[:\-]*",
         }
 
         lines = raw_output.split("\n")
         current_section = None
         current_content = []
+
+        # Order matters: check longer/more-specific patterns before shorter ones
+        ordered_keys = [
+            "headline_cap", "alternative_headlines", "editorial_notes",
+            "subheading", "intro", "body", "info_box", "headline"
+        ]
 
         for line in lines:
             clean_line = line.strip()
@@ -658,25 +703,21 @@ Text to rewrite:
 
             # Check for new section header
             found_new = False
-            # Check longer patterns first to avoid partial matches (like HEADLINE matching HEADLINE CAP)
-            ordered_keys = ["headline_cap", "subheading", "intro", "body", "info_box", "headline"]
-            
             for key in ordered_keys:
                 pattern = patterns[key]
                 match = re.search(pattern, clean_line)
-                if match and match.start() < 5: # Match must be at start of line
+                if match and match.start() < 5:  # Match must be at start of line
                     # Save old section
                     if current_section:
                         sections[current_section] = "\n".join(current_content).strip()
-                    
+
                     # Start new section
                     current_section = key
-                    # Content might be on the same line after the header
                     content_part = clean_line[match.end():].strip()
                     current_content = [content_part] if content_part else []
                     found_new = True
                     break
-            
+
             if not found_new and current_section:
                 current_content.append(line)
 
@@ -686,29 +727,64 @@ Text to rewrite:
 
         # Fallback: If absolutely nothing was parsed, try a naive split
         if not sections["headline"] and not sections["body"] and len(lines) > 2:
-             print("[WARN] Parsing failed. Using fallback split.")
-             sections["headline"] = lines[0].strip()
-             sections["body"] = "\n".join(lines[1:]).strip()
+            print("[WARN] Parsing failed. Using fallback split.")
+            sections["headline"] = lines[0].strip()
+            sections["body"] = "\n".join(lines[1:]).strip()
 
-        # Filter out literal "None" in info_box
+        # ── Post-process alternative headlines ────────────────────────────────
+        alt_headlines: list[str] | None = None
+        raw_alts = sections.get("alternative_headlines", "")
+        if raw_alts:
+            # Parse numbered list: "1. Text", "2. Text", "3. Text"
+            alts = re.findall(r"(?:^|\n)\s*\d+[.)\-]\s*(.+)", raw_alts)
+            if alts:
+                alt_headlines = [a.strip() for a in alts if a.strip()]
+            else:
+                # Fallback: split by newline
+                alt_headlines = [l.strip() for l in raw_alts.split("\n") if l.strip()]
+
+        # ── RESCUE: alt headlines that bled inline into the headline field ────
+        # e.g.  "Headline text 3 alternative headlines: 1. X 2. Y 3. Z"
+        if not alt_headlines and sections.get("headline"):
+            bleed_match = re.search(
+                r"\s+\d+\s+alternative\s+headlines?\s*:?\s*(.+)$",
+                sections["headline"],
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            if bleed_match:
+                # Clean the headline: remove everything from the bleed point
+                sections["headline"] = sections["headline"][:bleed_match.start()].strip()
+                bleed_text = bleed_match.group(1)
+                # Extract numbered items from the inline text
+                rescued = re.findall(r"\d+[.)\-]\s*([^0-9][^\d.)\-]{5,}?)(?=\s+\d+[.)\-]|$)", bleed_text)
+                if not rescued:
+                    # Simpler split on numbered items
+                    rescued = re.findall(r"\d+[.)\-]\s*(.+?)(?=\d+[.)\-]|$)", bleed_text)
+                if rescued:
+                    alt_headlines = [a.strip().rstrip(".,;") for a in rescued if a.strip()]
+
+        # ── Filter out literal "None" in info_box ─────────────────────────────
         info_box = sections["info_box"]
         if info_box and info_box.strip().lower() in ["none", "n/a", "null", "none."]:
             info_box = None
 
-        # Clean markdown bolding (**) from all text fields
+        # ── Clean markdown bolding (**) from all text fields ──────────────────
         def clean_markdown(text):
-            if not text: return text
-            return text.replace("**", "").strip()
+            if not text:
+                return text
+            return re.sub(r"\*+", "", text).strip()
 
         return NewspaperOutput(
             topic=config.topic,
             config_used=config,
             headline=clean_markdown(sections["headline"]) or "શીર્ષક ઉપલબ્ધ નથી",
             headline_cap=clean_markdown(sections["headline_cap"]),
+            alternative_headlines=alt_headlines,
             subheading=clean_markdown(sections["subheading"]),
             intro=clean_markdown(sections["intro"]) or "પ્રસ્તાવના ઉપલબ્ધ નથી",
             body=clean_markdown(sections["body"]) or "વિષયવસ્તુ ઉપલબ્ધ નથી",
             info_box=clean_markdown(info_box),
+            editorial_notes=clean_markdown(sections.get("editorial_notes")),
             validation_passed=False,
             validation_errors=[],
         )
