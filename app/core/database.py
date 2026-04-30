@@ -7,6 +7,9 @@ load_dotenv()
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 DB_NAME = os.getenv("MONGODB_DB_NAME", "ai_newsroom")
 
+from app.core.security import get_password_hash
+from app.models.user import UserRole
+
 client: AsyncIOMotorClient = None
 db = None
 
@@ -24,6 +27,7 @@ async def connect_db():
         
         # Seed default data if collections are empty
         await seed_defaults()
+        await seed_users()
     except Exception as e:
         print(f"❌ [CRITICAL] Could not connect to MongoDB at {MONGODB_URL}")
         print(f"   Please ensure MongoDB service is running (e.g., 'net start MongoDB' or 'brew services start mongodb-community')")
@@ -138,3 +142,16 @@ async def seed_defaults():
                 })
         await db["slots"].insert_many(default_slots)
         print("[OK] Seeded 32 default slot combinations")
+
+async def seed_users():
+    """Seed a default super admin user if no users exist."""
+    user_count = await db["users"].count_documents({})
+    if user_count == 0:
+        admin_user = {
+            "username": "admin",
+            "hashed_password": get_password_hash("admin123"), # Default password
+            "role": UserRole.SUPER_ADMIN,
+            "is_active": True
+        }
+        await db["users"].insert_one(admin_user)
+        print("[OK] Seeded default super admin: admin / admin123")

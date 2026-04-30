@@ -4,6 +4,10 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
+@router.get("/login")
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
 @router.get("/")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {
@@ -30,6 +34,13 @@ async def admin_slots(request: Request):
     return templates.TemplateResponse("slots.html", {
         "request": request,
         "current_page": "slots"
+    })
+
+@router.get("/admin/users")
+async def admin_users(request: Request):
+    return templates.TemplateResponse("users.html", {
+        "request": request,
+        "current_page": "users"
     })
 
 @router.get("/full-newspaper")

@@ -74,6 +74,8 @@ SOURCES AND CONTENT:
 
         if self.provider == "gemini":
             return await asyncio.to_thread(self._generate_gemini, prompt)
+        elif self.provider == "openrouter":
+            return await asyncio.to_thread(self._generate_openrouter, prompt)
         else:
             return await asyncio.to_thread(self._generate_ollama, prompt)
 
@@ -112,3 +114,25 @@ SOURCES AND CONTENT:
         except Exception as e:
             print(f"Gemini Error: {e}")
             return f"Error generating content with Gemini: {str(e)}"
+
+    def _generate_openrouter(self, prompt: str) -> str:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8000", # Optional but good practice
+            "X-Title": "AI Newsroom Pro" # Optional
+        }
+        payload = {
+            "model": settings.OPENROUTER_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7
+        }
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=120)
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            print(f"OpenRouter Error: {e}")
+            return f"Error generating content with OpenRouter: {str(e)}"

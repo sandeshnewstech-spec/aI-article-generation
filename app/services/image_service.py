@@ -97,13 +97,9 @@ class ImageService:
 
     def _build_image_prompt_sync(self, headline: str, topic: str, intro: str) -> str:
         """
-        Use Gemini text to translate Gujarati article info into
+        Use AI to translate Gujarati article info into
         a descriptive English image generation prompt.
         """
-        from google import genai
-
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
         system_prompt = f"""You are an expert at creating image generation prompts for news photos.
 
 Given this news article information (may be in Gujarati):
@@ -120,12 +116,42 @@ Create a SHORT, VIVID, DESCRIPTIVE image generation prompt in English (max 80 wo
 
 Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
 
-        response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=system_prompt,
-        )
+        prompt_text = ""
+        
+        # 1. Try OpenRouter if key is available
+        if settings.OPENROUTER_API_KEY:
+            try:
+                import requests
+                url = "https://openrouter.ai/api/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": settings.OPENROUTER_MODEL,
+                    "messages": [{"role": "user", "content": system_prompt}]
+                }
+                resp = requests.post(url, headers=headers, json=payload, timeout=30)
+                resp.raise_for_status()
+                prompt_text = resp.json()["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                print(f"[IMAGE-PROMPT] OpenRouter Error: {e}")
 
-        prompt = response.text.strip().strip('"').strip("'").strip()
+        # 2. Fallback to Gemini if no OpenRouter or it failed
+        if not prompt_text and settings.GEMINI_API_KEY:
+            try:
+                from google import genai
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                response = client.models.generate_content(
+                    model=settings.GEMINI_MODEL,
+                    contents=system_prompt,
+                )
+                prompt_text = response.text.strip()
+            except Exception as e:
+                print(f"[IMAGE-PROMPT] Gemini Error: {e}")
+
+        # Final cleanup
+        prompt = prompt_text.strip().strip('"').strip("'").strip() if prompt_text else headline
         prompt += ", photorealistic, professional news photography, high resolution, natural daylight"
         return prompt
 

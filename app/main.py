@@ -38,7 +38,9 @@ from app.routers import newspaper_router
 app.include_router(newspaper_router.router, prefix="/api")
 
 # Include Category & Slot Routers (MongoDB-backed)
-from app.routers import category_router, slot_router, history_router
+from app.routers import category_router, slot_router, history_router, auth_router, user_router
+app.include_router(auth_router.router, prefix="/api")
+app.include_router(user_router.router, prefix="/api")
 app.include_router(category_router.router, prefix="/api")
 app.include_router(slot_router.router, prefix="/api")
 app.include_router(history_router.router, prefix="/api")
