@@ -86,11 +86,14 @@
             loading.classList.remove('hidden');
             error.classList.add('hidden');
             
-            const formData = new FormData(e.target);
+            const formData = new URLSearchParams();
+            formData.append('username', document.getElementById('username').value);
+            formData.append('password', document.getElementById('password').value);
             
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData
                 });
                 
@@ -103,7 +106,7 @@
                     localStorage.setItem('username', document.getElementById('username').value);
                     
                     // Redirect to home
-                    window.location.href = '/';
+                    window.location.href = '/generator';
                 } else {
                     error.textContent = data.detail || 'Login failed';
                     error.classList.remove('hidden');

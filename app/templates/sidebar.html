@@ -187,7 +187,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
 <aside class="sb" id="appSidebar">
 
   <!-- Brand -->
-  <a href="/" class="sb-brand">
+  <a href="/generator" class="sb-brand">
     <div class="sb-brand-icon">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0
@@ -204,11 +204,11 @@ Context var: current_page = "generator" | "categories" | "slots" #}
   <nav class="sb-nav">
 
     <div class="sb-section">Generate</div>
-    <a href="/" class="sb-link {% if current_page == 'generator' %}active{% endif %}">
+    <a href="/generator" class="sb-link {% if current_page == 'generator' %}active{% endif %}">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
-      <span class="sb-link-label">News Generator</span>
+      <span class="sb-link-label">AI Draft Desk</span>
     </a>
     <a href="/editor" class="sb-link {% if current_page == 'editor' %}active{% endif %}">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,8 +276,14 @@ Context var: current_page = "generator" | "categories" | "slots" #}
         const role = localStorage.getItem('user_role');
         const path = window.location.pathname;
 
-        if (!token && path !== '/login') {
+        if (!token && path !== '/login' && path !== '/') {
             window.location.href = '/login';
+            return;
+        }
+
+        // If logged in and on root or login page, go to generator
+        if (token && (path === '/' || path === '/login')) {
+            window.location.href = '/generator';
             return;
         }
 
@@ -302,7 +308,10 @@ Context var: current_page = "generator" | "categories" | "slots" #}
     }
 
     // Run on load
-    if (window.location.pathname !== '/login') {
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
+        checkAuth();
+    } else if (localStorage.getItem('access_token')) {
+        // Even on login page, if token exists, check if we should redirect
         checkAuth();
     }
   </script>

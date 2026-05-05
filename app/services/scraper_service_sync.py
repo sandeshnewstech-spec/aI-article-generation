@@ -1,9 +1,16 @@
 import urllib.parse
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from webdriver_manager.chrome import ChromeDriverManager
 from typing import List, Optional
 from app.models.data import ScrapedArticle
 import asyncio
 import random
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -23,7 +30,8 @@ class ScraperService:
     ]
 
     def __init__(self):
-        self.executor = ThreadPoolExecutor(max_workers=6)
+        # Reduced to 1 to save RAM on the server (Prevents OOM errors)
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
     async def scrape_topic(
         self,
@@ -81,40 +89,43 @@ class ScraperService:
         self, topic: str, limit_per_site: int, sites: List[str]
     ):
         """Generator that yields results site by site for real-time progress"""
-        with sync_playwright() as p:
-            # Use headless=False on Windows to bypass search engine blocks MUCH more reliably
-            browser = p.chromium.launch(
-                headless=False, 
-                args=['--mute-audio', '--window-position=0,0']
-            ) 
-            context = browser.new_context(
-                viewport={'width': 1280, 'height': 800},
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/122.0.0.0 Safari/537.36"
-                )
-            )
+        chrome_options = Options()
+        # Auto-detect Linux (Server) vs Windows
+        import os
+        is_linux = os.name != 'nt'
+        
+        if is_linux:
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+        
+        chrome_options.add_argument("--mute-audio")
+        chrome_options.add_argument("--window-size=1280,800")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
 
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        try:
             for site in sites:
                 try:
                     print(f"[SCRAPE] Starting work on: {site}")
                     articles = self._scrape_one_site(
-                        context, topic, site, limit_per_site
+                        driver, topic, site, limit_per_site
                     )
                     yield {"site": site, "articles": articles}
                     print(f"[SCRAPE] Completed work on: {site} (Found {len(articles)})")
                 except Exception as e:
                     print(f"[WARN] Failed site {site}: {e}")
                     yield {"site": site, "articles": [], "error": str(e)}
-
-            browser.close()
+        finally:
+            driver.quit()
             print("[SCRAPE] All news sources processed.")
 
     def _scrape_one_site(
-        self, context, topic: str, site: str, limit: int
+        self, driver, topic: str, site: str, limit: int
     ) -> List[ScrapedArticle]:
-        page = context.new_page()
         articles = []
 
         try:
@@ -129,54 +140,52 @@ class ScraperService:
             
             ddg_ok = False
             try:
-                page.goto(search_url, wait_until="domcontentloaded", timeout=20000)
-                page.wait_for_timeout(random.randint(3000, 5000))
+                driver.get(search_url)
+                time.sleep(random.uniform(3, 5))
                 ddg_ok = True
             except Exception as ddg_err:
                 print(f"[WARN] DDG network error for {site}: {type(ddg_err).__name__}. Skipping to Google...")
 
             if ddg_ok:
-                # Detect DDG bot block
-                if "Robot Check" in page.content() or "Security Check" in page.content():
+                page_source = driver.page_source
+                if "Robot Check" in page_source or "Security Check" in page_source:
                     print(f"[WARN] DuckDuckGo blocked us for {site}. Trying Google fallback...")
                     ddg_ok = False
                 else:
-                    # SCROLL TO LOAD MORE IF NEEDED (For higher limits)
                     if limit > 6:
                         for _ in range(2): 
-                            page.keyboard.press("End")
-                            page.wait_for_timeout(1500)
-                            more_btn = page.locator("button#more-results, button.more-results").first
-                            if more_btn.count() > 0 and more_btn.is_visible():
-                                try: more_btn.click(timeout=3000); page.wait_for_timeout(2000)
-                                except: pass
+                            driver.find_element(By.TAG_NAME, "body").send_keys(Keys.END)
+                            time.sleep(1.5)
+                            try:
+                                more_btn = driver.find_element(By.CSS_SELECTOR, "button#more-results, button.more-results")
+                                if more_btn.is_displayed():
+                                    more_btn.click()
+                                    time.sleep(2)
+                            except: pass
 
-            # --- ATTEMPT 2: Google Fallback if DDG failed or found no links ---
-            def extract_hrefs(page_obj):
+            def extract_hrefs(d_obj):
                 res = []
-                # Target 'a' tags specifically to ensure we get hrefs
                 s_list = [
                     "article h2 a", "[data-testid='result-title-a']", "a.result__a", "a.result-link", 
                     "h3 a", ".g a", "#search a", ".yuRUbf a", "a h3", ".content a"
                 ]
                 for s in s_list:
                     try:
-                        found = page_obj.locator(s).all()
+                        found = d_obj.find_elements(By.CSS_SELECTOR, s)
                         for el in found:
                             h = el.get_attribute("href")
                             if h and h.startswith("http") and (site in h or site.replace("www.","") in h):
                                 if any(x in h.lower() for x in ["/category/", "/section/", "/topic/"]) and h.lower().count('/') < 5:
-                                    continue # Skip likely section pages
+                                    continue
                                 if any(h.lower().endswith(x) for x in [".com", ".com/", ".in", ".in/"]):
-                                    continue # Skip homepage
+                                    continue
                                 if "duckduckgo" not in h and "google" not in h:
                                     if h not in res: res.append(h)
                             if len(res) >= limit: return res
                     except: continue
 
-                # JS Collector (More reliable for Google)
-                js_links = page_obj.evaluate("""
-                    () => Array.from(document.querySelectorAll('a'))
+                js_links = d_obj.execute_script("""
+                    return Array.from(document.querySelectorAll('a'))
                         .filter(a => a.href && a.href.startsWith('http'))
                         .map(a => a.href)
                 """)
@@ -186,19 +195,18 @@ class ScraperService:
                     if len(res) >= limit: break
                 return res
 
-            hrefs = extract_hrefs(page) if ddg_ok else []
+            hrefs = extract_hrefs(driver) if ddg_ok else []
 
             if not hrefs:
                 print(f"[INFO] DDG had no results for {site}, trying Google fallback...")
                 try:
                     google_url = f"https://www.google.com/search?q={encoded_query}&num=20"
-                    page.goto(google_url, wait_until="domcontentloaded", timeout=25000)
-                    page.wait_for_timeout(random.randint(4000, 6000))
-                    hrefs = extract_hrefs(page)
+                    driver.get(google_url)
+                    time.sleep(random.uniform(4, 6))
+                    hrefs = extract_hrefs(driver)
                 except Exception as g_err:
                     print(f"[WARN] Google fallback also failed for {site}: {g_err}")
 
-            # --- ATTEMPT 3: Direct Site Fallback (Specific for Categories) ---
             if not hrefs and any(c in topic.lower() for c in ["international", "business", "sports", "gujarat", "national"]):
                 cat_map = {
                     "international": "/international-news",
@@ -214,20 +222,18 @@ class ScraperService:
                 if suffix:
                     direct_url = f"https://{site}{suffix}"
                     print(f"[INFO] No search results, trying direct visit: {direct_url}")
-                    page.goto(direct_url, wait_until="domcontentloaded", timeout=20000)
-                    page.wait_for_timeout(3000)
-                    hrefs = extract_hrefs(page)
-
-            # If no links, try scrolling a bit and waiting (ajax results)
-            if not hrefs:
-                page.mouse.wheel(0, 500)
-                page.wait_for_timeout(2000)
-                hrefs = extract_hrefs(page)
+                    driver.get(direct_url)
+                    time.sleep(3)
+                    hrefs = extract_hrefs(driver)
 
             if not hrefs:
-                # Last resort: Any link that looks like it belongs to the site
+                driver.execute_script("window.scrollBy(0, 500);")
+                time.sleep(2)
+                hrefs = extract_hrefs(driver)
+
+            if not hrefs:
                 try:
-                    all_links = page.locator("a").all()
+                    all_links = driver.find_elements(By.TAG_NAME, "a")
                     for link in all_links:
                         href = link.get_attribute("href")
                         if href and site in href and len(href) > len(search_url) + 10:
@@ -242,7 +248,7 @@ class ScraperService:
             print(f"[INFO] Found {len(hrefs)} candidate links for {site}")
 
             for href in hrefs:
-                article = self._scrape_article(context, href, site)
+                article = self._scrape_article(driver, href, site)
                 if article:
                     articles.append(article)
                     print(f"[OK] Scraped: {article.title[:50]}...")
@@ -254,37 +260,36 @@ class ScraperService:
         except Exception as e:
             print(f"[ERROR] Error searching {site}: {e}")
             return []
-        finally:
-            page.close()
 
-    def _scrape_article(self, context, url: str, site: str) -> Optional[ScrapedArticle]:
-        page = context.new_page()
+    def _scrape_article(self, driver, url: str, site: str) -> Optional[ScrapedArticle]:
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=15000)
-            page.wait_for_timeout(1000)
+            driver.get(url)
+            time.sleep(1)
 
-            self._expand_article_if_needed(page, site)
+            self._expand_article_if_needed(driver, site)
 
             # Get Title
             title = ""
-            if page.locator("h1").count() > 0:
-                title = page.locator("h1").first.text_content() or ""
-            elif page.locator("meta[property='og:title']").count() > 0:
-                title = (
-                    page.locator("meta[property='og:title']").get_attribute("content")
-                    or ""
-                )
+            try:
+                h1 = driver.find_element(By.TAG_NAME, "h1")
+                title = h1.text or ""
+            except NoSuchElementException:
+                try:
+                    og_title = driver.find_element(By.CSS_SELECTOR, "meta[property='og:title']")
+                    title = og_title.get_attribute("content") or ""
+                except NoSuchElementException:
+                    pass
 
             if not title.strip():
                 return None
 
             # Get Body
-            body_text = self._extract_body(page, url, site)
+            body_text = self._extract_body(driver, url, site)
             if not body_text or len(body_text) < 80:
                 return None
 
-            # Get Main Article Image (og:image → twitter:image → first large img)
-            image_url = self._extract_image(page, site)
+            # Get Main Article Image
+            image_url = self._extract_image(driver, site)
 
             return ScrapedArticle(
                 source=site,
@@ -293,38 +298,47 @@ class ScraperService:
                 body=" ".join(body_text.split()),
                 image_url=image_url,
             )
-
-        except Exception as e:
+        except Exception:
             return None
-        finally:
-            page.close()
 
-    def _expand_article_if_needed(self, page, site: str):
+    def _expand_article_if_needed(self, driver, site: str):
         try:
             if "sandesh.com" in site:
-                btn = page.locator("#postId button, #postId button span").filter(
-                    has_text="View"
-                )
-                if btn.count() > 0:
-                    btn.first.click()
-                    page.wait_for_timeout(800)
+                try:
+                    btns = driver.find_elements(By.CSS_SELECTOR, "#postId button, #postId button span")
+                    for btn in btns:
+                        if "View" in btn.text:
+                            btn.click()
+                            time.sleep(0.8)
+                            break
+                except: pass
             elif "aajtak.in" in site:
-                btn = page.locator("div.read-more-content button")
-                if btn.count() > 0:
-                    btn.first.click()
-                    page.wait_for_timeout(800)
+                try:
+                    btn = driver.find_element(By.CSS_SELECTOR, "div.read-more-content button")
+                    btn.click()
+                    time.sleep(0.8)
+                except: pass
             elif "news18.com" in site:
-                btn = page.locator(
-                    "span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')"
-                )
-                if btn.count() > 0:
-                    btn.first.click()
-                    page.wait_for_timeout(800)
+                try:
+                    btn = driver.find_element(By.CSS_SELECTOR, "span[id^='readmore_story'], span[class*='readmore'], span:has-text('Read More')")
+                    btn.click()
+                    time.sleep(0.8)
+                except: pass
+            elif "divyabhaskar.co.in" in site:
+                try:
+                    # Divya Bhaskar sometimes has a 'Read More' but it's rare on web
+                    # We try to find any button that might expand content
+                    btns = driver.find_elements(By.CSS_SELECTOR, "button, a.read-more")
+                    for btn in btns:
+                        if "વધારે વાંચો" in btn.text or "Read More" in btn.text:
+                            btn.click()
+                            time.sleep(0.8)
+                            break
+                except: pass
         except Exception:
             pass
 
-    def _extract_body(self, page, url: str, site: str) -> str:
-        # 1. Try site-specific selectors first
+    def _extract_body(self, driver, url: str, site: str) -> str:
         selectors = {
             "sandesh.com": "div[class^='story article-']",
             "gujaratsamachar.com": "div.article-inner-detail.card-body",
@@ -336,86 +350,72 @@ class ScraperService:
             "vtvgujarati.com": ".post-content, #postId",
             "abplive.com": ".article-story, .story-full-width",
             "iamgujarat.com": ".article-payload",
-            "zee24kalak.in": ".story-right-section"
+            "zee24kalak.in": ".story-right-section",
+            "divyabhaskar.co.in": "div.art-con, div.story-details, article, div[class*='article-body']"
         }
 
         for k, v in selectors.items():
             if k in site:
-                el = page.query_selector(v)
-                if el:
-                    txt = el.inner_text()
+                try:
+                    el = driver.find_element(By.CSS_SELECTOR, v)
+                    txt = el.text
                     if len(txt) > 80: return txt
+                except: continue
 
-        # 2. Try common selectors for any site
-        body = page.evaluate(
-            """
-            () => {
-                const selectors = [
-                    'article', '.article-content', '.article-body', '.story-details',
-                    '.content', '.content-area', '.detailBody', '.news-description',
-                    '.article-inner-detail', '.story', '#article-body', '.story_content',
-                    '[itemprop="articleBody"]', '.post-content', '.entry-content',
-                    '.story-full-width', '.article-payload', '.storyDetail'
-                ];
-                for (const sel of selectors) {
-                    const els = document.querySelectorAll(sel);
-                    for (const el of els) {
-                        if (el && el.innerText.length > 200) {
-                             return el.innerText;
-                        }
+        body = driver.execute_script("""
+            const selectors = [
+                'article', '.article-content', '.article-body', '.story-details',
+                '.content', '.content-area', '.detailBody', '.news-description',
+                '.article-inner-detail', '.story', '#article-body', '.story_content',
+                '[itemprop="articleBody"]', '.post-content', '.entry-content',
+                '.story-full-width', '.article-payload', '.storyDetail'
+            ];
+            for (const sel of selectors) {
+                const els = document.querySelectorAll(sel);
+                for (const el of els) {
+                    if (el && el.innerText.length > 200) {
+                         return el.innerText;
                     }
                 }
-                return '';
             }
-        """
-        ) or ""
+            return '';
+        """) or ""
 
-        if not body:
-            print(f"[WARN] No body extracted via selectors for {url}. Falling back to P tags.")
-            p_tags = page.locator("p").all()
-            body = " ".join([p.text_content() for p in p_tags if len(p.text_content() or "") > 40])
+        if not body or "Copyright ©" in body[:100] and len(body) < 200:
+            p_tags = driver.find_elements(By.TAG_NAME, "p")
+            body = " ".join([p.text for p in p_tags if len(p.text) > 40 and "Copyright" not in p.text and "DNPA" not in p.text])
 
         return body
 
-    def _extract_image(self, page, site: str) -> Optional[str]:
-        """Extract the main article image URL with ultra-resilient, multi-stage fallback."""
+    def _extract_image(self, driver, site: str) -> Optional[str]:
         try:
-            # Dismiss typical cookie barriers
             try:
-                page.evaluate("""() => { 
+                driver.execute_script("""
                     const buttons = Array.from(document.querySelectorAll('button, a')).filter(el => /accept|agree|close|dismiss|ok/i.test(el.innerText));
                     if(buttons.length > 0) buttons[0].click();
-                }""")
-                page.wait_for_timeout(500)
+                """)
+                time.sleep(0.5)
             except: pass
 
-            # Wait for any image to load (lazy loading)
-            page.wait_for_timeout(1000)
+            time.sleep(1)
             
-            # 1. Meta-scanners (Highest reliability across standardized News sites)
-            src = page.evaluate("""
-                () => {
-                    const selectors = [
-                        'meta[property="og:image"]', 
-                        'meta[name="twitter:image"]',
-                        'meta[property="twitter:image"]',
-                        'meta[name="thumbnail"]',
-                        'link[rel="image_src"]'
-                    ];
-                    for (const sel of selectors) {
-                        const el = document.querySelector(sel);
-                        const val = el ? (el.content || el.href) : null;
-                        if (val && val.startsWith('http')) return val;
-                    }
-                    return null;
+            src = driver.execute_script("""
+                const selectors = [
+                    'meta[property="og:image"]', 
+                    'meta[name="twitter:image"]',
+                    'meta[property="twitter:image"]',
+                    'meta[name="thumbnail"]',
+                    'link[rel="image_src"]'
+                ];
+                for (const sel of selectors) {
+                    const el = document.querySelector(sel);
+                    const val = el ? (el.content || el.href) : null;
+                    if (val && val.startsWith('http')) return val;
                 }
+                return null;
             """)
-            if src:
-                print(f"[IMAGE-SCRAPE] Meta/Tag image found: {src[:60]}...")
-                return src
+            if src: return src
 
-            # 2. Channel-Specific High-Resolution Selectors
-            # Targeted at the most common Indian news channels
             site_patterns = {
                 "sandesh.com":         [".article-image img", ".post-thumb img", ".story-main-image img"],
                 "tv9gujarati.com":     [".detailBody img", ".news-detail-img img", "figure.news-detail-img img"],
@@ -436,63 +436,47 @@ class ScraperService:
             for channel, selectors in site_patterns.items():
                 if channel in site:
                     for sel in selectors:
-                        src = page.evaluate(f"() => {{ const img = document.querySelector('{sel}'); return img ? (img.src || img.getAttribute('data-src')) : null; }}")
-                        if src and src.startswith("http"):
-                            print(f"[IMAGE-SCRAPE] Channel-specific success for {channel}")
-                            return src
+                        src = driver.execute_script(f"const img = document.querySelector('{sel}'); return img ? (img.src || img.getAttribute('data-src')) : null;")
+                        if src and src.startswith("http"): return src
 
-            # 3. Geometric Content Scan (Aggressive fallback)
-            # Find the largest image in the main content area
-            src = page.evaluate("""
-                () => {
-                    const containers = ['article', 'main', '.article-content', '.story-details', '.detailBody', '.post-content', '.content-area', '.story-payload'];
-                    let bestImg = null;
-                    let maxArea = 0;
+            src = driver.execute_script("""
+                const containers = ['article', 'main', '.article-content', '.story-details', '.detailBody', '.post-content', '.content-area', '.story-payload'];
+                let bestImg = null;
+                let maxArea = 0;
 
-                    for (const sel of containers) {
-                        const container = document.querySelector(sel);
-                        if (!container) continue;
-                        
-                        const imgs = Array.from(container.querySelectorAll('img'));
-                        for (const img of imgs) {
-                            const src = img.src || img.getAttribute('data-src') || '';
-                            if (!src.startsWith('http')) continue;
-                            if (!src.includes('.jpg') && !src.includes('.jpeg') && !src.includes('.png') && !src.includes('.webp')) continue;
-
-                            const area = (img.naturalWidth || img.width || 0) * (img.naturalHeight || img.height || 0);
-                            if (area > maxArea) {
-                                maxArea = area;
-                                bestImg = src;
-                            }
-                        }
-                    }
-                    return bestImg;
-                }
-            """)
-            if src:
-                print(f"[IMAGE-SCRAPE] Geometric scan found content image")
-                return src
-
-            # 4. Final Fail-Safe: Top Image
-            # If nothing else works, pick the first image in the top 40% of the page
-            src = page.evaluate("""
-                () => {
-                    const imgs = Array.from(document.querySelectorAll('img'));
+                for (const sel of containers) {
+                    const container = document.querySelector(sel);
+                    if (!container) continue;
+                    
+                    const imgs = Array.from(container.querySelectorAll('img'));
                     for (const img of imgs) {
-                        const rect = img.getBoundingClientRect();
-                        const s = img.src || img.getAttribute('data-src') || '';
-                        if (rect.top < window.innerHeight * 0.4 && rect.width > 200 && s.startsWith('http')) {
-                            return s;
+                        const src = img.src || img.getAttribute('data-src') || '';
+                        if (!src.startsWith('http')) continue;
+                        if (!src.includes('.jpg') && !src.includes('.jpeg') && !src.includes('.png') && !src.includes('.webp')) continue;
+
+                        const area = (img.naturalWidth || img.width || 0) * (img.naturalHeight || img.height || 0);
+                        if (area > maxArea) {
+                            maxArea = area;
+                            bestImg = src;
                         }
                     }
-                    return null;
                 }
+                return bestImg;
             """)
-            if src:
-                print(f"[IMAGE-SCRAPE] Top-page fail-safe image found")
-                return src
+            if src: return src
 
-        except Exception as e:
-            print(f"[IMAGE-SCRAPE] Universal error: {e}")
+            src = driver.execute_script("""
+                const imgs = Array.from(document.querySelectorAll('img'));
+                for (const img of imgs) {
+                    const rect = img.getBoundingClientRect();
+                    const s = img.src || img.getAttribute('data-src') || '';
+                    if (rect.top < window.innerHeight * 0.4 && rect.width > 200 && s.startsWith('http')) {
+                        return s;
+                    }
+                }
+                return null;
+            """)
+            return src
 
-        return None
+        except Exception:
+            return None

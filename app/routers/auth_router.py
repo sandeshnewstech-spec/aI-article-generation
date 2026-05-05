@@ -12,7 +12,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     db = get_db()
     user = await db["users"].find_one({"username": form_data.username})
     
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
+    print(f"[AUTH] Login attempt for user: '{form_data.username}'")
+    if not user:
+        print(f"[AUTH] User '{form_data.username}' not found in DB")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    is_valid = verify_password(form_data.password, user["hashed_password"])
+    print(f"[AUTH] Password check for '{form_data.username}': {is_valid}")
+    
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

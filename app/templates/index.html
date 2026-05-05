@@ -411,7 +411,7 @@
             <div class="mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-14">
                     <div class="flex items-center gap-3">
-                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">News Generator</h1>
+                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">AI Draft Desk</h1>
                         <span
                             class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Live</span>
                     </div>
@@ -1402,6 +1402,8 @@
                 "શીર્ષક ઉપલબ્ધ નથી",
                 "પ્રસ્તાવના ઉપલબ્ધ નથી",
                 "વિષયવસ્તુ ઉપલબ્ધ નથી",
+                "ચકાસણી જરૂરી",
+                "ચકાસણી જરૂરી.",
                 "Generation Error",
                 "Generation Failed",
                 "Batch Error",
@@ -1410,9 +1412,18 @@
 
             const keys = Object.keys(newspaperArticles).filter(key => {
                 const art = newspaperArticles[key];
-                return !skipConditions.includes(art.headline) &&
-                    !skipConditions.includes(art.intro) &&
-                    !skipConditions.includes(art.body);
+
+                // Basic skip conditions
+                if (skipConditions.includes(art.headline) || skipConditions.includes(art.body)) return false;
+
+                // Length check (ignore junk)
+                if (!art.headline || art.headline.length < 5) return false;
+                if (!art.body || art.body.length < 50) return false;
+
+                // Duplicate check (AI sometimes repeats same phrase everywhere)
+                if (art.headline.trim() === art.body.trim()) return false;
+
+                return true;
             });
 
             if (keys.length === 0) {
@@ -1436,8 +1447,13 @@
                 return 0;
             });
 
-            // Grouping logic: One tab per unique source name
-            const groups = []; // [{ name: 'TV9', keys: [...] }]
+            // Grouping logic: One tab per unique source name + an "ALL" tab
+            const groups = []; // [{ name: 'ALL', keys: [...] }]
+
+            // Add "ALL" group first if there are multiple articles
+            if (keys.length > 0) {
+                groups.push({ name: 'ALL SECTIONS', keys: [...keys] });
+            }
 
             keys.forEach(key => {
                 const name = (variantNames[key] || "Draft").toUpperCase();

@@ -1,14 +1,16 @@
 import sys
 import asyncio
-
-
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.routers import api_router, ui_router
+from app.routers import ui_router
 from app.core.config import settings
 from app.core.database import connect_db, close_db
+import traceback
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 
 @asynccontextmanager
@@ -22,15 +24,26 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
-# Mount static files for local image storage
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"❌ GLOBAL EXCEPTION: {exc}")
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)},
+    )
+
+# Mount static files for local image storage using absolute path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_path = os.path.join(BASE_DIR, "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 @app.get("/check")
 async def check_health():
     return {"status": "ok", "message": "Server is responding!"}
 
 # Include Routers
-app.include_router(api_router.router, prefix="/api")
 app.include_router(ui_router.router)
 
 # Include Newspaper Router
