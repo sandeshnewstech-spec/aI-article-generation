@@ -44,6 +44,7 @@ async def check_health():
     return {"status": "ok", "message": "Server is responding!"}
 
 # Include Routers
+# Updated history navigation
 app.include_router(ui_router.router)
 
 # Include Newspaper Router

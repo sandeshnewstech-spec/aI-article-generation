@@ -71,3 +71,21 @@ async def clear_history():
     await db["history"].delete_many({})
     return {"status": "success"}
 
+@router.put("/{history_id}")
+async def update_history(history_id: str, update_data: dict):
+    db = get_db()
+    try:
+        # Remove _id from update_data if present
+        if "_id" in update_data:
+            del update_data["_id"]
+        
+        res = await db["history"].update_one(
+            {"_id": ObjectId(history_id)},
+            {"$set": update_data}
+        )
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="History item not found")
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

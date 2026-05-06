@@ -415,199 +415,144 @@
                         <span
                             class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Live</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-semibold">v2.2
-                            MongoDB</span>
+                    <div class="flex items-center gap-4">
+                        <button id="generateAiBtn" onclick="prepareNewGeneration()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Generate AI
+                        </button>
+                        <button onclick="switchToHistory()" id="backToHistoryBtn" class="hidden px-4 py-2 text-gray-500 hover:text-gray-800 font-bold text-sm transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back to History
+                        </button>
+                        <div class="h-6 w-px bg-gray-200"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">System Online</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <div
-            class="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-8 overflow-y-auto lg:overflow-hidden min-h-0">
-
-            <!-- Sidebar: Configuration -->
-            <aside class="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6 overflow-hidden h-full">
+        <div class="flex-1 flex gap-0 lg:gap-4 overflow-hidden p-2 lg:p-4">
+            
+            <!-- Sidebar: Configuration (Hidden by default) -->
+            <aside id="configSidebar" class="hidden w-full lg:w-[380px] flex-shrink-0 flex flex-col gap-6 overflow-hidden h-full bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                 <!-- Inner scrollable area for configs -->
                 <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
-
-                    <!-- Input Card -->
+                    <!-- Topic Input Card -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                </path>
-                            </svg>
-                            Topic Details
-                        </h2>
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Topic Details
+                            </h2>
+                            <button onclick="switchToHistory()" class="lg:hidden text-gray-400 hover:text-gray-600">&times;</button>
+                        </div>
 
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Topic / Headline</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Topic / Headline</label>
                                 <input type="text" id="topicInput" placeholder="e.g. Gujarat Elections 2026 updates"
                                     class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition text-gray-900 placeholder-gray-400">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Category Source</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Category Source</label>
                                 <div class="flex flex-wrap gap-2" id="categoryTabs">
-                                    <!-- Category Pills -->
-                                    <button onclick="selectCategory('National')" id="cat_National"
-                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm active-cat">
-                                        National
-                                    </button>
-                                    <button onclick="selectCategory('Business')" id="cat_Business"
-                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
-                                        Business
-                                    </button>
-                                    <button onclick="selectCategory('International')" id="cat_International"
-                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
-                                        International
-                                    </button>
-                                    <button onclick="selectCategory('Local')" id="cat_Local"
-                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
-                                        Local
-                                    </button>
-                                    <button onclick="selectCategory('Agency')" id="cat_Agency"
-                                        class="category-pill px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
-                                        Agency
-                                    </button>
+                                    <!-- Populated by JS -->
                                 </div>
                                 <input type="hidden" id="selectedCategory" value="National">
 
                                 <!-- Source Selection -->
                                 <div class="mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
                                     <div class="flex items-center justify-between mb-2">
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active
-                                            Sources</label>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Sources</label>
                                         <button type="button" id="selectAllBtn"
-                                            class="text-xs text-brand-600 hover:text-brand-800 font-medium transition-colors"
+                                            class="text-[10px] text-brand-600 hover:text-brand-800 font-bold uppercase transition-colors"
                                             onclick="toggleAllSources()">
                                             Select All
                                         </button>
                                     </div>
-                                    <div id="sourcesContainer"
-                                        class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                    <div id="sourcesContainer" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                                         <!-- Populated by JS -->
                                     </div>
                                 </div>
                                 <input type="hidden" id="scrapeLimit" value="15">
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Layout Card -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                                    </path>
-                                </svg>
-                                Layout Settings
-                            </h2>
+                    <!-- Layout Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                                </path>
+                            </svg>
+                            Layout Settings
+                        </h2>
 
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Columns</label>
-                                    <select id="columnSpan" onchange="updateLayoutInfo()"
-                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
-                                        <option value="1" selected>1 Col</option>
-                                        <option value="2">2 Cols</option>
-                                        <option value="3">3 Cols</option>
-                                        <option value="4">4 Cols</option>
-                                        <option value="5">5 Cols</option>
-                                        <option value="6">6 Cols</option>
-                                        <option value="7">7 Cols</option>
-                                        <option value="8">8 Cols</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Grid Slots</label>
-                                    <select id="slotCount" onchange="updateLayoutInfo()"
-                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm">
-                                        <option value="1" selected>1 Slot</option>
-                                        <option value="2">2 Slots</option>
-                                        <option value="3">3 Slots</option>
-                                        <option value="4">4 Slots</option>
-                                    </select>
-                                </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Columns</label>
+                                <select id="columnSpan" onchange="updateLayoutInfo()"
+                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm font-medium">
+                                    <option value="1" selected>1 Col</option>
+                                    <option value="2">2 Cols</option>
+                                    <option value="3">3 Cols</option>
+                                    <option value="4">4 Cols</option>
+                                    <option value="5">5 Cols</option>
+                                    <option value="6">6 Cols</option>
+                                    <option value="7">7 Cols</option>
+                                    <option value="8">8 Cols</option>
+                                </select>
                             </div>
-
-                            <!-- Custom Word Counts -->
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Headline</label>
-                                    <input type="number" id="wc_headline" value="10"
-                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
-                                        title="Target headline words">
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Intro</label>
-                                    <input type="number" id="wc_intro" value="75"
-                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
-                                        title="Target intro words">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Body</label>
-                                    <input type="number" id="wc_body" value="175"
-                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
-                                        title="Target body words">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Key
-                                        Points</label>
-                                    <input type="number" id="wc_infobox" value="60"
-                                        class="w-full px-2 py-1.5 bg-gray-50 border border-gray-300 rounded text-xs text-center"
-                                        title="Target key points words">
-                                </div>
-                            </div>
-
-                            <div class="text-xs bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-100"
-                                id="layoutInfo">
-                                3 Cols, 1 Slot: Headline ~8-12w | Body ~175w
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Grid Slots</label>
+                                <select id="slotCount" onchange="updateLayoutInfo()"
+                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm font-medium">
+                                    <option value="1" selected>1 Slot</option>
+                                    <option value="2">2 Slots</option>
+                                    <option value="3">3 Slots</option>
+                                    <option value="4">4 Slots</option>
+                                </select>
                             </div>
                         </div>
 
-                        <button onclick="generateNews()" id="generateBtn"
-                            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                            <span id="btnIcon">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                </svg>
-                            </span>
-                            <span id="btnText">Generate Drafts</span>
-                        </button>
+                        <!-- Hidden Word Counts (still used by logic) -->
+                        <div class="hidden">
+                            <input type="number" id="wc_headline" value="10">
+                            <input type="number" id="wc_intro" value="75">
+                            <input type="number" id="wc_body" value="175">
+                            <input type="number" id="wc_infobox" value="60">
+                        </div>
 
-                        <!-- History Card -->
-                        <div class="mt-8 pt-6 border-t border-gray-100">
-                            <div class="flex items-center justify-between mb-4">
-                                <h2
-                                    class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Recent Searches
-                                </h2>
-                                <button onclick="loadHistory()"
-                                    class="text-xs text-brand-600 hover:underline">Refresh</button>
-                            </div>
-                            <div id="historyList" class="space-y-3 max-h-64 overflow-y-auto pr-2 no-scrollbar">
-                                <div class="text-center py-4 text-xs text-gray-400">Loading history...</div>
-                            </div>
+                        <div class="text-[11px] bg-blue-50 text-blue-800 p-3 rounded-lg border border-blue-100 font-medium" id="layoutInfo">
+                            3 Cols, 1 Slot: Optimized for H: 10w, B: 175w
                         </div>
                     </div>
-                </div> <!-- End inner scrollable -->
+
+                    <button onclick="generateNews()" id="generateBtn"
+                        class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <span id="btnIcon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </span>
+                        <span id="btnText">Generate Drafts</span>
+                    </button>
+                </div>
             </aside>
 
             <!-- Main Content: Results -->
@@ -615,20 +560,66 @@
                 <!-- Inner scrollable area for results -->
                 <div id="resultsWrapper" class="flex-1 overflow-y-auto pr-2 custom-scrollbar relative">
 
-                    <!-- Welcome State -->
+                    <!-- Welcome & History State -->
                     <div id="welcomeState"
-                        class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-white border border-dashed border-gray-300 rounded-2xl">
-                        <div class="bg-gray-50 p-6 rounded-full mb-6">
-                            <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
-                                </path>
-                            </svg>
+                        class="absolute inset-0 flex flex-col bg-white rounded-xl overflow-y-auto custom-scrollbar">
+                        
+                        <!-- History Header & Search -->
+                        <div class="w-full px-6 py-6 border-b border-gray-100 bg-gray-50/30">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h1 class="text-2xl font-black text-gray-900 tracking-tight">Content History Logs</h1>
+                                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Manage generated news drafts and final reports</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative group">
+                                        <input type="text" id="historySearch" onkeyup="filterHistoryTable()" placeholder="Search Topic, User, Status..." 
+                                            class="w-72 pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-sm group-hover:border-brand-300">
+                                        <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5 transition-colors group-hover:text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <button onclick="loadHistory()" class="p-2.5 bg-white border border-gray-200 text-gray-400 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 rounded-xl transition-all shadow-sm" title="Refresh List">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Ready to Create</h3>
-                        <p class="text-gray-500 max-w-sm">Enter a topic and generate 3 professional article drafts
-                            instantly.
-                            Merge them for the perfect story.</p>
+
+                        <!-- History Table in Main Area -->
+                        <div class="flex-1 w-full">
+
+                            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                            <th class="px-4 py-3 font-bold text-gray-600">Topic</th>
+                                            <th class="px-4 py-3 font-bold text-gray-600">User</th>
+                                            <th class="px-4 py-3 font-bold text-gray-600">Date</th>
+                                            <th class="px-4 py-3 font-bold text-gray-600">Status</th>
+                                            <th class="px-4 py-3 font-bold text-gray-600 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mainHistoryTableBody" class="divide-y divide-gray-100">
+                                        <tr>
+                                            <td colspan="4" class="px-4 py-8 text-center text-gray-400">Loading history...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Pagination Controls (Inside Card) -->
+                                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                                    <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                                        Showing <span id="pageStart" class="text-brand-600">0</span> - <span id="pageEnd" class="text-brand-600">0</span> of <span id="totalItems" class="text-gray-900">0</span> Logs
+                                    </div>
+                                    <div class="flex items-center gap-1" id="paginationButtons">
+                                        <!-- Dynamic Buttons -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Loading Overlay with Checklist -->
@@ -745,6 +736,9 @@
 
     </div><!-- end .app-main -->
 
+    <!-- Hidden Sidebar for Logic (needed for some existing refs, or just use the modal content) -->
+    <div id="historyList" class="hidden"></div>
+
     <!-- ══ IMAGE MODAL ════════════════════════════════════════════════ -->
     <div id="imageModal" onclick="if(event.target===this)closeImageModal()">
         <div id="imageModalBox">
@@ -823,6 +817,48 @@
         const selectedArticles = new Set();
         let currentSelectedSources = new Set();
         let currentHistoryId = null;
+
+        // Pagination State
+        let allHistoryItems = [];
+        let filteredHistoryItems = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function switchToGenerator() {
+            document.getElementById('configSidebar').classList.remove('hidden');
+            document.getElementById('backToHistoryBtn').classList.remove('hidden');
+            document.getElementById('generateAiBtn').classList.add('hidden'); // Hide on generator view
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            // Refresh layout info when opening
+            if (typeof updateLayoutInfo === 'function') updateLayoutInfo();
+        }
+
+        function switchToHistory() {
+            document.getElementById('configSidebar').classList.add('hidden');
+            document.getElementById('backToHistoryBtn').classList.add('hidden');
+            document.getElementById('generateAiBtn').classList.remove('hidden'); // Show on history view
+            document.getElementById('welcomeState').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            loadHistory();
+        }
+
+        function prepareNewGeneration() {
+            // 1. Clear Inputs
+            document.getElementById('topicInput').value = '';
+            currentSelectedSources.clear();
+            renderSources(document.getElementById('selectedCategory').value);
+            
+            // 2. Clear Results
+            newspaperArticles = {};
+            variantNames = {};
+            selectedArticles.clear();
+            document.getElementById('tabsHeader').innerHTML = '';
+            document.getElementById('tabsContent').innerHTML = '';
+            
+            // 3. Switch View
+            switchToGenerator();
+        }
 
         let categorySources = {};      // { "National": ["ndtv.com", ...], ... }
         let categoryMeta = [];         // full list from API: [{id, name, slug, sources, is_active}]
@@ -1032,45 +1068,175 @@
             loadCategoriesFromDB();
             loadSlotsFromDB();
             loadHistory();
+
+            // Check if history_id is in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const historyId = urlParams.get('history_id');
+            if (historyId) {
+                viewHistoryItem(historyId);
+            }
         });
 
         async function loadHistory() {
             const list = document.getElementById('historyList');
             try {
-                const res = await fetch('/api/history/?limit=10');
+                const res = await fetch('/api/history/?limit=100');
                 if (!res.ok) throw new Error("History fetch failed");
-                const history = await res.json();
-
-                if (history.length === 0) {
+                allHistoryItems = await res.json();
+                filteredHistoryItems = [...allHistoryItems];
+                currentPage = 1;
+                
+                // 1. Sidebar List (Limited to 10)
+                const recentHistory = allHistoryItems.slice(0, 10);
+                if (recentHistory.length === 0) {
                     list.innerHTML = '<div class="text-center py-4 text-xs text-gray-400">No recent searches.</div>';
-                    return;
+                } else {
+                    list.innerHTML = recentHistory.map(item => {
+                        const itemId = item.id || item._id;
+                        const hasFinal = !!item.final_article || (item.final_reports && item.final_reports.length > 0);
+                        const displayTopic = item.topic;
+                        return `
+                            <div class="group flex flex-col p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-brand-200 transition-all cursor-pointer relative" onclick="viewHistoryItem('${itemId}')">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="text-xs font-bold text-gray-900 truncate flex-1" title="${item.topic}">
+                                        ${hasFinal ? `<span class="text-brand-600 mr-1">[FINAL]</span>` : ''}${displayTopic}
+                                    </span>
+                                    <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                                    <span class="${hasFinal ? 'bg-brand-100 text-brand-700' : 'bg-gray-200 text-gray-600'} px-1.5 py-0.5 rounded font-medium">
+                                        ${hasFinal ? 'Finalized' : `${item.articles?.length || 0} Drafts`}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 }
 
-                list.innerHTML = history.map(item => {
-                    const itemId = item.id || item._id;
-                    const hasFinal = !!item.final_article;
-                    const displayTopic = item.topic;
-
-                    return `
-                        <div class="group flex flex-col p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-brand-200 transition-all cursor-pointer relative" onclick="viewHistoryItem('${itemId}')">
-                            <div class="flex justify-between items-start mb-1">
-                                <span class="text-xs font-bold text-gray-900 truncate flex-1" title="${item.topic}">
-                                    ${hasFinal ? `<span class="text-brand-600 mr-1">[FINAL]</span>` : ''}${displayTopic}
-                                </span>
-                                <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                            </div>
-                            <div class="flex items-center gap-2 text-[10px] text-gray-500">
-                                <span class="${hasFinal ? 'bg-brand-100 text-brand-700' : 'bg-gray-200 text-gray-600'} px-1.5 py-0.5 rounded font-medium">
-                                    ${hasFinal ? '1 Finalized' : `${item.articles.length} Drafts`}
-                                </span>
-                                <span class="truncate">${item.config_used?.slot_config?.column_span || 3} Cols</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                renderHistoryTable();
             } catch (e) {
                 list.innerHTML = `<div class="text-center py-4 text-xs text-red-500">Failed to load history</div>`;
             }
+        }
+
+        function renderHistoryTable() {
+            const tableBody = document.getElementById('mainHistoryTableBody');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredHistoryItems.slice(start, end);
+
+            // Update Counts
+            document.getElementById('totalItems').innerText = filteredHistoryItems.length;
+            document.getElementById('pageStart').innerText = filteredHistoryItems.length ? start + 1 : 0;
+            document.getElementById('pageEnd').innerText = Math.min(end, filteredHistoryItems.length);
+
+            if (pageItems.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No logs found.</td></tr>';
+                renderPaginationButtons(0);
+                return;
+            }
+
+            tableBody.innerHTML = pageItems.map(item => {
+                const itemId = item.id || item._id;
+                const hasFinal = !!item.final_article || (item.final_reports && item.final_reports.length > 0);
+                const date = new Date(item.created_at);
+                const username = item.username || item.created_by_name || 'Admin';
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-gray-900">${item.topic}</div>
+                            <div class="text-[10px] text-gray-400">ID: ${itemId.substring(0, 8)}...</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">
+                                    ${username.charAt(0).toUpperCase()}
+                                </div>
+                                <span class="text-xs font-medium text-gray-700">${username}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">
+                            ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${hasFinal ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">
+                                ${hasFinal ? 'Completed' : 'Draft'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="viewHistoryItem('${itemId}')" class="text-blue-600 hover:text-blue-800 font-bold text-xs bg-blue-50 px-3 py-1 rounded-md transition-colors">
+                                View & Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPaginationButtons(Math.ceil(filteredHistoryItems.length / itemsPerPage));
+        }
+
+        function renderPaginationButtons(totalPages) {
+            const container = document.getElementById('paginationButtons');
+            container.innerHTML = '';
+            
+            // Show nothing if no items
+            if (filteredHistoryItems.length === 0) return;
+
+            // Prev
+            const prevBtn = document.createElement('button');
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.className = `p-2 rounded-lg border transition-all ${currentPage === 1 ? 'text-gray-300 border-gray-100 cursor-not-allowed' : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-brand-200'}`;
+            prevBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>';
+            prevBtn.onclick = () => { currentPage--; renderHistoryTable(); };
+            container.appendChild(prevBtn);
+
+            // Pages (Only if more than 1)
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    if (totalPages > 5 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+                        if (i === 3 || i === totalPages - 2) {
+                            const dot = document.createElement('span');
+                            dot.innerText = '...';
+                            dot.className = 'px-2 text-gray-400';
+                            container.appendChild(dot);
+                        }
+                        continue;
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.innerText = i;
+                    btn.className = `w-8 h-8 rounded-lg text-xs font-bold transition-all ${i === currentPage ? 'bg-brand-600 text-white shadow-md' : 'text-gray-600 border border-transparent hover:border-gray-200 hover:bg-gray-50'}`;
+                    btn.onclick = () => { currentPage = i; renderHistoryTable(); };
+                    container.appendChild(btn);
+                }
+            }
+
+            // Next
+            const nextBtn = document.createElement('button');
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            nextBtn.className = `p-2 rounded-lg border transition-all ${currentPage === totalPages || totalPages === 0 ? 'text-gray-300 border-gray-100 cursor-not-allowed' : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-brand-200'}`;
+            nextBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
+            nextBtn.onclick = () => { currentPage++; renderHistoryTable(); };
+            container.appendChild(nextBtn);
+        }
+
+        function filterHistoryTable() {
+            const query = document.getElementById('historySearch').value.toLowerCase();
+            filteredHistoryItems = allHistoryItems.filter(item => {
+                const username = (item.username || item.created_by_name || 'Admin').toLowerCase();
+                const status = (!!item.final_article || (item.final_reports && item.final_reports.length > 0)) ? 'completed' : 'draft';
+                return item.topic.toLowerCase().includes(query) || 
+                       username.includes(query) || 
+                       status.includes(query);
+            });
+            currentPage = 1;
+            renderHistoryTable();
+        }
+
+        function showHistoryTable() {
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('welcomeState').classList.remove('hidden');
+            loadHistory();
         }
 
         async function viewHistoryItem(id) {
@@ -1090,8 +1256,8 @@
                     if (typeof updateLayoutInfo === 'function') updateLayoutInfo();
                 }
 
-                document.getElementById('welcomeState').classList.add('hidden');
-                document.getElementById('results').classList.remove('hidden');
+                // Switch to generator view to see restored content
+                switchToGenerator();
                 document.getElementById('loading').classList.add('hidden');
 
                 currentHistoryId = item.id || item._id; // Set ID for future merges
@@ -1555,9 +1721,18 @@
                         </div>
 
                         <div class="flex items-center gap-2 flex-wrap justify-end">
-                            <!-- Senior Edit Button -->
+                            <!-- Save Edit Button (Modern Premium Style) -->
+                            <button id="saveBtn_${safeKey}" onclick="saveArticleEdits('${key}', '${safeKey}')"
+                                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:scale-105 transition-all active:scale-95 border-b-2 border-emerald-800"
+                                title="Save your manual changes">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                                Save Edit
+                            </button>
+                            <!-- Senior Edit Button (Modern Premium Style) -->
                             <button onclick="doSeniorEdit('${key}')"
-                                class="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors"
+                                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-amber-100 hover:scale-105 transition-all shadow-sm"
                                 title="High-quality Senior Gujarati Editor rewrite">
                                 ✨ Senior Edit
                             </button>
@@ -1660,17 +1835,35 @@
                             ` : ''}
 
                             <div class="article-separator"></div>
-                            <p class="article-introfont-bold text-black uppercase mr-1">
-                                <span class="" style="color: black !important;">INTRO:</span> 
-                                ${article.intro}
-                            </p>
-                            <div style="color: black !important;">
-                                ${article.body.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')}
+                            <div class="space-y-4">
+                                <div>
+                                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Headline</span>
+                                    <div id="edit_headline_${safeKey}" contenteditable="true" oninput="showSaveBtn('${safeKey}')" class="text-2xl font-black text-gray-900 leading-tight gujarati outline-none focus:ring-2 focus:ring-brand-200 rounded p-1 transition-all">
+                                        ${article.headline}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Introduction</span>
+                                    <div id="edit_intro_${safeKey}" contenteditable="true" oninput="showSaveBtn('${safeKey}')" class="text-lg font-bold text-gray-800 leading-relaxed gujarati outline-none focus:ring-2 focus:ring-brand-200 rounded p-1 transition-all">
+                                        ${article.intro}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Main Content</span>
+                                    <div id="edit_body_${safeKey}" contenteditable="true" oninput="showSaveBtn('${safeKey}')" class="text-base text-gray-700 leading-relaxed gujarati outline-none focus:ring-2 focus:ring-brand-200 rounded p-1 transition-all whitespace-pre-wrap">
+                                        ${article.body}
+                                    </div>
+                                </div>
                             </div>
+
                             ${article.info_box ? `
-                                <div class="article-infobox">
-                                    <h4>Key Points</h4>
-                                    <div>${article.info_box}</div>
+                                <div class="article-infobox mt-8">
+                                    <h4 class="text-xs font-black uppercase tracking-widest text-brand-600 mb-2">Key Points</h4>
+                                    <div id="edit_infobox_${safeKey}" contenteditable="true" oninput="showSaveBtn('${safeKey}')" class="text-sm text-gray-600 gujarati outline-none">
+                                        ${article.info_box}
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
@@ -2065,6 +2258,74 @@
             } finally {
                 btnTxt.textContent = '✨ Generate';
                 btn.disabled = false;
+            }
+        }
+
+        // --- Editing Logic ---
+        function showSaveBtn(safeKey) {
+            document.getElementById(`saveBtn_${safeKey}`).classList.remove('hidden');
+        }
+
+        async function saveArticleEdits(key, safeKey) {
+            const headline = document.getElementById(`edit_headline_${safeKey}`).innerText.trim();
+            const intro = document.getElementById(`edit_intro_${safeKey}`).innerText.trim();
+            const body = document.getElementById(`edit_body_${safeKey}`).innerText.trim();
+            const infoboxEl = document.getElementById(`edit_infobox_${safeKey}`);
+            const infobox = infoboxEl ? infoboxEl.innerText.trim() : null;
+
+            // Update local state
+            newspaperArticles[key].headline = headline;
+            newspaperArticles[key].intro = intro;
+            newspaperArticles[key].body = body;
+            if (infobox !== null) newspaperArticles[key].info_box = infobox;
+
+            toast("Saving changes...", "info");
+
+            try {
+                if (currentHistoryId) {
+                    // Update the entire history item on server
+                    // We need to decide whether to update the specific article in the array
+                    // or just send the current state of all articles.
+                    // For simplicity, let's fetch current history, update the specific item, and put it back.
+                    const hRes = await fetch(`/api/history/${currentHistoryId}`);
+                    const history = await hRes.json();
+
+                    if (key.startsWith('final_report_')) {
+                        const idx = parseInt(key.split('_')[2]);
+                        if (history.final_reports && history.final_reports[idx]) {
+                            history.final_reports[idx] = newspaperArticles[key];
+                        } else if (idx === 0 && history.final_article) {
+                            history.final_article = newspaperArticles[key];
+                        }
+                    } else if (key.startsWith('draft_') || key.startsWith('history_draft_')) {
+                        // Find by matching original content or index
+                        // For drafts, we can just update the articles array
+                        // Need to be careful about which draft it is.
+                        // Let's assume the local order matches or find by source.
+                        const artIndex = history.articles.findIndex(a => a.source === newspaperArticles[key].source);
+                        if (artIndex !== -1) {
+                            history.articles[artIndex] = newspaperArticles[key];
+                        }
+                    }
+
+                    const updateRes = await fetch(`/api/history/${currentHistoryId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(history)
+                    });
+
+                    if (!updateRes.ok) throw new Error("Failed to persist changes to database");
+                    
+                    toast("Changes saved to database!", "success");
+                    document.getElementById(`saveBtn_${safeKey}`).classList.add('hidden');
+                    loadHistory(); // Refresh to reflect changes
+                } else {
+                    toast("Changes saved locally!", "success");
+                    document.getElementById(`saveBtn_${safeKey}`).classList.add('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                toast("Error saving: " + e.message, "error");
             }
         }
 
