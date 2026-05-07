@@ -171,6 +171,8 @@ class NewspaperOutput(BaseModel):
     validation_passed: bool = True
     validation_errors: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    username: Optional[str] = None
+    status: Optional[str] = "Draft"
 
 class GenerateResponse(BaseModel):
     articles: List[NewspaperOutput]
@@ -190,6 +192,8 @@ class HistoryItem(BaseModel):
     final_reports: List[NewspaperOutput] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     config_used: NewspaperConfig
+    username: Optional[str] = None
+    status: Optional[str] = "Draft"
 
     def to_plain_text(self) -> str:
         """Convert to plain newspaper format"""

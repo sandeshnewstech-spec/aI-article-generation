@@ -79,12 +79,22 @@ async def update_history(history_id: str, update_data: dict):
         if "_id" in update_data:
             del update_data["_id"]
         
+        # Try updating in 'history' first
         res = await db["history"].update_one(
             {"_id": ObjectId(history_id)},
             {"$set": update_data}
         )
+        
+        # If not found in 'history', try 'editor_history'
         if res.matched_count == 0:
-            raise HTTPException(status_code=404, detail="History item not found")
+            res = await db["editor_history"].update_one(
+                {"_id": ObjectId(history_id)},
+                {"$set": update_data}
+            )
+            
+        if res.matched_count == 0:
+            raise HTTPException(status_code=404, detail="History item not found in any collection")
+            
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
