@@ -31,8 +31,8 @@
         .topbar {
             background: #fff;
             border-bottom: 1px solid #e2e8f0;
-            padding: 0 28px;
-            height: 58px;
+            padding: 0 16px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -42,9 +42,10 @@
         }
 
         .topbar-title {
-            font-size: 0.9375rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 900;
             color: #0f172a;
+            letter-spacing: -0.025em;
         }
 
         .topbar-right {
@@ -56,7 +57,7 @@
         .badge-v {
             padding: 3px 11px;
             background: #fef2f2;
-            color: #ae0a0b;
+            color: #e82526;
             border: 1px solid #fee2e2;
             border-radius: 999px;
             font-size: 0.7rem;
@@ -68,7 +69,7 @@
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            background: linear-gradient(135deg, #ae0a0b 0%, #800607 100%);
+            background: linear-gradient(135deg, #e82526 0%, #990d0e 100%);
             color: #fff;
             border: none;
             padding: 8px 16px;
@@ -151,7 +152,7 @@
 
         /* ── Content ───────────────────────────────────── */
         .content-area {
-            padding: 28px;
+            padding: 16px;
             flex: 1;
         }
 
@@ -584,7 +585,14 @@
 
         <!-- Topbar -->
         <header class="topbar">
-            <span class="topbar-title">Category &amp; Source Manager</span>
+            <div style="display:flex;align-items:center;gap:16px">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg, #e82526 0%, #990d0e 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;shadow:0 10px 15px -3px rgba(153, 13, 14, 0.2)">
+                    <svg style="width:24px;height:24px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                </div>
+                <span class="topbar-title">Categories &amp; Sources</span>
+            </div>
             <div class="topbar-right">
                 <button class="btn-primary" onclick="showCreate()">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

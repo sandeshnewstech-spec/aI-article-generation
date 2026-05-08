@@ -353,7 +353,7 @@ CRITICAL OUTPUT RULES:
 - Do NOT write "3 alternative headlines:" or any number inline after the HEADLINE.
 - Do NOT merge multiple sections on one line.
 
-OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line:
+        OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line. Keep the labels in ENGLISH as shown:
 HEADLINE: [Best Gujarati Headline only]
 ALTERNATIVE HEADLINES:
 1. [Alt Headline 1]
@@ -363,7 +363,7 @@ SUBHEADING: [Gujarati Subheading]
 INTRO PARAGRAPH: [Gujarati Intro]
 BODY PARAGRAPH: [Gujarati Body Content — only facts from the keypoints]
 INFO BOX: [Key points summary in Gujarati]
-EDITORIAL NOTES: [Note any missing facts that should be verified before publishing]
+EDITORIAL NOTES: [Note any missing facts]
 
 Generate the complete report now.
 """
@@ -419,7 +419,7 @@ CRITICAL OUTPUT RULES:
 - Do NOT write "3 alternative headlines:" or any number inline after the HEADLINE.
 - Do NOT merge multiple sections on one line.
 
-OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line:
+OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line. Keep the labels in ENGLISH as shown:
 HEADLINE: [High-quality Headline only]
 ALTERNATIVE HEADLINES:
 1. [Alt Headline 1]
@@ -429,7 +429,7 @@ SUBHEADING: [Gujarati Subheading]
 INTRO PARAGRAPH: [Polished Intro]
 BODY PARAGRAPH: [Full Polished Body]
 INFO BOX: [Key summary points or 'None']
-EDITORIAL NOTES: [Brief notes on what was improved, missing facts, legal cautions]
+EDITORIAL NOTES: [Brief notes on what was improved]
 
 Text to rewrite:
 {text}
@@ -472,11 +472,11 @@ Text to rewrite:
             "headline_cap":          r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*CAP\s*[:\-]*",
             "alternative_headlines": r"(?i)^\s*[\*\#\-\s\d\.]*ALT(?:ERNATIVE)?\s*HEADLINES?\s*[:\-]*",
             "editorial_notes":       r"(?i)^\s*[\*\#\-\s\d\.]*EDITORIAL\s*NOTES?\s*[:\-]*",
-            "headline":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:HEADLINE|હેડલાઇન)\s*[:\-]*",
-            "subheading":            r"(?i)^\s*[\*\#\-\s\d\.]*(?:SUB\s*HEADING|સબહેડલાઇન|સબ-હેડલાઇન)\s*[:\-]*",
-            "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION|ઇન્ટ્રો|પ્રસ્તાવના)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
-            "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN|બોડી|વિષયવસ્તુ)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
-            "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY|ઇન્ફો)(?:\s*(?:BOX|POINTS|HIGHLIGHTS|બોક્સ))?\s*[:\-]*",
+            "headline":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:HEADLINE|HEADING|TOPIC|હેડલાઇન|શીર્ષક|મુખ્ય સમાચાર)\s*[:\-]*",
+            "subheading":            r"(?i)^\s*[\*\#\-\s\d\.]*(?:SUB\s*HEADING|SUBTITLE|સબહેડલાઇન|સબ-હેડલાઇન|ગૌણ શીર્ષક)\s*[:\-]*",
+            "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION|LEAD|ઇન્ટ્રો|પ્રસ્તાવના|શરૂઆત)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
+            "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN|STORY|ARTICLE|બોડી|વિષયવસ્તુ|મુખ્ય લખાણ)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
+            "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY|SUMMARY|HIGHLIGHTS|ઇન્ફો|મુખ્ય મુદ્દા)(?:\s*(?:BOX|POINTS|HIGHLIGHTS|બોક્સ))?\s*[:\-]*",
         }
 
         lines = raw_output.split("\n")
@@ -501,7 +501,7 @@ Text to rewrite:
             for key in ordered_keys:
                 pattern = patterns[key]
                 match = re.search(pattern, clean_line)
-                if match and match.start() < 5:  # Match must be at start of line
+                if match and match.start() < 10:  # Allow some minor indentation
                     # Save old section
                     if current_section:
                         sections[current_section] = "\n".join(current_content).strip()
@@ -521,9 +521,12 @@ Text to rewrite:
             sections[current_section] = "\n".join(current_content).strip()
 
         # Fallback: If absolutely nothing was parsed, try a naive split
-        if not sections["headline"] and not sections["body"] and len(lines) > 2:
+        if not sections["headline"] and not sections["body"] and len(lines) >= 1:
             sections["headline"] = lines[0].strip()
-            sections["body"] = "\n".join(lines[1:]).strip()
+            if len(lines) > 1:
+                sections["body"] = "\n".join(lines[1:]).strip()
+            else:
+                sections["body"] = "વિષયવસ્તુ ઉપલબ્ધ નથી"
 
         # ── Clean markdown bolding (**) from all text fields ──────────────────
         def clean_markdown(text):

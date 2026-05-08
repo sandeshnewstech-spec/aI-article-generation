@@ -25,7 +25,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 18px 20px;
+    padding: 18px 16px;
     border-bottom: 1px solid #f1f5f9;
     text-decoration: none;
   }
@@ -58,7 +58,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
 
   /* ── Nav ──────────────────────────────────────────────────── */
   .sb-nav {
-    padding: 20px 12px;
+    padding: 12px 8px;
     flex: 1;
     overflow-y: auto;
     -ms-overflow-style: none;
@@ -75,14 +75,14 @@ Context var: current_page = "generator" | "categories" | "slots" #}
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: #52525b;
-    padding: 12px 10px 8px;
+    padding: 8px 10px 4px;
   }
 
   .sb-link {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 8px;
     font-size: 0.8rem;
     font-weight: 500;
@@ -173,8 +173,8 @@ Context var: current_page = "generator" | "categories" | "slots" #}
 
   /* ── App main offset — used by every page ─────────────────── */
   .sb-offset {
-    margin-left: 240px;
-    width: stretch;
+    margin-left: 210px;
+    width: calc(100% - 210px);
     height: 100vh;
     overflow: hidden;
     display: flex;

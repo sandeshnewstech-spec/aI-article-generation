@@ -25,8 +25,8 @@
                         brand: {
                             50: '#fef2f2',
                             100: '#fee2e2',
-                            500: '#ae0a0b',
-                            600: '#ae0a0b',
+                            500: '#e82526',
+                            600: '#990d0e',
                             700: '#991b1b',
                         },
                         sandesh: {
@@ -273,14 +273,21 @@
     <div class="sb-offset flex flex-col h-screen max-h-screen overflow-hidden">
         <!-- Navbar -->
         <nav class="bg-white border-b border-gray-200 shadow-sm z-30">
-            <div class="mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="px-4">
                 <div class="flex justify-between h-14">
-                    <div class="flex items-center gap-3">
-                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">Full Newspaper ePaper Generator</h1>
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-[#e82526] to-[#990d0e] rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-900/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">Full Newspaper</h1>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="savePage()"
-                            class="px-5 py-2 bg-green-600 text-white rounded-full text-xs font-bold hover:bg-green-700 transition shadow-md">SAVE
+                            class="px-5 py-2 bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white rounded-full text-xs font-bold hover:shadow-red-900/40 transition shadow-md">SAVE
                             E-PAPER</button>
                     </div>
                 </div>
@@ -289,7 +296,7 @@
 
         <div class="flex-1 flex overflow-hidden">
             <!-- Sidebar: Editor -->
-            <aside class="control-panel overflow-y-auto p-6 custom-scrollbar">
+            <aside class="control-panel overflow-y-auto p-4 custom-scrollbar">
                 <div class="flex items-center gap-2 mb-6 border-b pb-4">
                     <div class="w-2 h-8 bg-red-600 rounded"></div>
                     <h2 class="text-xl font-black text-gray-900 uppercase">Page Config</h2>
@@ -344,7 +351,7 @@
                 <div class="flex items-center justify-between mb-4 mt-8">
                     <h2 class="text-xl font-black text-gray-900 uppercase">Articles</h2>
                     <button onclick="openAddModal()"
-                        class="px-4 py-2 bg-brand-600 text-white rounded-full text-xs font-bold hover:bg-brand-700 transition shadow-lg active:scale-95">Add
+                        class="px-4 py-2 bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white rounded-full text-xs font-bold hover:shadow-red-900/40 transition shadow-lg active:scale-95">Add
                         News</button>
                 </div>
 
@@ -510,7 +517,7 @@
 
                     <div class="mt-6">
                         <button onclick="generateFromKeypoints()" id="aiGenBtn"
-                            class="w-full bg-purple-600 text-white rounded-2xl py-4 font-black hover:bg-purple-700 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
+                            class="w-full bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white rounded-2xl py-4 font-black hover:shadow-red-900/40 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
                             <span id="aiBtnText">CREATE AI DRAFT</span>
                         </button>
                     </div>
@@ -528,7 +535,7 @@
 
                     <div class="mt-6">
                         <button onclick="searchAndGenerateNews()" id="searchGenBtn"
-                            class="w-full bg-orange-500 text-white rounded-2xl py-4 font-black hover:bg-orange-600 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
+                            class="w-full bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white rounded-2xl py-4 font-black hover:shadow-red-900/40 transition flex items-center justify-center gap-3 shadow-xl active:scale-95">
                             <span id="searchBtnText">SEARCH & GENERATE</span>
                         </button>
                     </div>
@@ -538,7 +545,7 @@
                 <button onclick="closeAddModal()"
                     class="px-6 py-3 text-sm font-black text-gray-400 hover:text-gray-900 uppercase tracking-widest">Discard</button>
                 <button onclick="addArticleToList()"
-                    class="px-10 py-3 bg-brand-600 text-white rounded-2xl text-sm font-black hover:bg-brand-700 transition shadow-lg active:scale-95">ADD
+                    class="px-10 py-3 bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white rounded-2xl text-sm font-black hover:shadow-red-900/40 transition shadow-lg active:scale-95">ADD
                     TO PAGE</button>
             </div>
         </div>

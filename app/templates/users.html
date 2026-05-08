@@ -48,16 +48,6 @@
         }
 
         /* ── Layout ────────────────────────────────────── */
-        .sb-offset {
-            margin-left: 210px;
-            /* Matching sidebar width */
-            width: calc(100% - 210px);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-main);
-        }
 
         html,
         body {
@@ -108,8 +98,8 @@
         }
 
         .avatar-gradient {
-            background: linear-gradient(135deg, #ae0a0b 0%, #ef4444 100%);
-            box-shadow: 0 4px 12px rgba(174, 10, 11, 0.2);
+            background: linear-gradient(135deg, #e82526 0%, #990d0e 100%);
+            box-shadow: 0 4px 12px rgba(232, 37, 38, 0.2);
         }
 
         .badge {
@@ -241,27 +231,22 @@
     <div class="sb-offset">
         <!-- Header -->
         <nav class="glass-nav sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-8">
-                <div class="flex justify-between h-20 items-center">
-                    <div class="flex items-center gap-5">
-                        <div class="avatar-gradient p-3 rounded-2xl text-white shadow-lg">
+            <div class="px-3">
+                <div class="flex justify-between h-14 items-center">
+                    <div class="flex items-center gap-4">
+                        <div class="avatar-gradient w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-black text-slate-900 tracking-tight">User Management</h1>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">System
-                                    Administration</p>
-                            </div>
+                            <h1 class="text-xl font-black text-slate-900 tracking-tight">Users</h1>
                         </div>
                     </div>
 
                     <button onclick="openModal()"
-                        class="group flex items-center gap-3 bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95">
+                        class="group flex items-center gap-3 bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-red-900/40 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95">
                         <div class="bg-white/20 rounded-lg p-1 group-hover:rotate-90 transition-transform duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -275,8 +260,8 @@
         </nav>
 
         <!-- Main Content -->
-        <div class="flex-1 w-full max-w-7xl mx-auto px-8 py-10 overflow-y-auto custom-scrollbar">
-            <div class="mb-8 flex items-end justify-between">
+        <div class="flex-1 w-full px-3 py-4 overflow-y-auto custom-scrollbar">
+            <div class="mb-4 flex items-end justify-between">
                 <div>
                     <h2 class="text-lg font-bold text-slate-900">Active Staff</h2>
                     <p class="text-sm text-slate-500 mt-1">Directory of all users with system access</p>
@@ -386,7 +371,7 @@
                             Cancel
                         </button>
                         <button type="submit" id="submitBtn"
-                            class="flex-[2] px-8 py-3.5 bg-brand-primary hover:bg-brand-primary-dark text-white font-black text-xs uppercase tracking-widest rounded-xl transition shadow-xl shadow-brand-primary/20 active:scale-95">
+                            class="flex-[2] px-8 py-3.5 bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-red-900/40 text-white font-black text-xs uppercase tracking-widest rounded-xl transition shadow-xl shadow-brand-primary/20 active:scale-95">
                             Save User
                         </button>
                     </div>

@@ -72,12 +72,16 @@ SOURCES AND CONTENT:
     async def generate_content(self, prompt: str) -> str:
         import asyncio
 
+        result = ""
         if self.provider == "gemini":
-            return await asyncio.to_thread(self._generate_gemini, prompt)
+            result = await asyncio.to_thread(self._generate_gemini, prompt)
         elif self.provider == "openrouter":
-            return await asyncio.to_thread(self._generate_openrouter, prompt)
+            result = await asyncio.to_thread(self._generate_openrouter, prompt)
         else:
-            return await asyncio.to_thread(self._generate_ollama, prompt)
+            result = await asyncio.to_thread(self._generate_ollama, prompt)
+        
+        print(f"--- AI RESPONSE ({self.provider}) ---\n{result[:1000]}{'...' if len(result) > 1000 else ''}\n--- END RESPONSE ---")
+        return result
 
     def _generate_ollama(self, prompt: str) -> str:
         payload = {
