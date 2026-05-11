@@ -405,33 +405,42 @@ Rewrite the story/text below into high-quality, polished Gujarati while keeping 
 Editing Standards (must follow):
 1) Correct all grammar, spelling, punctuation, and sentence structure.
 2) Improve clarity and readability.
-3) Make the flow smooth with logical transitions.
-4) Remove repetition, weak phrasing, and filler.
-5) Upgrade vocabulary to refined, standard Gujarati.
-6) Keep it professional and natural.
-7) Do NOT change: characters, events, timeline, facts, or the core message.
-8) NO news channel names or branding in the content.
+You are the Chief Senior Editor of the SANDESH newsroom. Your standards are elite, professional, and strictly governed by the SANDESH Editorial Framework.
+
+TASK:
+Perform a high-quality rewrite and rigorous proofreading of the input text. Your goal is to produce a flawless Gujarati news report.
+
+EDITORIAL MANDATE (STRICT ADHERENCE REQUIRED):
+1) RULE COMPLIANCE: You MUST follow every rule in the uploaded SANDESH knowledge files.
+2) FACT DISCIPLINE: Use ONLY the facts provided. Do NOT invent new events.
+3) MISTAKE CORRECTION: Carefully analyze the input. Fix any grammatical errors, spelling mistakes, punctuation issues, or logical inconsistencies.
+4) NARRATIVE DEPTH: While remaining factual, use professional journalistic language to build a complete, engaging, and descriptive story. Do NOT be minimalist.
+5) WORD COUNT COMPLIANCE: You MUST aim for the target word counts below:
+   - HEADLINE: {rules.heading_min}-{rules.heading_max} words
+   - INTRO: {rules.intro_min}-{rules.intro_max} words
+   - BODY: {rules.body_min}-{rules.body_max} words
+6) AUTHORITATIVE TONE: Write in a neutral, serious, and powerful voice.
+7) LANGUAGE PRECISION: Use standard, refined Gujarati.
 
 CRITICAL OUTPUT RULES:
 - Every section label MUST start on its own NEW LINE.
-- HEADLINE line must contain ONLY the headline — nothing else on that line.
-- ALTERNATIVE HEADLINES must be on separate lines AFTER the HEADLINE line.
-- Do NOT write "3 alternative headlines:" or any number inline after the HEADLINE.
-- Do NOT merge multiple sections on one line.
+- HEADLINE line must contain ONLY the headline.
+- ALTERNATIVE HEADLINES must be on separate lines.
+- Keep the labels in ENGLISH as shown.
 
-OUTPUT FORMAT — copy this structure EXACTLY, each label on its own line. Keep the labels in ENGLISH as shown:
-HEADLINE: [High-quality Headline only]
+OUTPUT FORMAT — copy this structure EXACTLY:
+HEADLINE: [Premium Front-Page Headline]
 ALTERNATIVE HEADLINES:
 1. [Alt Headline 1]
 2. [Alt Headline 2]
 3. [Alt Headline 3]
-SUBHEADING: [Gujarati Subheading]
-INTRO PARAGRAPH: [Polished Intro]
-BODY PARAGRAPH: [Full Polished Body]
+SUBHEADING: [Engaging Gujarati Subheading]
+INTRO PARAGRAPH: [Detailed Lead/Intro following the SANDESH angle]
+BODY PARAGRAPH: [Full, Descriptive Story in inverted pyramid style - meeting word count and fixed of all mistakes]
 INFO BOX: [Key summary points or 'None']
-EDITORIAL NOTES: [Brief notes on what was improved]
+EDITORIAL NOTES: [Brief notes on improvements and what mistakes were fixed]
 
-Text to rewrite:
+INPUT TEXT TO REWRITE/POLISH & CORRECT:
 {text}
 """
         prompt = inject_system_prompt(task_prompt)
