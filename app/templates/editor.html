@@ -146,6 +146,10 @@
             padding-left: 0.75rem;
             color: #0f172a !important;
         }
+
+        div#resultsContent {
+            padding: 0.5rem !important;
+        }
     </style>
 </head>
 
@@ -218,7 +222,22 @@
                         </svg>
                         <span>Submit for Approval</span>
                     </button>
-                    <!-- Super Admin Only Buttons Removed from here -->
+                    <button onclick="updateReportStatus('Approved')" id="approveBtn"
+                        class="hidden bg-gradient-to-r from-emerald-500 to-emerald-700 hover:shadow-lg hover:shadow-emerald-950/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Approve</span>
+                    </button>
+                    <button onclick="updateReportStatus('Rejected')" id="rejectBtn"
+                        class="hidden bg-gradient-to-r from-rose-500 to-rose-700 hover:shadow-lg hover:shadow-rose-950/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Reject</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -297,21 +316,26 @@
             <!-- News Editor Workspace (Initially Hidden) -->
             <div id="editorWorkspace" class="hidden flex-1 flex overflow-hidden">
                 <!-- Left Panel: Input & Settings -->
-                <aside class="w-[320px] border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden">
+                <aside class="w-[450px] border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden">
                     <div class="flex-1 overflow-y-auto no-scrollbar p-4">
                         <!-- Keypoints Input -->
                         <div class="mb-4">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <label
+                                    class="block text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     News Keypoints & Notes
                                 </label>
-                                <button type="button" onclick="document.getElementById('keypointsInput').value = ''; updateCounters();" 
+                                <button type="button" id="clearKeypointsBtn"
+                                    onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
                                     class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                     Clear
                                 </button>
@@ -321,8 +345,12 @@
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-red-500/10 focus:border-brand-500 focus:bg-white outline-none transition-all font-medium leading-relaxed resize-none shadow-inner"
                                 style="font-family: 'Noto Sans Gujarati', 'Inter', sans-serif; min-height: 340px;"></textarea>
                             <div class="flex items-center justify-between mt-2 px-1">
-                                <span id="charCount" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0 characters</span>
-                                <span id="wordCount" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0 words</span>
+                                <span id="charCount"
+                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                    characters</span>
+                                <span id="wordCount"
+                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                    words</span>
                             </div>
                         </div>
 
@@ -403,12 +431,13 @@
                                     <label
                                         class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Headline</label>
                                     <input type="number" id="wc_headline" value="10"
+                                        oninput="updateWorkspaceCounters();"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                                 </div>
                                 <div>
                                     <label
                                         class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Intro</label>
-                                    <input type="number" id="wc_intro" value="75"
+                                    <input type="number" id="wc_intro" value="75" oninput="updateWorkspaceCounters();"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                                 </div>
                             </div>
@@ -416,13 +445,13 @@
                                 <div>
                                     <label
                                         class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Body</label>
-                                    <input type="number" id="wc_body" value="175"
+                                    <input type="number" id="wc_body" value="175" oninput="updateWorkspaceCounters();"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Key
                                         Points</label>
-                                    <input type="number" id="wc_infobox" value="60"
+                                    <input type="number" id="wc_infobox" value="60" oninput="updateWorkspaceCounters();"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                                 </div>
                             </div>
@@ -489,7 +518,83 @@
         let editorCurrentPage = 1;
         let currentEditingId = null;
         let currentArticleData = null;
+        let currentArticlesList = [];
+        let currentVersionIndex = 0;
+        let currentArticleStatus = 'Draft';
         const itemsPerPage = 10;
+
+        function syncUIWithStatus() {
+            // Sidebar controls
+            const keypointsInput = document.getElementById('keypointsInput');
+            const clearKeypointsBtn = document.getElementById('clearKeypointsBtn');
+
+            // Header Action Buttons
+            const rewriteBtn = document.getElementById('rewriteBtn');
+            const saveEditBtn = document.getElementById('saveEditBtn');
+            const generateBtn = document.getElementById('generateBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const approveBtn = document.getElementById('approveBtn');
+            const rejectBtn = document.getElementById('rejectBtn');
+
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
+
+            if (statusLower === 'approved') {
+                if (keypointsInput) keypointsInput.readOnly = true;
+                if (clearKeypointsBtn) clearKeypointsBtn.classList.add('hidden');
+
+                if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                if (generateBtn) generateBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+                if (approveBtn) approveBtn.classList.add('hidden');
+                if (rejectBtn) rejectBtn.classList.add('hidden');
+            } else if (isPending) {
+                if (keypointsInput) keypointsInput.readOnly = !isSuperAdmin;
+                if (clearKeypointsBtn) {
+                    if (isSuperAdmin) clearKeypointsBtn.classList.remove('hidden');
+                    else clearKeypointsBtn.classList.add('hidden');
+                }
+
+                if (generateBtn) generateBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+
+                if (isSuperAdmin) {
+                    if (rewriteBtn) rewriteBtn.classList.remove('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.remove('hidden');
+                    if (approveBtn) approveBtn.classList.remove('hidden');
+                    if (rejectBtn) rejectBtn.classList.remove('hidden');
+                } else {
+                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    if (approveBtn) approveBtn.classList.add('hidden');
+                    if (rejectBtn) rejectBtn.classList.add('hidden');
+                }
+            } else {
+                if (keypointsInput) keypointsInput.readOnly = false;
+                if (clearKeypointsBtn) clearKeypointsBtn.classList.remove('hidden');
+
+                if (currentEditingId) {
+                    if (isSuperAdmin) {
+                        if (rewriteBtn) rewriteBtn.classList.remove('hidden');
+                        if (saveEditBtn) saveEditBtn.classList.remove('hidden');
+                    } else {
+                        if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                        if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    }
+                    if (submitBtn) submitBtn.classList.remove('hidden');
+                    if (generateBtn) generateBtn.classList.add('hidden');
+                } else {
+                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    if (submitBtn) submitBtn.classList.add('hidden');
+                    if (generateBtn) generateBtn.classList.remove('hidden');
+                }
+                if (approveBtn) approveBtn.classList.add('hidden');
+                if (rejectBtn) rejectBtn.classList.add('hidden');
+            }
+        }
 
         function switchToEditor() {
             document.getElementById('historyView').classList.add('hidden');
@@ -515,16 +620,17 @@
             document.getElementById('welcomeState').classList.remove('hidden');
             document.getElementById('results').classList.add('hidden');
 
-            // Hide action buttons initially
-            document.getElementById('rewriteBtn').classList.add('hidden');
-            document.getElementById('saveEditBtn').classList.add('hidden');
-            document.getElementById('submitBtn').classList.add('hidden');
-            document.getElementById('editorStatusBadge').classList.add('hidden');
-
             currentEditingId = null;
             currentArticleData = null;
+            currentArticlesList = [];
+            currentVersionIndex = 0;
+            currentArticleStatus = 'Draft';
 
             switchToEditor();
+            syncUIWithStatus();
+
+            // Hide status badge
+            document.getElementById('editorStatusBadge').classList.add('hidden');
         }
 
         async function init() {
@@ -647,19 +753,24 @@
             } else {
                 document.getElementById('layoutInfo').innerText = `${cols} Cols, ${slots} Slot: Using defaults.`;
             }
+            if (typeof updateWorkspaceCounters === 'function') {
+                updateWorkspaceCounters();
+            }
         }
 
         function updateStatusBadge(status) {
             const badge = document.getElementById('editorStatusBadge');
             if (!badge) return;
             badge.classList.remove('hidden');
-            badge.textContent = status === 'Pending Approval' ? 'Pending' : (status || 'Draft');
+            const statusLower = (status || '').toLowerCase();
+            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
+            badge.textContent = isPending ? 'Pending' : (status || 'Draft');
 
-            if (status === 'Approved') {
+            if (statusLower === 'approved') {
                 badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-green-50 text-green-700 border-green-200';
-            } else if (status === 'Pending Approval') {
+            } else if (isPending) {
                 badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-amber-50 text-amber-700 border-amber-200';
-            } else if (status === 'Rejected') {
+            } else if (statusLower === 'rejected') {
                 badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-red-50 text-red-700 border-red-200';
             } else {
                 badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-slate-50 text-slate-500 border-slate-200';
@@ -669,6 +780,18 @@
         function toast(msg, type = 'success') {
             const el = document.getElementById('toast');
             el.textContent = msg;
+
+            el.classList.remove('bg-slate-800', 'bg-emerald-600', 'bg-rose-600', 'bg-blue-600');
+            if (type === 'success') {
+                el.classList.add('bg-emerald-600');
+            } else if (type === 'error') {
+                el.classList.add('bg-rose-600');
+            } else if (type === 'info') {
+                el.classList.add('bg-blue-600');
+            } else {
+                el.classList.add('bg-slate-800');
+            }
+
             el.classList.remove('opacity-0', 'translate-y-4');
             el.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => {
@@ -726,14 +849,14 @@
                 if (!res.ok) throw new Error("Generation failed");
                 const data = await res.json();
                 currentEditingId = data.history_id;
-                currentArticleData = data.articles[0];
-                renderResults(data.articles[0]);
+                currentArticlesList = data.articles || [];
+                currentVersionIndex = currentArticlesList.length - 1;
+                currentArticleData = currentArticlesList[currentVersionIndex];
+                currentArticleStatus = 'Draft';
+                renderResults(currentArticleData);
                 loadEditorHistory();
 
-                // Show action buttons
-                document.getElementById('rewriteBtn').classList.remove('hidden');
-                document.getElementById('saveEditBtn').classList.remove('hidden');
-                document.getElementById('submitBtn').classList.remove('hidden');
+                syncUIWithStatus();
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('results').classList.remove('hidden');
@@ -747,11 +870,33 @@
         }
 
         async function rewriteQuality() {
-            const keypoints = document.getElementById('keypointsInput').value.trim();
+            const headlineEl = document.getElementById('edit_headline');
+            const subheadingEl = document.getElementById('edit_subheading');
+            const introEl = document.getElementById('edit_intro');
+            const bodyEl = document.getElementById('edit_body');
+            const infoboxEl = document.getElementById('edit_infobox');
+
+            let keypoints = '';
+            if (headlineEl && introEl && bodyEl) {
+                keypoints = `HEADLINE: ${headlineEl.innerText.trim()}\n`;
+                if (subheadingEl) keypoints += `SUBHEADING: ${subheadingEl.innerText.trim()}\n`;
+                keypoints += `INTRO: ${introEl.innerText.trim()}\n`;
+                keypoints += `BODY: ${bodyEl.innerText.trim()}\n`;
+                if (infoboxEl) keypoints += `INFO BOX: ${infoboxEl.innerText.trim()}\n`;
+            } else {
+                keypoints = document.getElementById('keypointsInput').value.trim();
+            }
+
             if (!keypoints) {
                 toast("Please enter your Text/Story to rewrite!", "error");
                 return;
             }
+
+            // Update loading screen text dynamically for contextual feedback
+            const loadingTitle = document.querySelector('#loading h3');
+            const loadingDesc = document.querySelector('#loading p');
+            if (loadingTitle) loadingTitle.innerText = "Senior Editor Polishing...";
+            if (loadingDesc) loadingDesc.innerText = "Our Chief Editor is auditing and refining your draft report.";
 
             document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
@@ -768,11 +913,15 @@
                 allowed_sources: [],
                 headline_config: { single_line: false },
                 word_count_rules: {
-                    heading_min: 5, heading_max: 20,
-                    subheading_min: 5, subheading_max: 20,
-                    intro_min: 20, intro_max: 100,
-                    body_min: 50, body_max: 500,
-                    info_box_min: 10, info_box_max: 100
+                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
+                    heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
+                    subheading_min: 5, subheading_max: 15,
+                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
+                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
+                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
+                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
+                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
                 },
                 editorial_filters: { gujarati_tone: true }
             };
@@ -781,13 +930,26 @@
                 const res = await fetch('/api/newspaper/rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ keypoints, config })
+                    body: JSON.stringify({ keypoints, config, history_id: currentEditingId })
                 });
 
                 if (!res.ok) throw new Error("Rewrite failed");
                 const data = await res.json();
-                renderResults(data.articles[0]);
+
+                currentEditingId = data.history_id;
+                const newArticle = data.articles[0];
+                if (!currentArticlesList || currentArticlesList.length === 0) {
+                    currentArticlesList = [newArticle];
+                } else {
+                    currentArticlesList.push(newArticle);
+                }
+                currentVersionIndex = currentArticlesList.length - 1;
+                currentArticleData = newArticle;
+                currentArticleStatus = 'Draft';
+                renderResults(currentArticleData);
                 loadEditorHistory();
+
+                syncUIWithStatus();
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('results').classList.remove('hidden');
@@ -797,16 +959,23 @@
             } finally {
                 document.getElementById('rewriteBtn').disabled = false;
                 document.getElementById('rewriteBtnText').innerText = "Senior Edit";
+
+                // Restore loading labels to standard defaults
+                if (loadingTitle) loadingTitle.innerText = "Writing Your News...";
+                if (loadingDesc) loadingDesc.innerText = "Our AI Editor is processing your keypoints.";
             }
         }
 
         function renderResults(article) {
             const container = document.getElementById('resultsContent');
             const safeKey = 'editor_result';
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
 
             // ── Alternative Headlines ──────────────────────────────────────
             let altHeadlinesHtml = '';
-            if (article.alternative_headlines && article.alternative_headlines.length > 0) {
+            if (!isReadOnly && article.alternative_headlines && article.alternative_headlines.length > 0) {
                 const chips = article.alternative_headlines.map((h, i) => `
                     <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group"
                          onclick="useHeadline(this, '${h.replace(/'/g, "\\'")}')">
@@ -848,7 +1017,8 @@
                 ? `
                 <div class="mb-4">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Sub-Heading</span>
-                    <p id="edit_subheading" contenteditable="true" oninput="showSaveBtn()" class="text-base font-semibold text-slate-500 border-l-4 border-blue-400 pl-4 italic outline-none focus:ring-2 focus:ring-blue-50 rounded p-1 transition-all">${article.subheading}</p>
+                    <p id="edit_subheading" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-base font-semibold text-slate-500 border-l-4 border-blue-400 pl-4 italic outline-none focus:ring-2 focus:ring-blue-50 rounded p-1 transition-all">${article.subheading}</p>
+                    <div id="count_subheading" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 pl-5 pr-1"></div>
                 </div>`
                 : '';
 
@@ -856,14 +1026,56 @@
             const infoBoxHtml = article.info_box ? `
                 <div class="article-infobox mt-8">
                     <h4 class="text-xs font-black uppercase tracking-widest text-brand-600 mb-2">Key Points / Info Box</h4>
-                    <div id="edit_infobox" contenteditable="true" oninput="showSaveBtn()" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1">
+                    <div id="edit_infobox" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1">
                         ${article.info_box}
                     </div>
+                    <div id="count_infobox" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
                 </div>
             ` : '';
 
+            // ── Revision Timeline ──────────────────────────────────────
+            let revisionTimelineHtml = '';
+            if (currentArticlesList && currentArticlesList.length > 1) {
+                const buttons = currentArticlesList.map((art, idx) => {
+                    const isActive = idx === currentVersionIndex;
+                    let name = idx === 0 ? "Original Draft" : `Polished (v${idx + 1})`;
+                    return `
+                        <button onclick="switchVersion(${idx})" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-sm border
+                            ${isActive
+                            ? 'bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white border-transparent scale-105 shadow-red-900/10'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800'
+                        }">
+                            <span class="w-2 h-2 rounded-full ${isActive ? 'bg-white animate-pulse' : 'bg-slate-300'}"></span>
+                            ${name}
+                        </button>
+                    `;
+                }).join('');
+
+                revisionTimelineHtml = `
+                    <div class="mb-6 p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider leading-none">Revision History</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Select version to view or restore</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${buttons}
+                        </div>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="newspaper-paper p-8 md:p-12 relative mb-12 max-w-4xl mx-auto rounded-xl shadow-sm">
+                    ${revisionTimelineHtml}
+
                     <!-- Tabs -->
                     <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-8 sticky top-[-2.5rem] bg-white z-10 pt-4 -mx-8 px-8 shadow-sm">
                         <button onclick="switchArticleSubTab('article', 'all')" data-section="all" class="subtab-btn subtab-btn-article active">All Sections</button>
@@ -879,7 +1091,8 @@
                             <!-- Main Headline -->
                             <div>
                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Headline</span>
-                                <h1 id="edit_headline" contenteditable="true" oninput="showSaveBtn()" class="text-3xl font-bold mb-4 font-headline leading-tight outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all">${article.headline}</h1>
+                                <h1 id="edit_headline" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-3xl font-bold mb-4 font-headline leading-tight outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all">${article.headline}</h1>
+                                <div id="count_headline" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mb-4 mt-1 px-1"></div>
                             </div>
 
                             ${subheadingHtml}
@@ -892,17 +1105,19 @@
                             <!-- Intro -->
                             <div class="mb-4">
                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Introduction</span>
-                                <p id="edit_intro" contenteditable="true" oninput="showSaveBtn()" class="text-lg leading-relaxed font-body outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all" style="color: #000 !important;">
+                                <p id="edit_intro" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-lg leading-relaxed font-body outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all" style="color: #000 !important;">
                                     ${article.intro}
                                 </p>
+                                <div id="count_intro" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
                             </div>
 
                             <!-- Body -->
                             <div>
                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Main Content</span>
-                                <div id="edit_body" contenteditable="true" oninput="showSaveBtn()" class="font-body text-lg leading-relaxed outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all whitespace-pre-wrap" style="color: #000 !important;">
+                                <div id="edit_body" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="font-body text-lg leading-relaxed outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all whitespace-pre-wrap" style="color: #000 !important;">
                                     ${article.body}
                                 </div>
+                                <div id="count_body" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
                             </div>
 
                             <!-- Info Box -->
@@ -929,11 +1144,122 @@
                             <div class="font-body text-lg leading-relaxed">
                                 ${article.body.split('\n').map(p => p.trim() ? `<p class="mb-4">${p}</p>` : '').join('')}
                             </div>
-                            ${infoBoxHtml}
+                            ${editorialNotesHtml}
                         </div>
                     </article>
                 </div>
             `;
+
+            // Initialize workspace counters
+            updateWorkspaceCounters();
+        }
+
+        window.updateWorkspaceCounters = function () {
+            const fields = [
+                { id: 'edit_headline', countId: 'count_headline', targetInputId: 'wc_headline', minOffset: -2, maxOffset: 2, label: 'Headline' },
+                { id: 'edit_subheading', countId: 'count_subheading', targetInputId: null, minVal: 5, maxVal: 15, label: 'Sub-heading' },
+                { id: 'edit_intro', countId: 'count_intro', targetInputId: 'wc_intro', minOffset: -10, maxOffset: 15, label: 'Introduction' },
+                { id: 'edit_body', countId: 'count_body', targetInputId: 'wc_body', minOffset: -20, maxOffset: 40, label: 'Main Content' },
+                { id: 'edit_infobox', countId: 'count_infobox', targetInputId: 'wc_infobox', minOffset: -15, maxOffset: 20, label: 'Key Points / Info Box' }
+            ];
+
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                const countEl = document.getElementById(f.countId);
+                if (!el || !countEl) return;
+
+                const text = el.innerText.trim();
+                const chars = text.length;
+                const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+
+                let min = 0;
+                let max = 0;
+                let hasRules = false;
+
+                if (f.targetInputId) {
+                    const baseVal = parseInt(document.getElementById(f.targetInputId)?.value || '0', 10);
+                    if (baseVal > 0) {
+                        min = Math.max(1, baseVal + f.minOffset);
+                        max = baseVal + f.maxOffset;
+                        hasRules = true;
+                    }
+                } else if (f.minVal !== undefined && f.maxVal !== undefined) {
+                    min = f.minVal;
+                    max = f.maxVal;
+                    hasRules = true;
+                }
+
+                let statusHtml = '';
+                let borderClass = 'border-slate-200 bg-slate-50/50';
+
+                if (words === 0) {
+                    statusHtml = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200">
+                            Empty
+                        </span>
+                    `;
+                } else if (hasRules) {
+                    if (words < min) {
+                        borderClass = 'border-amber-200 bg-amber-50/20';
+                        statusHtml = `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200/60 shadow-sm animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Too Short
+                            </span>
+                        `;
+                    } else if (words > max) {
+                        borderClass = 'border-rose-200 bg-rose-50/20';
+                        statusHtml = `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/60 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Too Long
+                            </span>
+                        `;
+                    } else {
+                        borderClass = 'border-emerald-200 bg-emerald-50/10';
+                        statusHtml = `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Perfect
+                            </span>
+                        `;
+                    }
+                } else {
+                    statusHtml = `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
+                            Ready
+                        </span>
+                    `;
+                }
+
+                let targetDesc = hasRules ? `Target: ${min}-${max} words` : 'No Word Target';
+
+                // Set container classes and update styling dynamically
+                countEl.className = `flex items-center justify-between mt-2 mb-4 p-2.5 border rounded-xl text-xs transition-all duration-300 ${borderClass}`;
+
+                countEl.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 text-slate-700 font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <span>${words} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">${words === 1 ? 'Word' : 'Words'}</span></span>
+                        </div>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-slate-500 font-semibold">${chars} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">${chars === 1 ? 'Char' : 'Chars'}</span></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">${targetDesc}</span>
+                        ${statusHtml}
+                    </div>
+                `;
+            });
+        }
+
+        window.switchVersion = function (idx) {
+            if (idx < 0 || idx >= currentArticlesList.length) return;
+            currentVersionIndex = idx;
+            currentArticleData = currentArticlesList[idx];
+            renderResults(currentArticleData);
+            syncUIWithStatus();
+            toast(`Switched to ${idx === 0 ? "Original Draft" : "Polished (v" + (idx + 1) + ")"}`, "success");
         }
 
         window.useHeadline = function (el, headline) {
@@ -947,6 +1273,10 @@
 
             // Update main headline displays
             document.querySelectorAll('.font-headline').forEach(h => h.textContent = headline);
+
+            // Also trigger counter updates for headline
+            updateWorkspaceCounters();
+
             toast('✅ Headline updated!');
         }
 
@@ -990,7 +1320,7 @@
             const paginatedItems = editorFilteredItems.slice(start, end);
 
             tbody.innerHTML = paginatedItems.map(item => {
-                const article = item.articles[0];
+                const article = item.articles[item.articles.length - 1] || item.articles[0];
                 const keypoints = item.keypoints || '';
                 const date = new Date(item.created_at);
                 const dateStr = date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
@@ -999,11 +1329,14 @@
 
                 const payload = JSON.stringify({
                     id: item._id || item.id,
-                    article,
+                    articles: item.articles,
                     keypoints,
                     config: item.config_used,
                     status: item.status || 'Draft'
                 }).replace(/'/g, "&apos;");
+
+                const statusLower = (item.status || '').toLowerCase();
+                const isPending = statusLower === 'pending approval' || statusLower === 'pending';
 
                 return `
                     <tr class="hover:bg-red-50/50 transition-colors group cursor-default">
@@ -1025,13 +1358,13 @@
                             </div>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Approved' ? 'bg-green-100 text-green-700' : item.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
-                                ${item.status === 'Pending Approval' ? 'Pending' : (item.status || 'Draft')}
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusLower === 'approved' ? 'bg-green-100 text-green-700' : isPending ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
+                                ${isPending ? 'Pending' : (item.status || 'Draft')}
                             </span>
                         </td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-2">
-                                ${localStorage.getItem('user_role') === 'super_admin' && item.status === 'Pending Approval' ? `
+                                ${localStorage.getItem('user_role') === 'super_admin' && isPending ? `
                                     <button onclick="quickUpdateStatus('${item._id || item.id}', 'Approved')" class="px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase hover:bg-green-600 hover:text-white border border-green-200 transition-all shadow-sm">Approve</button>
                                     <button onclick="quickUpdateStatus('${item._id || item.id}', 'Rejected')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white border border-red-200 transition-all shadow-sm">Reject</button>
                                 ` : ''}
@@ -1098,7 +1431,8 @@
         function filterEditorHistory() {
             const query = document.getElementById('editorSearch').value.toLowerCase();
             editorFilteredItems = editorHistoryItems.filter(item => {
-                const headline = item.articles[0].headline.toLowerCase();
+                const latestArticle = item.articles[item.articles.length - 1] || item.articles[0];
+                const headline = latestArticle.headline.toLowerCase();
                 const topic = (item.config_used.topic || '').toLowerCase();
                 const username = (item.username || item.created_by_name || 'Admin').toLowerCase();
                 return headline.includes(query) || topic.includes(query) || username.includes(query);
@@ -1108,9 +1442,12 @@
         }
 
         function loadFromHistory(payload) {
-            const { id, article, keypoints, config, status } = payload;
+            const { id, articles, keypoints, config, status } = payload;
             currentEditingId = id;
-            currentArticleData = article;
+            currentArticlesList = articles || [];
+            currentVersionIndex = currentArticlesList.length - 1;
+            currentArticleData = currentArticlesList[currentVersionIndex];
+            currentArticleStatus = status || 'Draft';
 
             // Restore inputs
             document.getElementById('keypointsInput').value = keypoints;
@@ -1122,24 +1459,15 @@
             }
 
             // Render Result
-            renderResults(article);
+            renderResults(currentArticleData);
 
             // Switch View
             switchToEditor();
             document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.remove('hidden');
 
-            // Toggle Action Buttons
-            document.getElementById('rewriteBtn').classList.remove('hidden');
-            document.getElementById('saveEditBtn').classList.remove('hidden');
-
-            // Toggle Submit Button based on status
-            const submitBtn = document.getElementById('submitBtn');
-            if (status === 'Pending Approval' || status === 'Approved') {
-                submitBtn.classList.add('hidden');
-            } else {
-                submitBtn.classList.remove('hidden');
-            }
+            // Sync UI elements with status
+            syncUIWithStatus();
 
             // Update Status Badge
             updateStatusBadge(status);
@@ -1166,6 +1494,10 @@
         }
 
         function showSaveBtn() {
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
+            if (isReadOnly) return;
             document.getElementById('saveEditBtn').classList.remove('hidden');
         }
 
@@ -1200,9 +1532,24 @@
                 if (subheading !== null) updatedArticle.subheading = subheading;
                 if (infobox !== null) updatedArticle.info_box = infobox;
 
+                // Update current index in local version list
+                if (currentArticlesList && currentArticlesList.length > 0) {
+                    currentArticlesList[currentVersionIndex] = updatedArticle;
+                } else {
+                    currentArticlesList = [updatedArticle];
+                    currentVersionIndex = 0;
+                }
+                currentArticleData = updatedArticle;
+
+                // If submitting for approval or approving, only keep the selected version and discard all others
+                let finalArticles = currentArticlesList;
+                if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
+                    finalArticles = [updatedArticle];
+                }
+
                 const payload = {
                     status: newStatus,
-                    articles: [updatedArticle],
+                    articles: finalArticles,
                     username: localStorage.getItem('username') || 'Admin'
                 };
 
@@ -1214,11 +1561,17 @@
 
                 if (res.ok) {
                     toast(`Report ${newStatus} successfully!`, "success");
+                    currentArticleStatus = newStatus;
 
-                    // Hide submit button if pending or approved
                     if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
-                        document.getElementById('submitBtn').classList.add('hidden');
+                        // Update local states to only keep this single submitted version
+                        currentArticlesList = [updatedArticle];
+                        currentVersionIndex = 0;
+                        renderResults(currentArticleData);
                     }
+
+                    // Sync UI elements with status
+                    syncUIWithStatus();
 
                     // Update Badge
                     updateStatusBadge(newStatus);
@@ -1259,8 +1612,17 @@
                 if (subheading !== null) updatedArticle.subheading = subheading;
                 if (infobox !== null) updatedArticle.info_box = infobox;
 
+                // Update current index in local version list
+                if (currentArticlesList && currentArticlesList.length > 0) {
+                    currentArticlesList[currentVersionIndex] = updatedArticle;
+                } else {
+                    currentArticlesList = [updatedArticle];
+                    currentVersionIndex = 0;
+                }
+                currentArticleData = updatedArticle;
+
                 const payload = {
-                    articles: [updatedArticle],
+                    articles: currentArticlesList,
                     username: localStorage.getItem('username') || 'Admin'
                 };
 
@@ -1309,7 +1671,7 @@
             const text = keypointsInput.value.trim();
             const chars = text.length;
             const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
-            
+
             charCount.textContent = `${chars} character${chars !== 1 ? 's' : ''}`;
             wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
         }

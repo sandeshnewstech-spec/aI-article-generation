@@ -378,20 +378,44 @@ async def high_quality_rewrite_endpoint(request: GenerateFromKeypointsRequest):
         output = await newspaper_ai.high_quality_rewrite(text, config)
         
         # Save to history
-        history_id = ""
+        history_id = request.history_id or ""
         try:
             db = get_db()
-            history_item = {
-                "topic": output.headline,
-                "keypoints": text,              # ← Store original text for restore
-                "articles": [output.dict()],
-                "created_at": datetime.utcnow(),
-                "config_used": config.dict(),
-                "final_article": None,
-            }
-            res = await db["editor_history"].insert_one(history_item)
-            history_id = str(res.inserted_id)
-            print(f"[OK] Saved SENIOR EDITOR history for: {output.headline}")
+            from bson import ObjectId
+            if history_id:
+                try:
+                    existing = await db["editor_history"].find_one({"_id": ObjectId(history_id)})
+                    if existing:
+                        # Append the new version to 'articles' and update relevant fields
+                        await db["editor_history"].update_one(
+                            {"_id": ObjectId(history_id)},
+                            {
+                                "$push": {"articles": output.dict()},
+                                "$set": {
+                                    "topic": output.headline,
+                                    "config_used": config.dict()
+                                }
+                            }
+                        )
+                        print(f"[OK] Appended senior edit to existing history item: {history_id}")
+                    else:
+                        history_id = ""
+                except Exception as ex:
+                    print(f"[WARN] Error updating existing history: {ex}")
+                    history_id = ""
+            
+            if not history_id:
+                history_item = {
+                    "topic": output.headline,
+                    "keypoints": text,              # ← Store original text for restore
+                    "articles": [output.dict()],
+                    "created_at": datetime.utcnow(),
+                    "config_used": config.dict(),
+                    "final_article": None,
+                }
+                res = await db["editor_history"].insert_one(history_item)
+                history_id = str(res.inserted_id)
+                print(f"[OK] Saved NEW SENIOR EDITOR history for: {output.headline}")
         except Exception as e:
             print(f"[WARN] Failed to save history: {e}")
             

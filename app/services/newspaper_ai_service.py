@@ -396,52 +396,92 @@ Generate the complete report now.
         """
         print(f"[AI] Senior Editor: Polishing content...")
         
+        # Ensure word count rules exist
+        if config.word_count_rules is None:
+            config.word_count_rules = self.grid_calc.get_word_count_rules(
+                config.slot_config.column_span,
+                config.slot_config.slot_count,
+                not config.headline_config.single_line,
+            )
+
+        rules = config.word_count_rules
+        heading_min = rules.heading_min or 5
+        heading_max = rules.heading_max or 15
+        subheading_min = rules.subheading_min or 5
+        subheading_max = rules.subheading_max or 25
+        intro_min = rules.intro_min or 30
+        intro_max = rules.intro_max or 95
+        body_min = rules.body_min or 100
+        body_max = rules.body_max or 350
+        info_box_min = rules.info_box_min or 20
+        info_box_max = rules.info_box_max or 60
+
+        # Clean up input text to prevent the AI from repeating "None" or blank values
+        cleaned_text = text
+        cleaned_text = re.sub(r"(?i)INFO\s*BOX\s*[:\-]*\s*(?:None|none|null|nil|\-)?\s*(?=\n|$)", "INFO BOX: [Generate a fresh professional key points summary here]", cleaned_text)
+        cleaned_text = re.sub(r"(?i)SUBHEADING\s*[:\-]*\s*(?:None|none|null|nil|\-)?\s*(?=\n|$)", "SUBHEADING: [Generate an engaging professional subheading here]", cleaned_text)
+        
+        if "INFO BOX:" not in cleaned_text:
+            cleaned_text = cleaned_text.strip() + "\nINFO BOX: [Generate a fresh professional key points summary here]"
+        if "SUBHEADING:" not in cleaned_text:
+            if "HEADLINE:" in cleaned_text:
+                cleaned_text = re.sub(r"(HEADLINE:[^\n]*\n)", r"\1SUBHEADING: [Generate an engaging professional subheading here]\n", cleaned_text, count=1)
+            else:
+                cleaned_text = "SUBHEADING: [Generate an engaging professional subheading here]\n" + cleaned_text
+
         task_prompt = f"""
-You are a senior Gujarati language editor with a newspaper-level writing standard.
+You are a senior copy-editor and Chief Senior Editor of the SANDESH newsroom.
+Your task is to take the provided news draft, audit it meticulously, apply the elite SANDESH house rules, and write a polished, front-page standard Gujarati copy.
 
-Task:
-Rewrite the story/text below into high-quality, polished Gujarati while keeping the original meaning, tone, and intent exactly the same.
+MANDATORY RULES FROM UPLOADED SANDESH FRAMEWORK (STRICT ADHERENCE REQUIRED):
+1. **01 News Judgment Master**: Apply 5W1H (Who, What, Where, When, Why, How). Ensure a powerful, engaging Lead/Intro paragraph in Inverted Pyramid style.
+2. **02 Headline-Subheadline Master**: Make headings active, direct, and powerful. Headline must be {heading_min}-{heading_max} words. Subheading must be {subheading_min}-{subheading_max} words.
+3. **03 Body Copy Quality Master**: Focus on absolute fact discipline. No padding, puffery, or editorial filler cliches (e.g. "thorough investigation started", "police are on hunt" - unless strictly in the input). One fact = one sentence.
+4. **04 Numbers-Dates-Time-Age-Designation**: Structure designations, dates, and numbers properly in Gujarati copy style. Bold key numbers and percentages for visual appeal.
+5. **05 Legal-Safe Wording Master**: Ensure neutral, legally safe phrasing. Before conviction, use terms like 'આરોપી' (accused), 'આક્ષેપ' (alleged), 'ફરિયાદ મુજબ' (according to the complaint), 'પોલીસ મુજબ' (according to police). Never state allegations as established facts.
+6. **06 Approved News Sources Policy**: Remove any source or channel name (like TV9, Gujarat Samachar, Sandesh News Channel) from within the news content.
+7. **07 Attribution Master**: Explicitly attribute all claims, complaints, allegations, FIRs, and police claims.
+8. **08 Ready Reckoner**: Convert emotional, sensational, or exaggerated phrasing to standard, objective newsroom alternatives.
+9. **09 Before-After Editorial Transformation**: Elevate basic sentence flow to premium literary and journalistic quality in Gujarati.
 
-Editing Standards (must follow):
-1) Correct all grammar, spelling, punctuation, and sentence structure.
-2) Improve clarity and readability.
-You are the Chief Senior Editor of the SANDESH newsroom. Your standards are elite, professional, and strictly governed by the SANDESH Editorial Framework.
+⚠️ IMPORTANT - INFO BOX (KEY POINTS SUMMARY):
+- You MUST synthesize a high-quality, professional Gujarati key points summary (INFO BOX) of the article.
+- Do NOT write 'None' or leave it blank.
+- The Info Box must contain 3 to 5 concise, high-impact bullet points summarizing the main facts.
+- Word limit for the Info Box: {info_box_min}-{info_box_max} words.
 
-TASK:
-Perform a high-quality rewrite and rigorous proofreading of the input text. Your goal is to produce a flawless Gujarati news report.
+⚠️ IMPORTANT - SUBHEADING:
+- You MUST generate an engaging, professional Subheading in Gujarati.
+- Word limit for the Subheading: {subheading_min}-{subheading_max} words.
 
-EDITORIAL MANDATE (STRICT ADHERENCE REQUIRED):
-1) RULE COMPLIANCE: You MUST follow every rule in the uploaded SANDESH knowledge files.
-2) FACT DISCIPLINE: Use ONLY the facts provided. Do NOT invent new events.
-3) MISTAKE CORRECTION: Carefully analyze the input. Fix any grammatical errors, spelling mistakes, punctuation issues, or logical inconsistencies.
-4) NARRATIVE DEPTH: While remaining factual, use professional journalistic language to build a complete, engaging, and descriptive story. Do NOT be minimalist.
-5) WORD COUNT COMPLIANCE: You MUST aim for the target word counts below:
-   - HEADLINE: {rules.heading_min}-{rules.heading_max} words
-   - INTRO: {rules.intro_min}-{rules.intro_max} words
-   - BODY: {rules.body_min}-{rules.body_max} words
-6) AUTHORITATIVE TONE: Write in a neutral, serious, and powerful voice.
-7) LANGUAGE PRECISION: Use standard, refined Gujarati.
+WORD LIMITS:
+- HEADLINE: {heading_min}-{heading_max} words
+- SUBHEADING: {subheading_min}-{subheading_max} words
+- INTRO PARAGRAPH: {intro_min}-{intro_max} words
+- BODY PARAGRAPH: {body_min}-{body_max} words
+- INFO BOX: {info_box_min}-{info_box_max} words
 
-CRITICAL OUTPUT RULES:
-- Every section label MUST start on its own NEW LINE.
-- HEADLINE line must contain ONLY the headline.
-- ALTERNATIVE HEADLINES must be on separate lines.
-- Keep the labels in ENGLISH as shown.
+OUTPUT FORMAT:
+You MUST follow the exact format below, with each label starting on its own new line. Keep the labels in ENGLISH. Do not add any markdown around labels, just write them as shown:
 
-OUTPUT FORMAT — copy this structure EXACTLY:
-HEADLINE: [Premium Front-Page Headline]
+HEADLINE: [Polished Premium Gujarati Headline]
 ALTERNATIVE HEADLINES:
-1. [Alt Headline 1]
-2. [Alt Headline 2]
-3. [Alt Headline 3]
+1. [Option 1]
+2. [Option 2]
+3. [Option 3]
 SUBHEADING: [Engaging Gujarati Subheading]
-INTRO PARAGRAPH: [Detailed Lead/Intro following the SANDESH angle]
-BODY PARAGRAPH: [Full, Descriptive Story in inverted pyramid style - meeting word count and fixed of all mistakes]
-INFO BOX: [Key summary points or 'None']
-EDITORIAL NOTES: [Brief notes on improvements and what mistakes were fixed]
+INTRO PARAGRAPH: [Polished Lead paragraph applying 5W1H]
+BODY PARAGRAPH: [Polished Body paragraphs in Inverted Pyramid style]
+INFO BOX:
+- [Key Point 1 in Gujarati]
+- [Key Point 2 in Gujarati]
+- [Key Point 3 in Gujarati]
+- [Key Point 4 in Gujarati]
+- [Key Point 5 in Gujarati]
+EDITORIAL NOTES: [Brief bulleted list of specific changes: what grammar/spelling errors were fixed, what house style rule was applied, and what vocabulary was elevated]
 
-INPUT TEXT TO REWRITE/POLISH & CORRECT:
-{text}
+INPUT DRAFT TO AUDIT, POLISH & CORRECT:
+{cleaned_text}
 """
         prompt = inject_system_prompt(task_prompt)
         try:
@@ -507,20 +547,24 @@ INPUT TEXT TO REWRITE/POLISH & CORRECT:
 
             # Check for new section header
             found_new = False
-            for key in ordered_keys:
-                pattern = patterns[key]
-                match = re.search(pattern, clean_line)
-                if match and match.start() < 10:  # Allow some minor indentation
-                    # Save old section
-                    if current_section:
-                        sections[current_section] = "\n".join(current_content).strip()
+            # Ensure we don't treat list items/bullet points as section headers
+            is_list_item = re.match(r"^\s*(?:[\-\*•]|\d+[\.\)\-])\s+", clean_line)
+            
+            if current_section != "editorial_notes" and not is_list_item:
+                for key in ordered_keys:
+                    pattern = patterns[key]
+                    match = re.search(pattern, clean_line)
+                    if match and match.start() < 10:  # Allow some minor indentation
+                        # Save old section
+                        if current_section:
+                            sections[current_section] = "\n".join(current_content).strip()
 
-                    # Start new section
-                    current_section = key
-                    content_part = clean_line[match.end():].strip()
-                    current_content = [content_part] if content_part else []
-                    found_new = True
-                    break
+                        # Start new section
+                        current_section = key
+                        content_part = clean_line[match.end():].strip()
+                        current_content = [content_part] if content_part else []
+                        found_new = True
+                        break
 
             if not found_new and current_section:
                 current_content.append(line)
@@ -582,6 +626,10 @@ INPUT TEXT TO REWRITE/POLISH & CORRECT:
             alts = re.findall(r"(?:^|\n)\s*\d+[.)\-]\s*(.+)", raw_alts)
             alt_headlines = [a.strip() for a in alts if a.strip()] if alts else [l.strip() for l in raw_alts.split("\n") if l.strip()]
 
+        info_box_val = clean_markdown(sections.get("info_box"))
+        if info_box_val and info_box_val.strip().lower() in ["none", ""]:
+            info_box_val = None
+
         return NewspaperOutput(
             topic=config.topic,
             config_used=config,
@@ -591,7 +639,7 @@ INPUT TEXT TO REWRITE/POLISH & CORRECT:
             subheading=subheading,
             intro=intro or "પ્રસ્તાવના ઉપલબ્ધ નથી",
             body=body or "વિષયવસ્તુ ઉપલબ્ધ નથી",
-            info_box=clean_markdown(sections.get("info_box")),
+            info_box=info_box_val,
             editorial_notes=clean_markdown(sections.get("editorial_notes")),
             validation_passed=False,
             validation_errors=[],
