@@ -11,3 +11,4 @@ httpx
 python-docx
 selenium
 webdriver-manager
+python-multipart

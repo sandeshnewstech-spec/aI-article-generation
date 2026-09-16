@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sandesh AI | Editor</title>
+    <title>Sandesh AI | News Editor Dashboard</title>
     <link rel="icon" href="/static/favicon.jpeg" type="image/jpeg">
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Rasa:wght@400;500;600;700&family=Mukta+Vaani:wght@300;400;500;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
         rel="stylesheet">
     <script>
         tailwind.config = {
@@ -16,10 +15,6 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        serif: ['Merriweather', 'serif'],
-                        headline: ['Rasa', 'serif'],
-                        body: ['Mukta Vaani', 'sans-serif'],
-                        ui: ['Noto Sans Gujarati', 'sans-serif'],
                     },
                     colors: {
                         brand: {
@@ -52,108 +47,6 @@
             margin: 0;
             padding: 0;
         }
-
-        .newspaper-paper {
-            background-color: #ffffff;
-            color: #000000;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e5e7eb;
-        }
-
-        .section-view {
-            display: none;
-        }
-
-        .section-view.active {
-            display: block !important;
-        }
-
-        .subtab-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        textarea#keypointsInput {
-            font-size: 1rem !important;
-        }
-
-        .subtab-btn.active {
-            color: #e11d48;
-            border-bottom-color: #e11d48;
-            background: #fff1f2;
-        }
-
-        .category-pill.active-cat {
-            background-color: #eff6ff;
-            border-color: #3b82f6;
-            color: #1d4ed8;
-            font-weight: 600;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-
-        .article-infobox {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-top: 2rem;
-        }
-
-        .article-infobox h4 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-bottom: 1rem;
-            letter-spacing: 0.05em;
-        }
-
-        /* Newspaper Styling */
-        .article-container h1 {
-            font-family: 'Rasa', serif;
-            font-weight: 700;
-            font-size: 1.8rem;
-            line-height: 1.1;
-            margin-bottom: 0.5rem;
-            color: #000000 !important;
-            letter-spacing: -0.01em;
-        }
-
-        .article-container h2 {
-            font-family: 'Rasa', serif;
-            font-weight: 600;
-            font-size: 1.25rem;
-            line-height: 1.3;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            color: #475569 !important;
-        }
-
-        .article-container p {
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            color: #1e293b !important;
-        }
-
-        .article-intro {
-            font-weight: 600;
-            font-size: 1.1rem;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-            border-left: 3px solid #ae0a0b;
-            padding-left: 0.75rem;
-            color: #0f172a !important;
-        }
-
-        div#resultsContent {
-            padding: 0.5rem !important;
-        }
     </style>
 </head>
 
@@ -174,91 +67,33 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">News Editor</h1>
-                    <span id="editorStatusBadge"
-                        class="hidden px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm"></span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <button id="backToHistoryBtn" onclick="switchToHistory()"
-                    class="hidden flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-50 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7" />
-                    </svg>
-                    Back to History
-                </button>
-                <button id="createNewBtn" onclick="prepareNewEditor()"
+                <a href="/editor/workspace"
                     class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Create New
-                </button>
-                <div id="editorActions" class="hidden flex items-center gap-4">
-                    <button onclick="rewriteQuality()" id="rewriteBtn"
-                        class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                        <span id="rewriteBtnText">Senior Edit</span>
-                    </button>
-                    <button onclick="generateNews()" id="generateBtn"
-                        class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        <span id="btnText">Generate Report</span>
-                    </button>
-                    <button onclick="saveManualEdit()" id="saveEditBtn"
-                        class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
-                        <span>Save Edit</span>
-                    </button>
-                    <button onclick="submitForApproval()" id="submitBtn"
-                        class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <span>Submit for Approval</span>
-                    </button>
-                    <button onclick="updateReportStatus('Approved')" id="approveBtn"
-                        class="hidden bg-gradient-to-r from-emerald-500 to-emerald-700 hover:shadow-lg hover:shadow-emerald-950/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Approve</span>
-                    </button>
-                    <button onclick="updateReportStatus('Rejected')" id="rejectBtn"
-                        class="hidden bg-gradient-to-r from-rose-500 to-rose-700 hover:shadow-lg hover:shadow-rose-950/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span>Reject</span>
-                    </button>
-                </div>
+                </a>
             </div>
         </header>
 
         <div class="flex-1 flex overflow-hidden">
             <!-- History Table View -->
-            <div id="historyView" class="flex-1 bg-white overflow-y-auto p-3">
-                <div class="w-full">
+            <div id="historyView" class="flex-1 bg-white overflow-y-auto p-6">
+                <div class="w-full max-w-7xl mx-auto">
                     <div class="flex items-center justify-between mb-8">
                         <div>
-                            <h2 class="text-xl font-black text-slate-800">Editorial History</h2>
-                            <p class="text-sm text-slate-500 mt-1">Manage and edit your previous manual reports</p>
+                            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Editorial History</h2>
+                            <p class="text-sm text-slate-500 mt-1">Manage and edit your previously saved news reports
+                            </p>
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="relative">
                                 <input type="text" id="editorSearch" oninput="filterEditorHistory()"
-                                    placeholder="Search Topic, Date..."
+                                    placeholder="Search Topic, Date, User..."
                                     class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none w-64">
                                 <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +102,7 @@
                                 </svg>
                             </div>
                             <button onclick="loadEditorHistory()"
-                                class="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                class="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Reload History">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -290,7 +125,7 @@
                                         class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                         Date</th>
                                     <th
-                                        class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                        class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-center">
                                         Status</th>
                                     <th
                                         class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">
@@ -316,195 +151,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- News Editor Workspace (Initially Hidden) -->
-            <div id="editorWorkspace" class="hidden flex-1 flex overflow-hidden">
-                <!-- Left Panel: Input & Settings -->
-                <aside class="w-[450px] border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden">
-                    <div class="flex-1 overflow-y-auto no-scrollbar p-4">
-                        <!-- Keypoints Input -->
-                        <div class="mb-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <label
-                                    class="block text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    News Keypoints & Notes
-                                </label>
-                                <button type="button" id="clearKeypointsBtn"
-                                    onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
-                                    class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Clear
-                                </button>
-                            </div>
-                            <textarea id="keypointsInput" rows="18"
-                                placeholder="Type, write, or paste your news keypoints, raw facts, bullet points, or Gujarati story draft here. AI will structure and polish it into a premium front-page article..."
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-red-500/10 focus:border-brand-500 focus:bg-white outline-none transition-all font-medium leading-relaxed resize-none shadow-inner"
-                                style="font-family: 'Noto Sans Gujarati', 'Inter', sans-serif; min-height: 340px;"></textarea>
-                            <div class="flex items-center justify-between mt-2 px-1">
-                                <span id="charCount"
-                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
-                                    characters</span>
-                                <span id="wordCount"
-                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
-                                    words</span>
-                            </div>
-                        </div>
-
-                        <!-- Category Source (Hidden for UX simplicity, keeping DOM node for script safety) -->
-                        <div class="hidden" aria-hidden="true">
-                            <label
-                                class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Category
-                                Source</label>
-                            <div class="flex flex-wrap gap-2 mb-4" id="categoryTabs">
-                                <!-- Populated by JS -->
-                            </div>
-                            <input type="hidden" id="selectedCategory" value="National">
-
-                            <!-- Source Selection Box -->
-                            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                                <div class="flex items-center justify-between mb-3 px-1">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active
-                                        Sources</label>
-                                    <button type="button" id="selectAllBtn" onclick="toggleAllSources()"
-                                        class="text-[10px] text-blue-600 hover:text-blue-800 font-bold uppercase transition-colors">
-                                        Deselect All
-                                    </button>
-                                </div>
-                                <div id="sourcesContainer"
-                                    class="grid grid-cols-2 gap-x-4 gap-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar">
-                                    <!-- Populated by JS -->
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <!-- Layout Config -->
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-4">
-                            <h2
-                                class="text-xs font-extrabold text-slate-800 uppercase tracking-tight mb-4 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                                    </path>
-                                </svg>
-                                Layout Configuration
-                            </h2>
-
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Columns</label>
-                                    <select id="columnSpan" onchange="updateLayoutInfo()"
-                                        class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-blue-500 transition-all">
-                                        <option value="1">1 Col</option>
-                                        <option value="2">2 Cols</option>
-                                        <option value="3" selected>3 Cols</option>
-                                        <option value="4">4 Cols</option>
-                                        <option value="5">5 Cols</option>
-                                        <option value="6">6 Cols</option>
-                                        <option value="7">7 Cols</option>
-                                        <option value="8">8 Cols</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Grid
-                                        Slots</label>
-                                    <select id="slotCount" onchange="updateLayoutInfo()"
-                                        class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-blue-500 transition-all">
-                                        <option value="1" selected>1 Slot</option>
-                                        <option value="2">2 Slots</option>
-                                        <option value="3">3 Slots</option>
-                                        <option value="4">4 Slots</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Word Counts -->
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Headline</label>
-                                    <input type="number" id="wc_headline" value="10"
-                                        oninput="updateWorkspaceCounters();"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Intro</label>
-                                    <input type="number" id="wc_intro" value="75" oninput="updateWorkspaceCounters();"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Body</label>
-                                    <input type="number" id="wc_body" value="175" oninput="updateWorkspaceCounters();"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Key
-                                        Points</label>
-                                    <input type="number" id="wc_infobox" value="60" oninput="updateWorkspaceCounters();"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
-                                </div>
-                            </div>
-
-                            <div id="layoutInfo"
-                                class="text-[10px] bg-blue-50 text-blue-700 p-2.5 rounded-lg border border-blue-100 font-medium leading-relaxed">
-                                Loading layouts...
-                            </div>
-                        </div>
-                </aside>
-
-                <!-- Right Panel: Results -->
-                <main class="flex-1 bg-slate-50 relative flex flex-col overflow-hidden">
-                    <!-- Welcome State -->
-                    <div id="welcomeState" class="flex-1 flex items-center justify-center p-12">
-                        <div class="max-w-md text-center">
-                            <div
-                                class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800 mb-3">Ready to Create?</h3>
-                            <p class="text-slate-500 text-sm leading-relaxed">
-                                Enter your news keypoints on the left. AI will professionally structure, write, and
-                                format
-                                your news report in Gujarati.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Loading State -->
-                    <div id="loading" class="hidden flex-1 flex flex-col items-center justify-center p-12">
-                        <div
-                            class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4">
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800 mb-1">Writing Your News...</h3>
-                        <p class="text-slate-500 text-sm">Our AI Editor is processing your keypoints.</p>
-                    </div>
-
-                    <!-- Results Wrapper -->
-                    <div id="results" class="hidden flex-1 overflow-y-auto no-scrollbar bg-slate-100">
-                        <div id="resultsContent" class="p-8 md:p-12 max-w-4xl mx-auto">
-                            <!-- Article will be injected here -->
-                        </div>
-                    </div>
-                </main>
-            </div>
+        </div>
     </main>
 
     <!-- Toast -->
@@ -513,273 +160,10 @@
     </div>
 
     <script>
-        let allSlots = [];
-        let categories = [];
-        let selectedSources = new Set();
-        let allSourcesSelected = true;
         let editorHistoryItems = [];
         let editorFilteredItems = [];
         let editorCurrentPage = 1;
-        let currentEditingId = null;
-        let currentArticleData = null;
-        let currentArticlesList = [];
-        let currentVersionIndex = 0;
-        let currentArticleStatus = 'Draft';
         const itemsPerPage = 10;
-
-        function syncUIWithStatus() {
-            // Sidebar controls
-            const keypointsInput = document.getElementById('keypointsInput');
-            const clearKeypointsBtn = document.getElementById('clearKeypointsBtn');
-
-            // Header Action Buttons
-            const rewriteBtn = document.getElementById('rewriteBtn');
-            const saveEditBtn = document.getElementById('saveEditBtn');
-            const generateBtn = document.getElementById('generateBtn');
-            const submitBtn = document.getElementById('submitBtn');
-            const approveBtn = document.getElementById('approveBtn');
-            const rejectBtn = document.getElementById('rejectBtn');
-
-            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
-            const statusLower = (currentArticleStatus || '').toLowerCase();
-            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
-
-            if (statusLower === 'approved') {
-                if (keypointsInput) keypointsInput.readOnly = true;
-                if (clearKeypointsBtn) clearKeypointsBtn.classList.add('hidden');
-
-                if (rewriteBtn) rewriteBtn.classList.add('hidden');
-                if (saveEditBtn) saveEditBtn.classList.add('hidden');
-                if (generateBtn) generateBtn.classList.add('hidden');
-                if (submitBtn) submitBtn.classList.add('hidden');
-                if (approveBtn) approveBtn.classList.add('hidden');
-                if (rejectBtn) rejectBtn.classList.add('hidden');
-            } else if (isPending) {
-                if (keypointsInput) keypointsInput.readOnly = !isSuperAdmin;
-                if (clearKeypointsBtn) {
-                    if (isSuperAdmin) clearKeypointsBtn.classList.remove('hidden');
-                    else clearKeypointsBtn.classList.add('hidden');
-                }
-
-                if (generateBtn) generateBtn.classList.add('hidden');
-                if (submitBtn) submitBtn.classList.add('hidden');
-
-                if (isSuperAdmin) {
-                    if (rewriteBtn) rewriteBtn.classList.remove('hidden');
-                    if (saveEditBtn) saveEditBtn.classList.remove('hidden');
-                    if (approveBtn) approveBtn.classList.remove('hidden');
-                    if (rejectBtn) rejectBtn.classList.remove('hidden');
-                } else {
-                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
-                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
-                    if (approveBtn) approveBtn.classList.add('hidden');
-                    if (rejectBtn) rejectBtn.classList.add('hidden');
-                }
-            } else {
-                if (keypointsInput) keypointsInput.readOnly = false;
-                if (clearKeypointsBtn) clearKeypointsBtn.classList.remove('hidden');
-
-                if (currentEditingId) {
-                    if (isSuperAdmin) {
-                        if (rewriteBtn) rewriteBtn.classList.remove('hidden');
-                        if (saveEditBtn) saveEditBtn.classList.remove('hidden');
-                    } else {
-                        if (rewriteBtn) rewriteBtn.classList.add('hidden');
-                        if (saveEditBtn) saveEditBtn.classList.add('hidden');
-                    }
-                    if (submitBtn) submitBtn.classList.remove('hidden');
-                    if (generateBtn) generateBtn.classList.add('hidden');
-                } else {
-                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
-                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
-                    if (submitBtn) submitBtn.classList.add('hidden');
-                    if (generateBtn) generateBtn.classList.remove('hidden');
-                }
-                if (approveBtn) approveBtn.classList.add('hidden');
-                if (rejectBtn) rejectBtn.classList.add('hidden');
-            }
-        }
-
-        function switchToEditor() {
-            document.getElementById('historyView').classList.add('hidden');
-            document.getElementById('editorWorkspace').classList.remove('hidden');
-            document.getElementById('createNewBtn').classList.add('hidden');
-            document.getElementById('backToHistoryBtn').classList.remove('hidden');
-            document.getElementById('editorActions').classList.remove('hidden');
-        }
-
-        function switchToHistory() {
-            document.getElementById('historyView').classList.remove('hidden');
-            document.getElementById('editorWorkspace').classList.add('hidden');
-            document.getElementById('createNewBtn').classList.remove('hidden');
-            document.getElementById('backToHistoryBtn').classList.add('hidden');
-            document.getElementById('editorActions').classList.add('hidden');
-            loadEditorHistory();
-        }
-
-        function prepareNewEditor() {
-            document.getElementById('keypointsInput').value = '';
-            if (typeof updateCounters === 'function') updateCounters();
-            document.getElementById('resultsContent').innerHTML = '';
-            document.getElementById('welcomeState').classList.remove('hidden');
-            document.getElementById('results').classList.add('hidden');
-
-            currentEditingId = null;
-            currentArticleData = null;
-            currentArticlesList = [];
-            currentVersionIndex = 0;
-            currentArticleStatus = 'Draft';
-
-            switchToEditor();
-            syncUIWithStatus();
-
-            // Hide status badge
-            document.getElementById('editorStatusBadge').classList.add('hidden');
-        }
-
-        async function init() {
-            await Promise.all([
-                loadSlotsFromDB(),
-                loadCategoriesFromDB(),
-                loadEditorHistory()
-            ]);
-            updateLayoutInfo();
-            if (typeof updateCounters === 'function') updateCounters();
-        }
-
-        async function loadSlotsFromDB() {
-            try {
-                const res = await fetch('/api/slots/');
-                if (!res.ok) throw new Error('Failed to load slots');
-                allSlots = await res.json();
-            } catch (e) { console.error('Could not load slots', e); }
-        }
-
-        async function loadCategoriesFromDB() {
-            try {
-                const res = await fetch('/api/categories/');
-                if (res.ok) {
-                    categories = await res.json();
-                    renderCategoryPills();
-                    if (categories.length > 0) selectCategory(categories[0].name);
-                }
-            } catch (e) { console.error('Could not load categories', e); }
-        }
-
-        function renderCategoryPills() {
-            const container = document.getElementById('categoryTabs');
-            container.innerHTML = categories.map(cat => `
-                <button onclick="selectCategory('${cat.name}')" id="cat_${cat.name}"
-                    class="category-pill px-4 py-2 rounded-full text-xs font-bold border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-                    ${cat.name}
-                </button>
-            `).join('');
-        }
-
-        function selectCategory(name) {
-            document.querySelectorAll('.category-pill').forEach(btn => btn.classList.remove('active-cat'));
-            const activeBtn = document.getElementById(`cat_${name}`);
-            if (activeBtn) activeBtn.classList.add('active-cat');
-            document.getElementById('selectedCategory').value = name;
-
-            const category = categories.find(c => c.name === name);
-            if (category) renderSources(category.sources);
-        }
-
-        function renderSources(sources) {
-            const container = document.getElementById('sourcesContainer');
-
-            container.innerHTML = sources.map(src => {
-                const isChecked = selectedSources.has(src);
-                return `
-                <label class="flex items-center gap-2 cursor-pointer group p-1">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSource('${src}', this.checked)" 
-                        class="source-checkbox w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-[11px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors truncate">
-                        ${src}
-                    </span>
-                </label>
-            `}).join('');
-
-            updateSelectAllBtn();
-        }
-
-        function toggleSource(name, checked) {
-            if (checked) selectedSources.add(name);
-            else selectedSources.delete(name);
-            updateSelectAllBtn();
-        }
-
-        function toggleAllSources() {
-            const checkboxes = document.querySelectorAll('.source-checkbox');
-            const currentCat = categories.find(c => c.name === document.getElementById('selectedCategory').value);
-            const allSources = currentCat ? currentCat.sources : [];
-
-            let selectedInCat = 0;
-            allSources.forEach(src => { if (selectedSources.has(src)) selectedInCat++; });
-            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
-
-            if (isAllSelected) {
-                // Deselect All
-                allSources.forEach(src => selectedSources.delete(src));
-                checkboxes.forEach(cb => cb.checked = false);
-            } else {
-                // Select All
-                allSources.forEach(src => selectedSources.add(src));
-                checkboxes.forEach(cb => cb.checked = true);
-            }
-            updateSelectAllBtn();
-        }
-
-        function updateSelectAllBtn() {
-            const currentCat = categories.find(c => c.name === document.getElementById('selectedCategory').value);
-            const allSources = currentCat ? currentCat.sources : [];
-            const btn = document.getElementById('selectAllBtn');
-
-            let selectedInCat = 0;
-            allSources.forEach(src => { if (selectedSources.has(src)) selectedInCat++; });
-            const isAllSelected = allSources.length > 0 && selectedInCat === allSources.length;
-
-            btn.innerText = isAllSelected ? "Deselect All" : "Select All";
-        }
-
-        function updateLayoutInfo() {
-            const cols = parseInt(document.getElementById('columnSpan').value);
-            const slots = parseInt(document.getElementById('slotCount').value);
-            const matchedSlot = allSlots.find(s => s.column_span === cols && s.slot_count === slots);
-
-            if (matchedSlot) {
-                document.getElementById('wc_headline').value = matchedSlot.wc_headline || 10;
-                document.getElementById('wc_intro').value = matchedSlot.wc_intro || 75;
-                document.getElementById('wc_body').value = matchedSlot.wc_body || 175;
-                document.getElementById('wc_infobox').value = matchedSlot.wc_infobox || 60;
-                document.getElementById('layoutInfo').innerHTML = `<b>${cols} Col | ${slots} Slot</b>: Target H:${matchedSlot.wc_headline}w, I:${matchedSlot.wc_intro}w, B:${matchedSlot.wc_body}w`;
-            } else {
-                document.getElementById('layoutInfo').innerText = `${cols} Cols, ${slots} Slot: Using defaults.`;
-            }
-            if (typeof updateWorkspaceCounters === 'function') {
-                updateWorkspaceCounters();
-            }
-        }
-
-        function updateStatusBadge(status) {
-            const badge = document.getElementById('editorStatusBadge');
-            if (!badge) return;
-            badge.classList.remove('hidden');
-            const statusLower = (status || '').toLowerCase();
-            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
-            badge.textContent = isPending ? 'Pending' : (status || 'Draft');
-
-            if (statusLower === 'approved') {
-                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-green-50 text-green-700 border-green-200';
-            } else if (isPending) {
-                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-amber-50 text-amber-700 border-amber-200';
-            } else if (statusLower === 'rejected') {
-                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-red-50 text-red-700 border-red-200';
-            } else {
-                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-slate-50 text-slate-500 border-slate-200';
-            }
-        }
 
         function toast(msg, type = 'success') {
             const el = document.getElementById('toast');
@@ -802,497 +186,6 @@
                 el.classList.add('opacity-0', 'translate-y-4');
                 el.classList.remove('opacity-100', 'translate-y-0');
             }, 3000);
-        }
-
-        async function generateNews() {
-            const keypoints = document.getElementById('keypointsInput').value.trim();
-            if (!keypoints) {
-                toast("Please enter your Keypoints!", "error");
-                return;
-            }
-
-            // Deriving topic from category or first selected source or keypoints snippet
-            const cat = document.getElementById('selectedCategory').value;
-            const topic = Array.from(selectedSources)[0] || cat || "Manual Entry";
-
-            document.getElementById('welcomeState').classList.add('hidden');
-            document.getElementById('results').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('generateBtn').disabled = true;
-            document.getElementById('btnText').innerText = "Processing...";
-
-            const config = {
-                slot_config: {
-                    slot_count: parseInt(document.getElementById('slotCount').value),
-                    column_span: parseInt(document.getElementById('columnSpan').value)
-                },
-                topic: topic,
-                allowed_sources: Array.from(selectedSources),
-                headline_config: { single_line: false },
-                word_count_rules: {
-                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
-                    heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
-                    subheading_min: 5, subheading_max: 15,
-                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
-                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
-                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
-                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
-                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
-                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
-                },
-                editorial_filters: { gujarati_tone: true }
-            };
-
-            try {
-                const res = await fetch('/api/newspaper/generate-from-keypoints', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ keypoints, config })
-                });
-
-                if (!res.ok) throw new Error("Generation failed");
-                const data = await res.json();
-                currentEditingId = data.history_id;
-                currentArticlesList = data.articles || [];
-                currentVersionIndex = currentArticlesList.length - 1;
-                currentArticleData = currentArticlesList[currentVersionIndex];
-                currentArticleStatus = 'Draft';
-                renderResults(currentArticleData);
-                loadEditorHistory();
-
-                syncUIWithStatus();
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('results').classList.remove('hidden');
-            } catch (e) {
-                console.error(e);
-                toast("Something went wrong!", "error");
-            } finally {
-                document.getElementById('generateBtn').disabled = false;
-                document.getElementById('btnText').innerText = "Generate Report";
-            }
-        }
-
-        async function rewriteQuality() {
-            const headlineEl = document.getElementById('edit_headline');
-            const subheadingEl = document.getElementById('edit_subheading');
-            const introEl = document.getElementById('edit_intro');
-            const bodyEl = document.getElementById('edit_body');
-            const infoboxEl = document.getElementById('edit_infobox');
-
-            let keypoints = '';
-            if (headlineEl && introEl && bodyEl) {
-                keypoints = `HEADLINE: ${headlineEl.innerText.trim()}\n`;
-                if (subheadingEl) keypoints += `SUBHEADING: ${subheadingEl.innerText.trim()}\n`;
-                keypoints += `INTRO: ${introEl.innerText.trim()}\n`;
-                keypoints += `BODY: ${bodyEl.innerText.trim()}\n`;
-                if (infoboxEl) keypoints += `INFO BOX: ${infoboxEl.innerText.trim()}\n`;
-            } else {
-                keypoints = document.getElementById('keypointsInput').value.trim();
-            }
-
-            if (!keypoints) {
-                toast("Please enter your Text/Story to rewrite!", "error");
-                return;
-            }
-
-            // Update loading screen text dynamically for contextual feedback
-            const loadingTitle = document.querySelector('#loading h3');
-            const loadingDesc = document.querySelector('#loading p');
-            if (loadingTitle) loadingTitle.innerText = "Senior Editor Polishing...";
-            if (loadingDesc) loadingDesc.innerText = "Our Chief Editor is auditing and refining your draft report.";
-
-            document.getElementById('welcomeState').classList.add('hidden');
-            document.getElementById('results').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('rewriteBtn').disabled = true;
-            document.getElementById('rewriteBtnText').innerText = "Polishing...";
-
-            const config = {
-                slot_config: {
-                    slot_count: parseInt(document.getElementById('slotCount').value),
-                    column_span: parseInt(document.getElementById('columnSpan').value)
-                },
-                topic: "Senior Editor Rewrite",
-                allowed_sources: [],
-                headline_config: { single_line: false },
-                word_count_rules: {
-                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
-                    heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
-                    subheading_min: 5, subheading_max: 15,
-                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
-                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
-                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
-                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
-                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
-                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
-                },
-                editorial_filters: { gujarati_tone: true }
-            };
-
-            try {
-                const res = await fetch('/api/newspaper/rewrite', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ keypoints, config, history_id: currentEditingId })
-                });
-
-                if (!res.ok) throw new Error("Rewrite failed");
-                const data = await res.json();
-
-                currentEditingId = data.history_id;
-                const newArticle = data.articles[0];
-                if (!currentArticlesList || currentArticlesList.length === 0) {
-                    currentArticlesList = [newArticle];
-                } else {
-                    currentArticlesList.push(newArticle);
-                }
-                currentVersionIndex = currentArticlesList.length - 1;
-                currentArticleData = newArticle;
-                currentArticleStatus = 'Draft';
-                renderResults(currentArticleData);
-                loadEditorHistory();
-
-                syncUIWithStatus();
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('results').classList.remove('hidden');
-            } catch (e) {
-                console.error(e);
-                toast("Something went wrong!", "error");
-            } finally {
-                document.getElementById('rewriteBtn').disabled = false;
-                document.getElementById('rewriteBtnText').innerText = "Senior Edit";
-
-                // Restore loading labels to standard defaults
-                if (loadingTitle) loadingTitle.innerText = "Writing Your News...";
-                if (loadingDesc) loadingDesc.innerText = "Our AI Editor is processing your keypoints.";
-            }
-        }
-
-        function renderResults(article) {
-            const container = document.getElementById('resultsContent');
-            const safeKey = 'editor_result';
-            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
-            const statusLower = (currentArticleStatus || '').toLowerCase();
-            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
-
-            // ── Alternative Headlines ──────────────────────────────────────
-            let altHeadlinesHtml = '';
-            if (!isReadOnly && article.alternative_headlines && article.alternative_headlines.length > 0) {
-                const chips = article.alternative_headlines.map((h, i) => `
-                    <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group"
-                         onclick="useHeadline(this, '${h.replace(/'/g, "\\'")}')">
-                        <span class="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black flex items-center justify-center mt-0.5">${i + 1}</span>
-                        <p class="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors leading-snug">${h}</p>
-                    </div>
-                `).join('');
-                altHeadlinesHtml = `
-                    <div class="mb-4 p-4 bg-blue-50/60 border border-blue-100 rounded-2xl">
-                        <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                            </svg>
-                            Alternative Headlines (click to use)
-                        </h3>
-                        <div class="space-y-2">${chips}</div>
-                    </div>
-                `;
-            }
-
-            // ── Editorial Notes ────────────────────────────────────────────
-            let editorialNotesHtml = '';
-            if (article.editorial_notes) {
-                editorialNotesHtml = `
-                    <div class="mt-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl">
-                        <h4 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            Editorial Notes <span class="text-[9px] font-medium text-amber-400 ml-1">(internal — not for print)</span>
-                        </h4>
-                        <div class="text-sm text-amber-800 leading-relaxed">${article.editorial_notes.split('\n').map(l => l.trim() ? `<p class="mb-1">${l}</p>` : '').join('')}</div>
-                    </div>
-                `;
-            }
-
-            // ── Subheading ─────────────────────────────────────────────────
-            const subheadingHtml = article.subheading
-                ? `
-                <div class="mb-4">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Sub-Heading</span>
-                    <p id="edit_subheading" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-base font-semibold text-slate-500 border-l-4 border-blue-400 pl-4 italic outline-none focus:ring-2 focus:ring-blue-50 rounded p-1 transition-all">${article.subheading}</p>
-                    <div id="count_subheading" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 pl-5 pr-1"></div>
-                </div>`
-                : '';
-
-            // ── Info Box ───────────────────────────────────────────────────
-            const infoBoxHtml = article.info_box ? `
-                <div class="article-infobox mt-8">
-                    <h4 class="text-xs font-black uppercase tracking-widest text-brand-600 mb-2">Key Points / Info Box</h4>
-                    <div id="edit_infobox" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1">
-                        ${article.info_box}
-                    </div>
-                    <div id="count_infobox" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
-                </div>
-            ` : '';
-
-            // ── Revision Timeline ──────────────────────────────────────
-            let revisionTimelineHtml = '';
-            if (currentArticlesList && currentArticlesList.length > 1) {
-                const buttons = currentArticlesList.map((art, idx) => {
-                    const isActive = idx === currentVersionIndex;
-                    let name = idx === 0 ? "Original Draft" : `Polished (v${idx + 1})`;
-                    return `
-                        <button onclick="switchVersion(${idx})" 
-                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-sm border
-                            ${isActive
-                            ? 'bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white border-transparent scale-105 shadow-red-900/10'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800'
-                        }">
-                            <span class="w-2 h-2 rounded-full ${isActive ? 'bg-white animate-pulse' : 'bg-slate-300'}"></span>
-                            ${name}
-                        </button>
-                    `;
-                }).join('');
-
-                revisionTimelineHtml = `
-                    <div class="mb-6 p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider leading-none">Revision History</h4>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Select version to view or restore</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            ${buttons}
-                        </div>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = `
-                <div class="newspaper-paper p-8 md:p-12 relative mb-12 max-w-4xl mx-auto rounded-xl shadow-sm">
-                    ${revisionTimelineHtml}
-
-                    <!-- Tabs -->
-                    <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-8 sticky top-[-2.5rem] bg-white z-10 pt-4 -mx-8 px-8 shadow-sm">
-                        <button onclick="switchArticleSubTab('article', 'all')" data-section="all" class="subtab-btn subtab-btn-article active">All Sections</button>
-                        <button onclick="switchArticleSubTab('article', 'headline')" data-section="headline" class="subtab-btn subtab-btn-article">Headline</button>
-                        <button onclick="switchArticleSubTab('article', 'intro')" data-section="intro" class="subtab-btn subtab-btn-article">Intro</button>
-                        <button onclick="switchArticleSubTab('article', 'body')" data-section="body" class="subtab-btn subtab-btn-article">Content</button>
-                    </div>
-
-                    <article class="article-container">
-                        <!-- ALL View -->
-                        <div class="section-view section-view-article active" data-section="all">
-
-                            <!-- Main Headline -->
-                            <div>
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Headline</span>
-                                <h1 id="edit_headline" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-3xl font-bold mb-4 font-headline leading-tight outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all">${article.headline}</h1>
-                                <div id="count_headline" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mb-4 mt-1 px-1"></div>
-                            </div>
-
-                            ${subheadingHtml}
-
-                            <!-- Alternative Headlines -->
-                            ${altHeadlinesHtml}
-
-                            <div class="h-px bg-slate-200 mb-4"></div>
-
-                            <!-- Intro -->
-                            <div class="mb-4">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Introduction</span>
-                                <p id="edit_intro" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-lg leading-relaxed font-body outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all" style="color: #000 !important;">
-                                    ${article.intro}
-                                </p>
-                                <div id="count_intro" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
-                            </div>
-
-                            <!-- Body -->
-                            <div>
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Main Content</span>
-                                <div id="edit_body" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="font-body text-lg leading-relaxed outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all whitespace-pre-wrap" style="color: #000 !important;">
-                                    ${article.body}
-                                </div>
-                                <div id="count_body" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
-                            </div>
-
-                            <!-- Info Box -->
-                            ${infoBoxHtml}
-
-                            <!-- Editorial Notes (internal) -->
-                            ${editorialNotesHtml}
-                        </div>
-
-                        <!-- Headline View -->
-                        <div class="section-view section-view-article" data-section="headline">
-                            <h1 class="text-3xl font-bold font-headline mb-4">${article.headline}</h1>
-                            ${subheadingHtml}
-                            ${altHeadlinesHtml}
-                        </div>
-
-                        <!-- Intro View -->
-                        <div class="section-view section-view-article" data-section="intro">
-                            <p class="text-lg leading-relaxed font-body">${article.intro}</p>
-                        </div>
-
-                        <!-- Body View -->
-                        <div class="section-view section-view-article" data-section="body">
-                            <div class="font-body text-lg leading-relaxed">
-                                ${article.body.split('\n').map(p => p.trim() ? `<p class="mb-4">${p}</p>` : '').join('')}
-                            </div>
-                            ${editorialNotesHtml}
-                        </div>
-                    </article>
-                </div>
-            `;
-
-            // Initialize workspace counters
-            updateWorkspaceCounters();
-        }
-
-        window.updateWorkspaceCounters = function () {
-            const fields = [
-                { id: 'edit_headline', countId: 'count_headline', targetInputId: 'wc_headline', minOffset: -2, maxOffset: 2, label: 'Headline' },
-                { id: 'edit_subheading', countId: 'count_subheading', targetInputId: null, minVal: 5, maxVal: 15, label: 'Sub-heading' },
-                { id: 'edit_intro', countId: 'count_intro', targetInputId: 'wc_intro', minOffset: -10, maxOffset: 15, label: 'Introduction' },
-                { id: 'edit_body', countId: 'count_body', targetInputId: 'wc_body', minOffset: -20, maxOffset: 40, label: 'Main Content' },
-                { id: 'edit_infobox', countId: 'count_infobox', targetInputId: 'wc_infobox', minOffset: -15, maxOffset: 20, label: 'Key Points / Info Box' }
-            ];
-
-            fields.forEach(f => {
-                const el = document.getElementById(f.id);
-                const countEl = document.getElementById(f.countId);
-                if (!el || !countEl) return;
-
-                const text = el.innerText.trim();
-                const chars = text.length;
-                const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
-
-                let min = 0;
-                let max = 0;
-                let hasRules = false;
-
-                if (f.targetInputId) {
-                    const baseVal = parseInt(document.getElementById(f.targetInputId)?.value || '0', 10);
-                    if (baseVal > 0) {
-                        min = Math.max(1, baseVal + f.minOffset);
-                        max = baseVal + f.maxOffset;
-                        hasRules = true;
-                    }
-                } else if (f.minVal !== undefined && f.maxVal !== undefined) {
-                    min = f.minVal;
-                    max = f.maxVal;
-                    hasRules = true;
-                }
-
-                let statusHtml = '';
-                let borderClass = 'border-slate-200 bg-slate-50/50';
-
-                if (words === 0) {
-                    statusHtml = `
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200">
-                            Empty
-                        </span>
-                    `;
-                } else if (hasRules) {
-                    if (words < min) {
-                        borderClass = 'border-amber-200 bg-amber-50/20';
-                        statusHtml = `
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200/60 shadow-sm animate-pulse">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Too Short
-                            </span>
-                        `;
-                    } else if (words > max) {
-                        borderClass = 'border-rose-200 bg-rose-50/20';
-                        statusHtml = `
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/60 shadow-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Too Long
-                            </span>
-                        `;
-                    } else {
-                        borderClass = 'border-emerald-200 bg-emerald-50/10';
-                        statusHtml = `
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Perfect
-                            </span>
-                        `;
-                    }
-                } else {
-                    statusHtml = `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">
-                            Ready
-                        </span>
-                    `;
-                }
-
-                let targetDesc = hasRules ? `Target: ${min}-${max} words` : 'No Word Target';
-
-                // Set container classes and update styling dynamically
-                countEl.className = `flex items-center justify-between mt-2 mb-4 p-2.5 border rounded-xl text-xs transition-all duration-300 ${borderClass}`;
-
-                countEl.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center gap-1.5 text-slate-700 font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            <span>${words} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">${words === 1 ? 'Word' : 'Words'}</span></span>
-                        </div>
-                        <span class="text-slate-300">|</span>
-                        <span class="text-slate-500 font-semibold">${chars} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">${chars === 1 ? 'Char' : 'Chars'}</span></span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">${targetDesc}</span>
-                        ${statusHtml}
-                    </div>
-                `;
-            });
-        }
-
-        window.switchVersion = function (idx) {
-            if (idx < 0 || idx >= currentArticlesList.length) return;
-            currentVersionIndex = idx;
-            currentArticleData = currentArticlesList[idx];
-            renderResults(currentArticleData);
-            syncUIWithStatus();
-            toast(`Switched to ${idx === 0 ? "Original Draft" : "Polished (v" + (idx + 1) + ")"}`, "success");
-        }
-
-        window.useHeadline = function (el, headline) {
-            // Highlight selected alt headline
-            document.querySelectorAll('.article-container .bg-slate-50').forEach(d => {
-                d.classList.remove('bg-blue-100', 'border-blue-400');
-                d.classList.add('bg-slate-50', 'border-slate-200');
-            });
-            el.classList.remove('bg-slate-50', 'border-slate-200');
-            el.classList.add('bg-blue-100', 'border-blue-400');
-
-            // Update main headline displays
-            document.querySelectorAll('.font-headline').forEach(h => h.textContent = headline);
-
-            // Also trigger counter updates for headline
-            updateWorkspaceCounters();
-
-            toast('✅ Headline updated!');
-        }
-
-
-
-        window.switchArticleSubTab = function (key, section) {
-            document.querySelectorAll(`.subtab-btn-${key}`).forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.section === section);
-            });
-            document.querySelectorAll(`.section-view-${key}`).forEach(view => {
-                view.classList.toggle('active', view.dataset.section === section);
-            });
         }
 
         async function loadEditorHistory() {
@@ -1325,60 +218,53 @@
 
             tbody.innerHTML = paginatedItems.map(item => {
                 const article = item.articles[item.articles.length - 1] || item.articles[0];
-                const keypoints = item.keypoints || '';
                 const date = new Date(item.created_at);
                 const dateStr = date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
                 const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const username = item.username || item.created_by_name || 'Admin';
-
-                const payload = JSON.stringify({
-                    id: item._id || item.id,
-                    articles: item.articles,
-                    keypoints,
-                    config: item.config_used,
-                    status: item.status || 'Draft'
-                }).replace(/'/g, "&apos;");
+                const itemId = item._id || item.id;
 
                 const statusLower = (item.status || '').toLowerCase();
                 const isPending = statusLower === 'pending approval' || statusLower === 'pending';
 
                 return `
-                    <tr class="hover:bg-red-50/50 transition-colors group cursor-default">
-                        <td class="px-4 py-3 max-w-[280px]">
+                    <tr class="hover:bg-red-50/30 transition-colors group cursor-default">
+                        <td class="px-6 py-4 max-w-[400px]">
                             <div class="font-bold text-slate-800 truncate group-hover:text-brand-700 transition-colors" title="${article.headline}">${article.headline}</div>
+                          
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 border border-slate-200">
-                                    ${username.charAt(0).toUpperCase()}
+                                <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 border border-slate-200 uppercase">
+                                    ${username.charAt(0)}
                                 </div>
                                 <span class="text-xs font-bold text-slate-600">${username}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-slate-600">${dateStr}</span>
                                 <span class="text-[10px] text-slate-400 font-medium">${timeStr}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-6 py-4 text-center whitespace-nowrap">
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusLower === 'approved' ? 'bg-green-100 text-green-700' : isPending ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
                                 ${isPending ? 'Pending' : (item.status || 'Draft')}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-right whitespace-nowrap">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-3">
                                 ${localStorage.getItem('user_role') === 'super_admin' && isPending ? `
-                                    <button onclick="quickUpdateStatus('${item._id || item.id}', 'Approved')" class="px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase hover:bg-green-600 hover:text-white border border-green-200 transition-all shadow-sm">Approve</button>
-                                    <button onclick="quickUpdateStatus('${item._id || item.id}', 'Rejected')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white border border-red-200 transition-all shadow-sm">Reject</button>
+                                    <button onclick="quickUpdateStatus('${itemId}', 'Approved')" class="px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase hover:bg-green-600 hover:text-white border border-green-200 transition-all shadow-sm">Approve</button>
+                                    <button onclick="quickUpdateStatus('${itemId}', 'Rejected')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white border border-red-200 transition-all shadow-sm">Reject</button>
                                 ` : ''}
-                                <button onclick='loadFromHistory(${payload})' 
+                                <a href="/editor/workspace?id=${itemId}" 
                                     class="text-indigo-600 hover:text-indigo-800 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg border border-transparent hover:border-indigo-200 hover:bg-indigo-50 transition-all flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                     View & Edit
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -1445,40 +331,6 @@
             renderEditorTable();
         }
 
-        function loadFromHistory(payload) {
-            const { id, articles, keypoints, config, status } = payload;
-            currentEditingId = id;
-            currentArticlesList = articles || [];
-            currentVersionIndex = currentArticlesList.length - 1;
-            currentArticleData = currentArticlesList[currentVersionIndex];
-            currentArticleStatus = status || 'Draft';
-
-            // Restore inputs
-            document.getElementById('keypointsInput').value = keypoints;
-            if (typeof updateCounters === 'function') updateCounters();
-            if (config && config.slot_config) {
-                document.getElementById('columnSpan').value = config.slot_config.column_span;
-                document.getElementById('slotCount').value = config.slot_config.slot_count;
-                updateLayoutInfo();
-            }
-
-            // Render Result
-            renderResults(currentArticleData);
-
-            // Switch View
-            switchToEditor();
-            document.getElementById('welcomeState').classList.add('hidden');
-            document.getElementById('results').classList.remove('hidden');
-
-            // Sync UI elements with status
-            syncUIWithStatus();
-
-            // Update Status Badge
-            updateStatusBadge(status);
-
-            toast("Report restored successfully!");
-        }
-
         async function quickUpdateStatus(historyId, newStatus) {
             try {
                 toast(`Updating to ${newStatus}...`, "info");
@@ -1497,193 +349,9 @@
             }
         }
 
-        function showSaveBtn() {
-            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
-            const statusLower = (currentArticleStatus || '').toLowerCase();
-            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
-            if (isReadOnly) return;
-            document.getElementById('saveEditBtn').classList.remove('hidden');
+        window.onload = function () {
+            loadEditorHistory();
         }
-
-        async function submitForApproval() {
-            if (!currentEditingId) {
-                toast("Please generate or load a report first!", "error");
-                return;
-            }
-            await updateReportStatus('Pending Approval');
-        }
-
-        async function updateReportStatus(newStatus) {
-            if (!currentEditingId) return;
-
-            toast(`Updating status to ${newStatus}...`, "info");
-            try {
-                // First save edits if any
-                const headline = document.getElementById('edit_headline').innerText.trim();
-                const subheadingEl = document.getElementById('edit_subheading');
-                const subheading = subheadingEl ? subheadingEl.innerText.trim() : null;
-                const intro = document.getElementById('edit_intro').innerText.trim();
-                const body = document.getElementById('edit_body').innerText.trim();
-                const infoboxEl = document.getElementById('edit_infobox');
-                const infobox = infoboxEl ? infoboxEl.innerText.trim() : null;
-
-                const updatedArticle = {
-                    ...currentArticleData,
-                    headline,
-                    intro,
-                    body
-                };
-                if (subheading !== null) updatedArticle.subheading = subheading;
-                if (infobox !== null) updatedArticle.info_box = infobox;
-
-                // Update current index in local version list
-                if (currentArticlesList && currentArticlesList.length > 0) {
-                    currentArticlesList[currentVersionIndex] = updatedArticle;
-                } else {
-                    currentArticlesList = [updatedArticle];
-                    currentVersionIndex = 0;
-                }
-                currentArticleData = updatedArticle;
-
-                // If submitting for approval or approving, only keep the selected version and discard all others
-                let finalArticles = currentArticlesList;
-                if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
-                    finalArticles = [updatedArticle];
-                }
-
-                const payload = {
-                    status: newStatus,
-                    articles: finalArticles,
-                    username: localStorage.getItem('username') || 'Admin'
-                };
-
-                const res = await fetch(`/api/history/${currentEditingId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    toast(`Report ${newStatus} successfully!`, "success");
-                    currentArticleStatus = newStatus;
-
-                    if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
-                        // Update local states to only keep this single submitted version
-                        currentArticlesList = [updatedArticle];
-                        currentVersionIndex = 0;
-                        renderResults(currentArticleData);
-                    }
-
-                    // Sync UI elements with status
-                    syncUIWithStatus();
-
-                    // Update Badge
-                    updateStatusBadge(newStatus);
-
-                    loadEditorHistory();
-                } else {
-                    throw new Error("Update failed");
-                }
-            } catch (e) {
-                console.error(e);
-                toast("Error: " + e.message, "error");
-            }
-        }
-
-        async function saveManualEdit() {
-            if (!currentEditingId) {
-                toast("No active report to save!", "error");
-                return;
-            }
-
-            const headline = document.getElementById('edit_headline').innerText.trim();
-            const subheadingEl = document.getElementById('edit_subheading');
-            const subheading = subheadingEl ? subheadingEl.innerText.trim() : null;
-            const intro = document.getElementById('edit_intro').innerText.trim();
-            const body = document.getElementById('edit_body').innerText.trim();
-            const infoboxEl = document.getElementById('edit_infobox');
-            const infobox = infoboxEl ? infoboxEl.innerText.trim() : null;
-
-            toast("Saving manual edits...", "info");
-
-            try {
-                const updatedArticle = {
-                    ...currentArticleData,
-                    headline,
-                    intro,
-                    body
-                };
-                if (subheading !== null) updatedArticle.subheading = subheading;
-                if (infobox !== null) updatedArticle.info_box = infobox;
-
-                // Update current index in local version list
-                if (currentArticlesList && currentArticlesList.length > 0) {
-                    currentArticlesList[currentVersionIndex] = updatedArticle;
-                } else {
-                    currentArticlesList = [updatedArticle];
-                    currentVersionIndex = 0;
-                }
-                currentArticleData = updatedArticle;
-
-                const payload = {
-                    articles: currentArticlesList,
-                    username: localStorage.getItem('username') || 'Admin'
-                };
-
-                const res = await fetch(`/api/history/${currentEditingId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    toast("Edits saved successfully!", "success");
-                    // Update local data
-                    currentArticleData.headline = headline;
-                    if (subheading !== null) currentArticleData.subheading = subheading;
-                    currentArticleData.intro = intro;
-                    currentArticleData.body = body;
-                    if (infobox !== null) currentArticleData.info_box = infobox;
-                    loadEditorHistory(); // Refresh table
-                } else {
-                    const err = await res.json();
-                    throw new Error(err.detail || "Failed to save");
-                }
-            } catch (e) {
-                console.error(e);
-                toast("Error: " + e.message, "error");
-            }
-        }
-
-        async function clearEditorHistory() {
-            if (!confirm("Are you sure you want to clear all editorial history?")) return;
-            try {
-                const res = await fetch('/api/history/editor/clear', { method: 'DELETE' });
-                if (res.ok) {
-                    toast("History cleared");
-                    loadEditorHistory();
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function updateCounters() {
-            const keypointsInput = document.getElementById('keypointsInput');
-            const charCount = document.getElementById('charCount');
-            const wordCount = document.getElementById('wordCount');
-            if (!keypointsInput || !charCount || !wordCount) return;
-
-            const text = keypointsInput.value.trim();
-            const chars = text.length;
-            const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
-
-            charCount.textContent = `${chars} character${chars !== 1 ? 's' : ''}`;
-            wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
-        }
-
-        // Add event listener to dynamically update character & word counters
-        document.getElementById('keypointsInput').addEventListener('input', updateCounters);
-
-        window.onload = init;
     </script>
 </body>
 

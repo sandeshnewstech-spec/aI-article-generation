@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 import json
 from pydantic import BaseModel
@@ -29,6 +29,111 @@ grid_calc = GridCalculator()
 
 from typing import List
 
+async def background_generate_task(history_id: str, config: NewspaperConfig):
+    from bson import ObjectId
+    from app.core.database import get_db
+    db = get_db()
+    try:
+        print(f"[BACKGROUND] Starting generation for topic: {config.topic}")
+        # Auto-calculate word count rules
+        if config.word_count_rules is None:
+            config.word_count_rules = grid_calc.get_word_count_rules(
+                config.slot_config.column_span,
+                config.slot_config.slot_count,
+                not config.headline_config.single_line,
+            )
+
+        # Scrape articles
+        articles = await scraper.scrape_topic(
+            config.topic, limit_per_site=config.limit, allowed_sites=config.allowed_sources
+        )
+
+        if not articles:
+            await db["history"].update_one(
+                {"_id": ObjectId(history_id)},
+                {"$set": {"status": "failed", "error": "No articles found for this topic"}}
+            )
+            return
+
+        # Generate batch
+        outputs = await newspaper_ai.generate_batch_newspaper_articles(articles, config)
+
+        from app.services.image_service import ImageService
+        img_service = ImageService()
+        results = []
+        for i, output in enumerate(outputs):
+            if i < len(articles):
+                output.source = articles[i].source
+                output.url = articles[i].url
+                image_url = articles[i].image_url
+                if not image_url or len(image_url) < 5:
+                    try:
+                        search_query = " ".join(output.headline.split()[:8])
+                        results_imgs = await img_service.get_images(search_query, max_results=1)
+                        if results_imgs and len(results_imgs) > 0:
+                            image_url = results_imgs[0].get("image_url")
+                    except Exception:
+                        pass
+
+                if image_url and image_url.startswith("http"):
+                    try:
+                        image_url = await img_service.persist_scraped_image(image_url)
+                    except Exception:
+                        pass
+                output.image_url = image_url
+            results.append(output)
+
+        await db["history"].update_one(
+            {"_id": ObjectId(history_id)},
+            {"$set": {"status": "completed", "articles": [r.dict() for r in results]}}
+        )
+        print(f"[BACKGROUND] Finished generation for topic: {config.topic}")
+
+    except Exception as e:
+        print(f"[BACKGROUND ERROR] {e}")
+        await db["history"].update_one(
+            {"_id": ObjectId(history_id)},
+            {"$set": {"status": "failed", "error": str(e)}}
+        )
+
+class BackgroundGenerateResponse(BaseModel):
+    history_id: str
+    message: str
+
+@router.post("/generate-background", response_model=BackgroundGenerateResponse)
+async def generate_newspaper_background(config: NewspaperConfig, background_tasks: BackgroundTasks):
+    db = get_db()
+    history_item = {
+        "topic": config.topic,
+        "articles": [],
+        "created_at": datetime.utcnow(),
+        "config_used": config.dict(),
+        "final_article": None,
+        "status": "processing" # Used for polling
+    }
+    res = await db["history"].insert_one(history_item)
+    history_id = str(res.inserted_id)
+
+    background_tasks.add_task(background_generate_task, history_id, config)
+    
+    return BackgroundGenerateResponse(history_id=history_id, message="Generation started in background")
+
+@router.get("/task-status/{history_id}")
+async def get_task_status(history_id: str):
+    from bson import ObjectId
+    from app.core.database import get_db
+    db = get_db()
+    try:
+        doc = await db["history"].find_one({"_id": ObjectId(history_id)})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return {
+            "status": doc.get("status", "completed"), 
+            "error": doc.get("error"),
+            "articles": doc.get("articles", [])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/generate", response_model=GenerateResponse)
 async def generate_newspaper_article(config: NewspaperConfig):

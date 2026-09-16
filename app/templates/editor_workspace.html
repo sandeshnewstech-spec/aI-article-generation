@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandesh AI | News Editor Workspace</title>
+    <link rel="icon" href="/static/favicon.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&family=Rasa:wght@400;500;600;700&family=Mukta+Vaani:wght@300;400;500;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                        headline: ['Rasa', 'serif'],
+                        body: ['Mukta Vaani', 'sans-serif'],
+                        ui: ['Noto Sans Gujarati', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#e82526',
+                            600: '#990d0e',
+                            700: '#991b1b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        textarea#keypointsInput {
+            font-size: 1rem !important;
+        }
+
+        .newspaper-paper {
+            background-color: #ffffff;
+            color: #000000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e5e7eb;
+        }
+
+        .section-view {
+            display: none;
+        }
+
+        .section-view.active {
+            display: block !important;
+        }
+
+        .subtab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .subtab-btn.active {
+            color: #e11d48;
+            border-bottom-color: #e11d48;
+            background: #fff1f2;
+        }
+
+        .category-pill.active-cat {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            font-weight: 600;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .article-infobox {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .article-infobox h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Newspaper Styling */
+        .article-container h1 {
+            font-family: 'Rasa', serif;
+            font-weight: 700;
+            font-size: 1.8rem;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            color: #000000 !important;
+            letter-spacing: -0.01em;
+        }
+
+        .article-container h2 {
+            font-family: 'Rasa', serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            line-height: 1.3;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #475569 !important;
+        }
+
+        .article-container p {
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1e293b !important;
+        }
+
+        .article-intro {
+            font-weight: 600;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            border-left: 3px solid #ae0a0b;
+            padding-left: 0.75rem;
+            color: #0f172a !important;
+        }
+
+        div#resultsContent {
+            padding: 0.5rem !important;
+        }
+    </style>
+</head>
+
+<body class="bg-white font-sans text-slate-900 antialiased">
+
+    {% include 'sidebar.html' %}
+
+    <main class="sb-offset">
+        <!-- Header -->
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 z-30 shrink-0">
+            <div class="flex items-center gap-4">
+                <a href="/editor" class="flex items-center gap-2 px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7" />
+                    </svg>
+                    Back to Dashboard
+                </a>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base font-black text-slate-900 tracking-tight leading-none border-l pl-3 border-slate-300">Editor Workspace</h1>
+                    <span id="editorStatusBadge"
+                        class="hidden px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm"></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Action Buttons -->
+                <button onclick="rewriteQuality()" id="rewriteBtn"
+                    class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span id="rewriteBtnText">Senior Edit</span>
+                </button>
+                <button onclick="generateNews()" id="generateBtn"
+                    class="bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span id="btnText">Generate Report</span>
+                </button>
+                <button onclick="saveManualEdit()" id="saveEditBtn"
+                    class="hidden bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    <span>Save Edit</span>
+                </button>
+                <button onclick="submitForApproval()" id="submitBtn"
+                    class="hidden bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-lg hover:shadow-red-900/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <span>Submit for Approval</span>
+                </button>
+                <button onclick="updateReportStatus('Approved')" id="approveBtn"
+                    class="hidden bg-gradient-to-r from-emerald-500 to-emerald-700 hover:shadow-lg text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Approve</span>
+                </button>
+                <button onclick="updateReportStatus('Rejected')" id="rejectBtn"
+                    class="hidden bg-gradient-to-r from-rose-500 to-rose-700 hover:shadow-lg text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Reject</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Panel: Input & Settings -->
+            <aside class="w-[450px] border-r border-slate-200 bg-white flex flex-col shrink-0 overflow-hidden">
+                <div class="flex-1 overflow-y-auto no-scrollbar p-4">
+                    <!-- Keypoints Input -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label
+                                class="block text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                News Keypoints & Notes
+                            </label>
+                            <button type="button" id="clearKeypointsBtn"
+                                onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
+                                class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+                        <textarea id="keypointsInput" rows="18"
+                            placeholder="Type, write, or paste your news keypoints, raw facts, bullet points, or Gujarati story draft here. AI will structure and polish it into a premium front-page article..."
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-red-500/10 focus:border-brand-500 focus:bg-white outline-none transition-all font-medium leading-relaxed resize-none shadow-inner"
+                            style="font-family: 'Noto Sans Gujarati', 'Inter', sans-serif; min-height: 340px;"></textarea>
+                        <div class="flex items-center justify-between mt-2 px-1">
+                            <span id="charCount"
+                                class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                characters</span>
+                            <span id="wordCount"
+                                class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                words</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Source (Hidden for UX simplicity) -->
+                    <div class="hidden" aria-hidden="true">
+                        <input type="hidden" id="selectedCategory" value="National">
+                    </div>
+
+                    <!-- Layout Config -->
+                    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-4">
+                        <h2
+                            class="text-xs font-extrabold text-slate-800 uppercase tracking-tight mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                                </path>
+                            </svg>
+                            Layout Configuration
+                        </h2>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Columns</label>
+                                <select id="columnSpan" onchange="updateLayoutInfo()"
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-blue-500 transition-all">
+                                    <option value="1">1 Col</option>
+                                    <option value="2">2 Cols</option>
+                                    <option value="3" selected>3 Cols</option>
+                                    <option value="4">4 Cols</option>
+                                    <option value="5">5 Cols</option>
+                                    <option value="6">6 Cols</option>
+                                    <option value="7">7 Cols</option>
+                                    <option value="8">8 Cols</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Grid
+                                    Slots</label>
+                                <select id="slotCount" onchange="updateLayoutInfo()"
+                                    class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium outline-none focus:border-blue-500 transition-all">
+                                    <option value="1" selected>1 Slot</option>
+                                    <option value="2">2 Slots</option>
+                                    <option value="3">3 Slots</option>
+                                    <option value="4">4 Slots</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Word Counts -->
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Headline</label>
+                                <input type="number" id="wc_headline" value="10"
+                                    oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Intro</label>
+                                <input type="number" id="wc_intro" value="75" oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Body</label>
+                                <input type="number" id="wc_body" value="175" oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Key
+                                    Points</label>
+                                <input type="number" id="wc_infobox" value="60" oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                        </div>
+
+                        <div id="layoutInfo"
+                            class="text-[10px] bg-blue-50 text-blue-700 p-2.5 rounded-lg border border-blue-100 font-medium leading-relaxed">
+                            Loading layouts...
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Panel: Results -->
+            <main class="flex-1 bg-slate-50 relative flex flex-col overflow-hidden">
+                <!-- Welcome State -->
+                <div id="welcomeState" class="flex-1 flex items-center justify-center p-12">
+                    <div class="max-w-md text-center">
+                        <div
+                            class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-3">Ready to Create?</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Enter your news keypoints on the left. AI will professionally structure, write, and format
+                            your news report in Gujarati.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading" class="hidden flex-1 flex flex-col items-center justify-center p-12">
+                    <div
+                        class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4">
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1">Writing Your News...</h3>
+                    <p class="text-slate-500 text-sm">Our AI Editor is processing your keypoints.</p>
+                </div>
+
+                <!-- Results Wrapper -->
+                <div id="results" class="hidden flex-1 overflow-y-auto no-scrollbar bg-slate-100">
+                    <div id="resultsContent" class="p-8 md:p-12 max-w-4xl mx-auto">
+                        <!-- Article will be injected here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl bg-slate-800 text-white text-sm font-bold shadow-2xl opacity-0 translate-y-4 transition-all z-[100] pointer-events-none">
+    </div>
+
+    <script>
+        let allSlots = [];
+        let categories = [];
+        let currentEditingId = null;
+        let currentArticleData = null;
+        let currentArticlesList = [];
+        let currentVersionIndex = 0;
+        let currentArticleStatus = 'Draft';
+
+        function syncUIWithStatus() {
+            // Sidebar controls
+            const keypointsInput = document.getElementById('keypointsInput');
+            const clearKeypointsBtn = document.getElementById('clearKeypointsBtn');
+
+            // Header Action Buttons
+            const rewriteBtn = document.getElementById('rewriteBtn');
+            const saveEditBtn = document.getElementById('saveEditBtn');
+            const generateBtn = document.getElementById('generateBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const approveBtn = document.getElementById('approveBtn');
+            const rejectBtn = document.getElementById('rejectBtn');
+
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
+
+            if (statusLower === 'approved') {
+                if (keypointsInput) keypointsInput.readOnly = true;
+                if (clearKeypointsBtn) clearKeypointsBtn.classList.add('hidden');
+
+                if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                if (generateBtn) generateBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+                if (approveBtn) approveBtn.classList.add('hidden');
+                if (rejectBtn) rejectBtn.classList.add('hidden');
+            } else if (isPending) {
+                if (keypointsInput) keypointsInput.readOnly = !isSuperAdmin;
+                if (clearKeypointsBtn) {
+                    if (isSuperAdmin) clearKeypointsBtn.classList.remove('hidden');
+                    else clearKeypointsBtn.classList.add('hidden');
+                }
+
+                if (generateBtn) generateBtn.classList.add('hidden');
+                if (submitBtn) submitBtn.classList.add('hidden');
+
+                if (isSuperAdmin) {
+                    if (rewriteBtn) rewriteBtn.classList.remove('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.remove('hidden');
+                    if (approveBtn) approveBtn.classList.remove('hidden');
+                    if (rejectBtn) rejectBtn.classList.remove('hidden');
+                } else {
+                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    if (approveBtn) approveBtn.classList.add('hidden');
+                    if (rejectBtn) rejectBtn.classList.add('hidden');
+                }
+            } else {
+                if (keypointsInput) keypointsInput.readOnly = false;
+                if (clearKeypointsBtn) clearKeypointsBtn.classList.remove('hidden');
+
+                if (currentEditingId) {
+                    if (isSuperAdmin) {
+                        if (rewriteBtn) rewriteBtn.classList.remove('hidden');
+                        if (saveEditBtn) saveEditBtn.classList.remove('hidden');
+                    } else {
+                        if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                        if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    }
+                    if (submitBtn) submitBtn.classList.remove('hidden');
+                    if (generateBtn) generateBtn.classList.add('hidden');
+                } else {
+                    if (rewriteBtn) rewriteBtn.classList.add('hidden');
+                    if (saveEditBtn) saveEditBtn.classList.add('hidden');
+                    if (submitBtn) submitBtn.classList.add('hidden');
+                    if (generateBtn) generateBtn.classList.remove('hidden');
+                }
+                if (approveBtn) approveBtn.classList.add('hidden');
+                if (rejectBtn) rejectBtn.classList.add('hidden');
+            }
+        }
+
+        function prepareNewEditor() {
+            document.getElementById('keypointsInput').value = '';
+            if (typeof updateCounters === 'function') updateCounters();
+            document.getElementById('resultsContent').innerHTML = '';
+            document.getElementById('welcomeState').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+
+            currentEditingId = null;
+            currentArticleData = null;
+            currentArticlesList = [];
+            currentVersionIndex = 0;
+            currentArticleStatus = 'Draft';
+
+            syncUIWithStatus();
+
+            // Hide status badge
+            const badge = document.getElementById('editorStatusBadge');
+            if (badge) badge.classList.add('hidden');
+        }
+
+        async function init() {
+            await Promise.all([
+                loadSlotsFromDB(),
+                loadCategoriesFromDB()
+            ]);
+            updateLayoutInfo();
+            if (typeof updateCounters === 'function') updateCounters();
+
+            // Parse URL Parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+            if (articleId) {
+                await loadArticleFromApi(articleId);
+            } else {
+                prepareNewEditor();
+            }
+        }
+
+        async function loadArticleFromApi(id) {
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            try {
+                const res = await fetch(`/api/history/${id}`);
+                if (!res.ok) throw new Error("Failed to retrieve article details");
+                const data = await res.json();
+
+                currentEditingId = data._id || data.id;
+                currentArticlesList = data.articles || [];
+                currentVersionIndex = currentArticlesList.length - 1;
+                currentArticleData = currentArticlesList[currentVersionIndex];
+                currentArticleStatus = data.status || 'Draft';
+
+                // Populate Inputs
+                document.getElementById('keypointsInput').value = data.keypoints || '';
+                updateCounters();
+
+                if (data.config_used && data.config_used.slot_config) {
+                    document.getElementById('columnSpan').value = data.config_used.slot_config.column_span;
+                    document.getElementById('slotCount').value = data.config_used.slot_config.slot_count;
+                    updateLayoutInfo();
+                }
+
+                // Render Results
+                renderResults(currentArticleData);
+                syncUIWithStatus();
+                updateStatusBadge(currentArticleStatus);
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+            } catch (e) {
+                console.error(e);
+                toast("Failed to load report details", "error");
+                prepareNewEditor();
+            }
+        }
+
+        async function loadSlotsFromDB() {
+            try {
+                const res = await fetch('/api/slots/');
+                if (res.ok) allSlots = await res.json();
+            } catch (e) { console.error('Could not load slots', e); }
+        }
+
+        async function loadCategoriesFromDB() {
+            try {
+                const res = await fetch('/api/categories/');
+                if (res.ok) categories = await res.json();
+            } catch (e) { console.error('Could not load categories', e); }
+        }
+
+        function updateLayoutInfo() {
+            const cols = parseInt(document.getElementById('columnSpan').value);
+            const slots = parseInt(document.getElementById('slotCount').value);
+            const matchedSlot = allSlots.find(s => s.column_span === cols && s.slot_count === slots);
+
+            if (matchedSlot) {
+                document.getElementById('wc_headline').value = matchedSlot.wc_headline || 10;
+                document.getElementById('wc_intro').value = matchedSlot.wc_intro || 75;
+                document.getElementById('wc_body').value = matchedSlot.wc_body || 175;
+                document.getElementById('wc_infobox').value = matchedSlot.wc_infobox || 60;
+                document.getElementById('layoutInfo').innerHTML = `<b>${cols} Col | ${slots} Slot</b>: Target H:${matchedSlot.wc_headline}w, I:${matchedSlot.wc_intro}w, B:${matchedSlot.wc_body}w`;
+            } else {
+                document.getElementById('layoutInfo').innerText = `${cols} Cols, ${slots} Slot: Using defaults.`;
+            }
+            if (typeof updateWorkspaceCounters === 'function') {
+                updateWorkspaceCounters();
+            }
+        }
+
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('editorStatusBadge');
+            if (!badge) return;
+            badge.classList.remove('hidden');
+            const statusLower = (status || '').toLowerCase();
+            const isPending = statusLower === 'pending approval' || statusLower === 'pending';
+            badge.textContent = isPending ? 'Pending' : (status || 'Draft');
+
+            if (statusLower === 'approved') {
+                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-green-50 text-green-700 border-green-200';
+            } else if (isPending) {
+                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-amber-50 text-amber-700 border-amber-200';
+            } else if (statusLower === 'rejected') {
+                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-red-50 text-red-700 border-red-200';
+            } else {
+                badge.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm bg-slate-50 text-slate-500 border-slate-200';
+            }
+        }
+
+        function toast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+
+            el.classList.remove('bg-slate-800', 'bg-emerald-600', 'bg-rose-600', 'bg-blue-600');
+            if (type === 'success') {
+                el.classList.add('bg-emerald-600');
+            } else if (type === 'error') {
+                el.classList.add('bg-rose-600');
+            } else if (type === 'info') {
+                el.classList.add('bg-blue-600');
+            } else {
+                el.classList.add('bg-slate-800');
+            }
+
+            el.classList.remove('opacity-0', 'translate-y-4');
+            el.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-y-4');
+                el.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        async function generateNews() {
+            const keypoints = document.getElementById('keypointsInput').value.trim();
+            if (!keypoints) {
+                toast("Please enter your Keypoints!", "error");
+                return;
+            }
+
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('btnText').innerText = "Processing...";
+
+            const config = {
+                slot_config: {
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
+                },
+                topic: "Manual Editorial",
+                allowed_sources: [],
+                headline_config: { single_line: false },
+                word_count_rules: {
+                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
+                    heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
+                    subheading_min: 5, subheading_max: 15,
+                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
+                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
+                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
+                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
+                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
+                },
+                editorial_filters: { gujarati_tone: true }
+            };
+
+            try {
+                const res = await fetch('/api/newspaper/generate-from-keypoints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keypoints, config })
+                });
+
+                if (!res.ok) throw new Error("Generation failed");
+                const data = await res.json();
+                currentEditingId = data.history_id;
+                currentArticlesList = data.articles || [];
+                currentVersionIndex = currentArticlesList.length - 1;
+                currentArticleData = currentArticlesList[currentVersionIndex];
+                currentArticleStatus = 'Draft';
+                
+                // Set parameter URL dynamically without page reloads
+                window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
+
+                renderResults(currentArticleData);
+                syncUIWithStatus();
+                updateStatusBadge(currentArticleStatus);
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+            } catch (e) {
+                console.error(e);
+                toast("Something went wrong!", "error");
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('btnText').innerText = "Generate Report";
+            }
+        }
+
+        async function rewriteQuality() {
+            const headlineEl = document.getElementById('edit_headline');
+            const subheadingEl = document.getElementById('edit_subheading');
+            const introEl = document.getElementById('edit_intro');
+            const bodyEl = document.getElementById('edit_body');
+            const infoboxEl = document.getElementById('edit_infobox');
+
+            let keypoints = '';
+            if (headlineEl && introEl && bodyEl) {
+                keypoints = `HEADLINE: ${headlineEl.innerText.trim()}\n`;
+                if (subheadingEl) keypoints += `SUBHEADING: ${subheadingEl.innerText.trim()}\n`;
+                keypoints += `INTRO: ${introEl.innerText.trim()}\n`;
+                keypoints += `BODY: ${bodyEl.innerText.trim()}\n`;
+                if (infoboxEl) keypoints += `INFO BOX: ${infoboxEl.innerText.trim()}\n`;
+            } else {
+                keypoints = document.getElementById('keypointsInput').value.trim();
+            }
+
+            if (!keypoints) {
+                toast("Please enter your Text/Story to rewrite!", "error");
+                return;
+            }
+
+            // Update loading screen text dynamically
+            const loadingTitle = document.querySelector('#loading h3');
+            const loadingDesc = document.querySelector('#loading p');
+            if (loadingTitle) loadingTitle.innerText = "Senior Editor Polishing...";
+            if (loadingDesc) loadingDesc.innerText = "Our Chief Editor is auditing and refining your draft report.";
+
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('rewriteBtn').disabled = true;
+            document.getElementById('rewriteBtnText').innerText = "Polishing...";
+
+            const config = {
+                slot_config: {
+                    slot_count: parseInt(document.getElementById('slotCount').value),
+                    column_span: parseInt(document.getElementById('columnSpan').value)
+                },
+                topic: "Senior Editor Rewrite",
+                allowed_sources: [],
+                headline_config: { single_line: false },
+                word_count_rules: {
+                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
+                    heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
+                    subheading_min: 5, subheading_max: 15,
+                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
+                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
+                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
+                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
+                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
+                },
+                editorial_filters: { gujarati_tone: true }
+            };
+
+            try {
+                const res = await fetch('/api/newspaper/rewrite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keypoints, config, history_id: currentEditingId })
+                });
+
+                if (!res.ok) throw new Error("Rewrite failed");
+                const data = await res.json();
+
+                currentEditingId = data.history_id;
+                const newArticle = data.articles[0];
+                if (!currentArticlesList || currentArticlesList.length === 0) {
+                    currentArticlesList = [newArticle];
+                } else {
+                    currentArticlesList.push(newArticle);
+                }
+                currentVersionIndex = currentArticlesList.length - 1;
+                currentArticleData = newArticle;
+                if (currentArticleStatus !== 'Pending Approval' && currentArticleStatus !== 'Pending' && currentArticleStatus !== 'Approved') {
+                    currentArticleStatus = 'Draft';
+                }
+                
+                // Set parameter URL dynamically without page reloads
+                window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
+
+                renderResults(currentArticleData);
+                syncUIWithStatus();
+                updateStatusBadge(currentArticleStatus);
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+            } catch (e) {
+                console.error(e);
+                toast("Something went wrong!", "error");
+            } finally {
+                document.getElementById('rewriteBtn').disabled = false;
+                document.getElementById('rewriteBtnText').innerText = "Senior Edit";
+
+                if (loadingTitle) loadingTitle.innerText = "Writing Your News...";
+                if (loadingDesc) loadingDesc.innerText = "Our AI Editor is processing your keypoints.";
+            }
+        }
+
+        function renderResults(article) {
+            const container = document.getElementById('resultsContent');
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
+
+            // Alt Headlines
+            let altHeadlinesHtml = '';
+            if (!isReadOnly && article.alternative_headlines && article.alternative_headlines.length > 0) {
+                const chips = article.alternative_headlines.map((h, i) => `
+                    <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group"
+                         onclick="useHeadline(this, '${h.replace(/'/g, "\\'")}')">
+                        <span class="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black flex items-center justify-center mt-0.5">${i + 1}</span>
+                        <p class="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors leading-snug">${h}</p>
+                    </div>
+                `).join('');
+                altHeadlinesHtml = `
+                    <div class="mb-4 p-4 bg-blue-50/60 border border-blue-100 rounded-2xl">
+                        <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                            Alternative Headlines (click to use)
+                        </h3>
+                        <div class="space-y-2">${chips}</div>
+                    </div>
+                `;
+            }
+
+            // Editorial Notes
+            let editorialNotesHtml = '';
+            if (article.editorial_notes) {
+                editorialNotesHtml = `
+                    <div class="mt-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl">
+                        <h4 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Editorial Notes <span class="text-[9px] font-medium text-amber-400 ml-1">(internal)</span>
+                        </h4>
+                        <div class="text-sm text-amber-800 leading-relaxed">${article.editorial_notes.split('\n').map(l => l.trim() ? `<p class="mb-1">${l}</p>` : '').join('')}</div>
+                    </div>
+                `;
+            }
+
+            const subheadingHtml = article.subheading
+                ? `
+                <div class="mb-4">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Sub-Heading</span>
+                    <p id="edit_subheading" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-base font-semibold text-slate-500 border-l-4 border-blue-400 pl-4 italic outline-none focus:ring-2 focus:ring-blue-50 rounded p-1 transition-all">${article.subheading}</p>
+                    <div id="count_subheading" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 pl-5 pr-1"></div>
+                </div>`
+                : '';
+
+            const infoBoxHtml = article.info_box ? `
+                <div class="article-infobox mt-8">
+                    <h4 class="text-xs font-black uppercase tracking-widest text-brand-600 mb-2">Key Points / Info Box</h4>
+                    <div id="edit_infobox" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1">
+                        ${article.info_box}
+                    </div>
+                    <div id="count_infobox" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
+                </div>
+            ` : '';
+
+            // Revision History
+            let revisionTimelineHtml = '';
+            if (currentArticlesList && currentArticlesList.length > 1) {
+                const buttons = currentArticlesList.map((art, idx) => {
+                    const isActive = idx === currentVersionIndex;
+                    let name = idx === 0 ? "Original Draft" : `Polished (v${idx + 1})`;
+                    return `
+                        <button onclick="switchVersion(${idx})" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-sm border
+                            ${isActive
+                            ? 'bg-gradient-to-r from-[#e82526] to-[#990d0e] text-white border-transparent scale-105 shadow-red-900/10'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800'
+                        }">
+                            <span class="w-2 h-2 rounded-full ${isActive ? 'bg-white animate-pulse' : 'bg-slate-300'}"></span>
+                            ${name}
+                        </button>
+                    `;
+                }).join('');
+
+                revisionTimelineHtml = `
+                    <div class="mb-6 p-4 bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider leading-none">Revision History</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Select version to view or restore</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${buttons}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="newspaper-paper p-8 md:p-12 relative mb-12 max-w-4xl mx-auto rounded-xl shadow-sm">
+                    ${revisionTimelineHtml}
+
+                    <!-- Tabs -->
+                    <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-8 sticky top-[-2.5rem] bg-white z-10 pt-4 -mx-8 px-8 shadow-sm">
+                        <button onclick="switchArticleSubTab('article', 'all')" data-section="all" class="subtab-btn subtab-btn-article active">All Sections</button>
+                        <button onclick="switchArticleSubTab('article', 'headline')" data-section="headline" class="subtab-btn subtab-btn-article">Headline</button>
+                        <button onclick="switchArticleSubTab('article', 'intro')" data-section="intro" class="subtab-btn subtab-btn-article">Intro</button>
+                        <button onclick="switchArticleSubTab('article', 'body')" data-section="body" class="subtab-btn subtab-btn-article">Content</button>
+                        ${article.image_url ? `<button onclick="switchArticleSubTab('article', 'photo')" data-section="photo" class="subtab-btn subtab-btn-article">Photo</button>` : ''}
+                    </div>
+
+                    <article class="article-container">
+                        <!-- ALL View -->
+                        <div class="section-view section-view-article active" data-section="all">
+                            <!-- Headline -->
+                            <div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Headline</span>
+                                <h1 id="edit_headline" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-3xl font-bold mb-4 font-headline leading-tight outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all">${article.headline}</h1>
+                                <div id="count_headline" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mb-4 mt-1 px-1"></div>
+                            </div>
+
+                            ${subheadingHtml}
+                            ${altHeadlinesHtml}
+
+                            <!-- 📸 News Image Container -->
+                            <div class="mb-6">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Article Image</span>
+                                <div id="imageContainer" class="relative group border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 transition-all duration-300">
+                                    ${article.image_url ? `
+                                        <!-- Image Display -->
+                                        <div class="relative max-h-[350px] overflow-hidden flex items-center justify-center bg-slate-900 group">
+                                            <img src="${article.image_url}" alt="News Photo" class="w-full object-cover max-h-[350px] transition-transform duration-500 group-hover:scale-105" />
+                                            ${!isReadOnly ? `
+                                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                                                    <button onclick="triggerImageUpload()" class="px-4 py-2 bg-white text-slate-800 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-brand-500 hover:text-white transition-all shadow-md flex items-center gap-1.5">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-5-4H5.828a2 2 0 01-1.414-.586L3 9m3 3l3-3m0 0l3 3m-3-3v12" /></svg>
+                                                        Upload New
+                                                    </button>
+                                                    <button onclick="removeArticleImage()" class="px-4 py-2 bg-red-600/90 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-red-700 transition-all shadow-md flex items-center gap-1.5">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : `
+                                        <!-- Empty State / Upload Dropzone -->
+                                        ${!isReadOnly ? `
+                                            <div onclick="triggerImageUpload()" class="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-8 text-center cursor-pointer transition-all bg-white hover:bg-slate-50/50 flex flex-col items-center justify-center min-h-[160px] group">
+                                                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mb-3 group-hover:bg-brand-50 group-hover:text-brand-500 transition-all">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="text-sm font-extrabold text-slate-700 tracking-tight group-hover:text-brand-500 transition-colors">Upload Article Photo</span>
+                                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">JPEG, PNG, WEBP, or AVIF (Max 10MB)</span>
+                                            </div>
+                                        ` : `
+                                            <div class="p-8 text-center text-slate-400 font-semibold text-sm">No photo available for this article</div>
+                                        `}
+                                    `}
+                                </div>
+                                <input type="file" id="articleImageFile" class="hidden" accept="image/*" onchange="handleImageUpload(event)" />
+                            </div>
+
+                            <div class="h-px bg-slate-200 mb-4"></div>
+
+                            <!-- Intro -->
+                            <div class="mb-4">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Introduction</span>
+                                <p id="edit_intro" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-lg leading-relaxed font-body outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all" style="color: #000 !important;">
+                                    ${article.intro}
+                                </p>
+                                <div id="count_intro" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
+                            </div>
+
+                            <!-- Body -->
+                            <div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Main Content</span>
+                                <div id="edit_body" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="font-body text-lg leading-relaxed outline-none focus:ring-2 focus:ring-blue-100 rounded p-1 transition-all whitespace-pre-wrap" style="color: #000 !important;">
+                                    ${article.body}
+                                </div>
+                                <div id="count_body" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
+                            </div>
+
+                            ${infoBoxHtml}
+                            ${editorialNotesHtml}
+                        </div>
+
+                        <!-- Headline View -->
+                        <div class="section-view section-view-article" data-section="headline">
+                            <h1 class="text-3xl font-bold font-headline mb-4">${article.headline}</h1>
+                            ${subheadingHtml}
+                            ${altHeadlinesHtml}
+                        </div>
+
+                        <!-- Intro View -->
+                        <div class="section-view section-view-article" data-section="intro">
+                            <p class="text-lg leading-relaxed font-body">${article.intro}</p>
+                        </div>
+
+                        <!-- Body View -->
+                        <div class="section-view section-view-article" data-section="body">
+                            <div class="font-body text-lg leading-relaxed">
+                                ${article.body.split('\n').map(p => p.trim() ? `<p class="mb-4">${p}</p>` : '').join('')}
+                            </div>
+                            ${editorialNotesHtml}
+                        </div>
+
+                        <!-- Photo View -->
+                        ${article.image_url ? `
+                        <div class="section-view section-view-article" data-section="photo">
+                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-4">Article Photo</span>
+                                <img src="${article.image_url}" class="max-w-full mx-auto rounded-xl shadow-md border-4 border-white" style="max-height: 450px; object-fit: contain;">
+                            </div>
+                        </div>` : ''}
+                    </article>
+                </div>
+            `;
+
+            updateWorkspaceCounters();
+        }
+
+        window.updateWorkspaceCounters = function () {
+            const fields = [
+                { id: 'edit_headline', countId: 'count_headline', targetInputId: 'wc_headline', minOffset: -2, maxOffset: 2, label: 'Headline' },
+                { id: 'edit_subheading', countId: 'count_subheading', targetInputId: null, minVal: 5, maxVal: 15, label: 'Sub-heading' },
+                { id: 'edit_intro', countId: 'count_intro', targetInputId: 'wc_intro', minOffset: -10, maxOffset: 15, label: 'Introduction' },
+                { id: 'edit_body', countId: 'count_body', targetInputId: 'wc_body', minOffset: -20, maxOffset: 40, label: 'Main Content' },
+                { id: 'edit_infobox', countId: 'count_infobox', targetInputId: 'wc_infobox', minOffset: -15, maxOffset: 20, label: 'Key Points / Info Box' }
+            ];
+
+            fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                const countEl = document.getElementById(f.countId);
+                if (!el || !countEl) return;
+
+                const text = el.innerText.trim();
+                const chars = text.length;
+                const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+
+                let min = 0, max = 0, hasRules = false;
+
+                if (f.targetInputId) {
+                    const baseVal = parseInt(document.getElementById(f.targetInputId)?.value || '0', 10);
+                    if (baseVal > 0) {
+                        min = Math.max(1, baseVal + f.minOffset);
+                        max = baseVal + f.maxOffset;
+                        hasRules = true;
+                    }
+                } else if (f.minVal !== undefined && f.maxVal !== undefined) {
+                    min = f.minVal;
+                    max = f.maxVal;
+                    hasRules = true;
+                }
+
+                let statusHtml = '';
+                let borderClass = 'border-slate-200 bg-slate-50/50';
+
+                if (words === 0) {
+                    statusHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200">Empty</span>`;
+                } else if (hasRules) {
+                    if (words < min) {
+                        borderClass = 'border-amber-200 bg-amber-50/20';
+                        statusHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200/60 shadow-sm animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Too Short</span>`;
+                    } else if (words > max) {
+                        borderClass = 'border-rose-200 bg-rose-50/20';
+                        statusHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/60 shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Too Long</span>`;
+                    } else {
+                        borderClass = 'border-emerald-200 bg-emerald-50/10';
+                        statusHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Perfect</span>`;
+                    }
+                } else {
+                    statusHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200">Ready</span>`;
+                }
+
+                let targetDesc = hasRules ? `Target: ${min}-${max} words` : 'No Target';
+
+                countEl.className = `flex items-center justify-between mt-2 mb-4 p-2.5 border rounded-xl text-xs transition-all duration-300 ${borderClass}`;
+                countEl.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 text-slate-700 font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <span>${words} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">${words === 1 ? 'Word' : 'Words'}</span></span>
+                        </div>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-slate-500 font-semibold">${chars} <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">Chars</span></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">${targetDesc}</span>
+                        ${statusHtml}
+                    </div>
+                `;
+            });
+        }
+
+        window.switchVersion = function (idx) {
+            if (idx < 0 || idx >= currentArticlesList.length) return;
+            currentVersionIndex = idx;
+            currentArticleData = currentArticlesList[idx];
+            renderResults(currentArticleData);
+            syncUIWithStatus();
+            toast(`Switched to version ${idx === 0 ? "Original" : "Polished (v" + (idx + 1) + ")"}`, "success");
+        }
+
+        window.useHeadline = function (el, headline) {
+            document.querySelectorAll('.font-headline').forEach(h => h.textContent = headline);
+            updateWorkspaceCounters();
+            toast('Headline updated!');
+        }
+
+        window.switchArticleSubTab = function (key, section) {
+            document.querySelectorAll(`.subtab-btn-${key}`).forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.section === section);
+            });
+            document.querySelectorAll(`.section-view-${key}`).forEach(view => {
+                view.classList.toggle('active', view.dataset.section === section);
+            });
+        }
+
+        function showSaveBtn() {
+            const isSuperAdmin = localStorage.getItem('user_role') === 'super_admin';
+            const statusLower = (currentArticleStatus || '').toLowerCase();
+            const isReadOnly = (statusLower === 'approved' || !isSuperAdmin);
+            if (isReadOnly) return;
+            const btn = document.getElementById('saveEditBtn');
+            if (btn) btn.classList.remove('hidden');
+        }
+
+        async function submitForApproval() {
+            if (!currentEditingId) {
+                toast("Please generate a report first!", "error");
+                return;
+            }
+            await updateReportStatus('Pending Approval');
+        }
+
+        async function updateReportStatus(newStatus) {
+            if (!currentEditingId) return;
+
+            toast(`Updating status to ${newStatus}...`, "info");
+            try {
+                const headline = document.getElementById('edit_headline').innerText.trim();
+                const subheadingEl = document.getElementById('edit_subheading');
+                const subheading = subheadingEl ? subheadingEl.innerText.trim() : null;
+                const intro = document.getElementById('edit_intro').innerText.trim();
+                const body = document.getElementById('edit_body').innerText.trim();
+                const infoboxEl = document.getElementById('edit_infobox');
+                const infobox = infoboxEl ? infoboxEl.innerText.trim() : null;
+
+                const updatedArticle = {
+                    ...currentArticleData,
+                    headline,
+                    intro,
+                    body
+                };
+                if (subheading !== null) updatedArticle.subheading = subheading;
+                if (infobox !== null) updatedArticle.info_box = infobox;
+
+                if (currentArticlesList && currentArticlesList.length > 0) {
+                    currentArticlesList[currentVersionIndex] = updatedArticle;
+                } else {
+                    currentArticlesList = [updatedArticle];
+                    currentVersionIndex = 0;
+                }
+                currentArticleData = updatedArticle;
+
+                let finalArticles = currentArticlesList;
+                if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
+                    finalArticles = [updatedArticle];
+                }
+
+                const payload = {
+                    status: newStatus,
+                    articles: finalArticles,
+                    username: localStorage.getItem('username') || 'Admin'
+                };
+
+                const res = await fetch(`/api/history/${currentEditingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    toast(`Report status is now ${newStatus}!`, "success");
+                    currentArticleStatus = newStatus;
+
+                    if (newStatus === 'Pending Approval' || newStatus === 'Approved') {
+                        currentArticlesList = [updatedArticle];
+                        currentVersionIndex = 0;
+                        renderResults(currentArticleData);
+                    }
+
+                    syncUIWithStatus();
+                    updateStatusBadge(newStatus);
+                } else {
+                    throw new Error("Update failed");
+                }
+            } catch (e) {
+                console.error(e);
+                toast("Error: " + e.message, "error");
+            }
+        }
+
+        async function saveManualEdit() {
+            if (!currentEditingId) {
+                toast("No active report to save!", "error");
+                return;
+            }
+
+            const headline = document.getElementById('edit_headline').innerText.trim();
+            const subheadingEl = document.getElementById('edit_subheading');
+            const subheading = subheadingEl ? subheadingEl.innerText.trim() : null;
+            const intro = document.getElementById('edit_intro').innerText.trim();
+            const body = document.getElementById('edit_body').innerText.trim();
+            const infoboxEl = document.getElementById('edit_infobox');
+            const infobox = infoboxEl ? infoboxEl.innerText.trim() : null;
+
+            toast("Saving edits...", "info");
+
+            try {
+                const updatedArticle = {
+                    ...currentArticleData,
+                    headline,
+                    intro,
+                    body
+                };
+                if (subheading !== null) updatedArticle.subheading = subheading;
+                if (infobox !== null) updatedArticle.info_box = infobox;
+
+                if (currentArticlesList && currentArticlesList.length > 0) {
+                    currentArticlesList[currentVersionIndex] = updatedArticle;
+                } else {
+                    currentArticlesList = [updatedArticle];
+                    currentVersionIndex = 0;
+                }
+                currentArticleData = updatedArticle;
+
+                const payload = {
+                    articles: currentArticlesList,
+                    username: localStorage.getItem('username') || 'Admin'
+                };
+
+                const res = await fetch(`/api/history/${currentEditingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    toast("Manual edits saved successfully!", "success");
+                    const btn = document.getElementById('saveEditBtn');
+                    if (btn) btn.classList.add('hidden');
+                } else {
+                    throw new Error("Failed to save manually");
+                }
+            } catch (e) {
+                console.error(e);
+                toast("Error: " + e.message, "error");
+            }
+        }
+
+        window.triggerImageUpload = function() {
+            const fileInput = document.getElementById('articleImageFile');
+            if (fileInput) fileInput.click();
+        }
+
+        window.handleImageUpload = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                toast("Please upload a valid image", "error");
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                toast("Image size exceeds 10MB limit", "error");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            toast("Uploading article image...", "info");
+
+            try {
+                const res = await fetch('/api/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Upload failed");
+                const data = await res.json();
+
+                if (data.success && data.image_url) {
+                    toast("Image uploaded successfully!", "success");
+                    if (currentArticleData) {
+                        currentArticleData.image_url = data.image_url;
+                    }
+                    if (currentArticlesList && currentArticlesList.length > 0) {
+                        currentArticlesList[currentVersionIndex].image_url = data.image_url;
+                    }
+                    renderResults(currentArticleData);
+                    showSaveBtn();
+                } else {
+                    throw new Error("Invalid response schema");
+                }
+            } catch (e) {
+                console.error(e);
+                toast("Upload failed: " + e.message, "error");
+            }
+        }
+
+        window.removeArticleImage = function() {
+            if (!confirm("Are you sure you want to remove the article image?")) return;
+
+            if (currentArticleData) {
+                currentArticleData.image_url = null;
+            }
+            if (currentArticlesList && currentArticlesList.length > 0) {
+                currentArticlesList[currentVersionIndex].image_url = null;
+            }
+            renderResults(currentArticleData);
+            showSaveBtn();
+            toast("Image removed. Save edits to commit.");
+        }
+
+        function updateCounters() {
+            const keypointsInput = document.getElementById('keypointsInput');
+            const charCount = document.getElementById('charCount');
+            const wordCount = document.getElementById('wordCount');
+            if (!keypointsInput || !charCount || !wordCount) return;
+
+            const text = keypointsInput.value.trim();
+            const chars = text.length;
+            const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+
+            charCount.textContent = `${chars} character${chars !== 1 ? 's' : ''}`;
+            wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        }
+
+        document.getElementById('keypointsInput').addEventListener('input', updateCounters);
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

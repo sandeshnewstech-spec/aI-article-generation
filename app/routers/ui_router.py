@@ -28,6 +28,12 @@ async def news_editor(request: Request):
         "current_page": "editor"
     })
 
+@router.get("/editor/workspace")
+async def news_editor_workspace(request: Request):
+    return templates.TemplateResponse(request=request, name="editor_workspace.html", context={
+        "current_page": "editor"
+    })
+
 @router.get("/admin/categories")
 async def admin_categories(request: Request):
     return templates.TemplateResponse(request=request, name="categories.html", context={

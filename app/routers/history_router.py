@@ -45,12 +45,16 @@ async def get_history_item(history_id: str):
     try:
         doc = await db["history"].find_one({"_id": ObjectId(history_id)})
         if not doc:
+            doc = await db["editor_history"].find_one({"_id": ObjectId(history_id)})
+        if not doc:
             raise HTTPException(status_code=404, detail="History item not found")
         doc["_id"] = str(doc["_id"])
         # Ensure config_used exists
         if "config_used" not in doc and doc.get("articles"):
             doc["config_used"] = doc["articles"][0].get("config_used")
         return HistoryItem(**doc)
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid ID format or item not found")
 
@@ -60,8 +64,12 @@ async def delete_history(history_id: str):
     try:
         res = await db["history"].delete_one({"_id": ObjectId(history_id)})
         if res.deleted_count == 0:
+            res = await db["editor_history"].delete_one({"_id": ObjectId(history_id)})
+        if res.deleted_count == 0:
             raise HTTPException(status_code=404, detail="History item not found")
         return {"status": "success"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid ID format")
 

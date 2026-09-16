@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, File, UploadFile
 from pydantic import BaseModel
 from typing import List, Optional
 from app.services.image_service import ImageService
@@ -43,6 +43,52 @@ async def auto_generate_image(request: AutoGenerateRequest):
             request.headline, request.topic, request.intro
         )
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/upload")
+async def upload_image(file: UploadFile = File(...)):
+    """
+    Handle user uploaded image files.
+    Validates image content type, saves to app/static/scraped_images/, 
+    and returns the local static URL.
+    """
+    try:
+        # Validate that it is an image
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Only image uploads are allowed")
+            
+        # Get extension securely
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in [".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"]:
+            # Fallback based on content type
+            ctype = file.content_type.lower()
+            if "png" in ctype: ext = ".png"
+            elif "webp" in ctype: ext = ".webp"
+            elif "avif" in ctype: ext = ".avif"
+            elif "gif" in ctype: ext = ".gif"
+            else: ext = ".jpg"
+            
+        import uuid
+        # Save to app/static/scraped_images/
+        base_dir = "app/static/scraped_images"
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir, exist_ok=True)
+            
+        filename = f"upload_{uuid.uuid4().hex}{ext}"
+        filepath = os.path.join(base_dir, filename)
+        
+        # Read content and save
+        content = await file.read()
+        with open(filepath, "wb") as f:
+            f.write(content)
+            
+        local_url = f"/static/scraped_images/{filename}"
+        print(f"[IMAGE-UPLOAD] Saved uploaded file to: {local_url}")
+        
+        return {"success": True, "image_url": local_url}
+        
+    except Exception as e:
+        print(f"[IMAGE-UPLOAD ERROR] Upload failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/download")

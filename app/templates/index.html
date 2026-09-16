@@ -1184,12 +1184,22 @@
                                     <button onclick="quickUpdateGlobalStatus('${itemId}', 'Approved')" class="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase hover:bg-green-600 hover:text-white border border-green-200 transition-all shadow-sm">Approve</button>
                                     <button onclick="quickUpdateGlobalStatus('${itemId}', 'Rejected')" class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white border border-red-200 transition-all shadow-sm">Reject</button>
                                 ` : ''}
-                                <button onclick="viewHistoryItem('${itemId}')" class="text-indigo-600 hover:text-indigo-800 font-bold text-xs bg-indigo-50 px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-indigo-100">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    View & Edit
-                                </button>
+                                ${item.status === 'processing' ? `
+                                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs bg-indigo-50 px-3 py-1 rounded-md border border-indigo-100 cursor-not-allowed">
+                                        <svg class="animate-spin h-3.5 w-3.5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Processing...
+                                    </div>
+                                ` : `
+                                    <button onclick="viewHistoryItem('${itemId}')" class="text-indigo-600 hover:text-indigo-800 font-bold text-xs bg-indigo-50 px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-indigo-100 shadow-sm">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        View & Edit
+                                    </button>
+                                `}
                             </div>
                         </td>
                     </tr>
@@ -1415,90 +1425,59 @@
             };
 
             try {
-                // STEP 1: Scrape
+                // Background Task Implementation
                 setStepStatus(1, 'active');
                 updateProgress(10);
-                await new Promise(r => setTimeout(r, 400));
-                setStepStatus(1, 'done');
+                document.getElementById('step1-text').innerText = "Starting background task...";
 
-                setStepStatus(2, 'active');
-                const scrapeStepText = document.getElementById('step2-text');
-
-                const scrapeRes = await fetch('/api/newspaper/scrape-stream', {
+                const bgRes = await fetch('/api/newspaper/generate-background', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
 
-                if (!scrapeRes.ok) throw new Error("Scraping connection failed");
+                if (!bgRes.ok) throw new Error("Failed to start background generation");
 
-                const reader = scrapeRes.body.getReader();
-                const decoder = new TextDecoder();
-                let articles = [];
-                let buffer = '';
+                const bgData = await bgRes.json();
+                currentHistoryId = bgData.history_id;
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                toast("Job started in the background. You can safely navigate away.", "success");
+                
+                setStepStatus(1, 'done');
+                setStepStatus(2, 'active');
+                const scrapeStepText = document.getElementById('step2-text');
+                scrapeStepText.innerText = "Processing in background (Scraping & Drafting)...";
+                document.getElementById('step3-text').innerText = "Waiting for completion...";
 
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop(); // Keep partial line for next chunk
+                let isDone = false;
+                let finalData = null;
+                let currentProgress = 15;
 
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            const event = JSON.parse(line);
-                            if (event.type === 'progress') {
-                                let displayPct = 15 + (event.percentage * 0.65);
-                                updateProgress(Math.floor(displayPct));
-                                scrapeStepText.innerText = `Scraping ${event.site}... (${event.index + 1}/${event.total})`;
-                            } else if (event.type === 'site_done') {
-                                if (event.articles) articles = articles.concat(event.articles);
-                            } else if (event.type === 'all_done') {
-                                updateProgress(80);
-                            }
-                        } catch (e) {
-                            console.warn("Partial stream chunk:", e);
-                        }
+                while (!isDone) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    
+                    const statusRes = await fetch(`/api/newspaper/task-status/${currentHistoryId}`);
+                    if (!statusRes.ok) throw new Error("Failed to check status");
+                    
+                    const statusData = await statusRes.json();
+                    if (statusData.status === "completed") {
+                        isDone = true;
+                        finalData = statusData.articles;
+                    } else if (statusData.status === "failed") {
+                        throw new Error(statusData.error || "Background task failed");
+                    } else {
+                        // Slowly increment progress bar to indicate activity
+                        currentProgress = Math.min(currentProgress + 2, 90);
+                        updateProgress(currentProgress);
                     }
                 }
 
-                // Final buffer check
-                if (buffer.trim()) {
-                    try {
-                        const event = JSON.parse(buffer);
-                        if (event.type === 'site_done') articles = articles.concat(event.articles);
-                    } catch (e) { }
-                }
-
-                if (!articles || articles.length === 0) {
-                    throw new Error("No articles found to process.");
-                }
-
                 setStepStatus(2, 'done');
-                scrapeStepText.innerText = `Scraped ${articles.length} source(s).`;
-
                 setStepStatus(3, 'active');
-                updateProgress(90);
+                updateProgress(95);
 
-                // STEP 2: Generate Content
-                const generateReq = {
-                    config: config,
-                    articles: articles
-                };
-
-                const genRes = await fetch('/api/newspaper/generate-from-content', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(generateReq)
-                });
-
-                if (!genRes.ok) throw new Error("Generation failed");
-
-                const responseData = await genRes.json();
-                const data = responseData.articles;
-                currentHistoryId = responseData.history_id;
+                const data = finalData;
+                if (!data || data.length === 0) throw new Error("No articles were generated.");
 
                 setStepStatus(3, 'done');
                 updateProgress(100);
