@@ -30,8 +30,8 @@ class ScraperService:
     ]
 
     def __init__(self):
-        # Reduced to 1 to save RAM on the server (Prevents OOM errors)
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        # Set to 30 as a safe limit for t3.xlarge (16GB RAM) to prevent OOM errors
+        self.executor = ThreadPoolExecutor(max_workers=30)
 
     async def scrape_topic(
         self,

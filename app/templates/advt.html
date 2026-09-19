@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandesh AI | ADVT Module</title>
+    <link rel="icon" href="/static/favicon.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#e82526',
+                            600: '#990d0e',
+                            700: '#991b1b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 24px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+
+<body class="bg-white font-sans text-slate-900 antialiased">
+
+    {% include 'sidebar.html' %}
+
+    <main class="sb-offset">
+        <!-- Header -->
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 z-30 shrink-0">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-red-500 to-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-700/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">Advertisement (ADVT) Manager</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="openUploadModal()"
+                    class="bg-gradient-to-r from-red-600 to-brand-600 hover:shadow-lg hover:shadow-brand-700/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Upload ADVT
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <div class="flex-1 bg-slate-50 overflow-y-auto p-6">
+                <div class="w-full max-w-7xl mx-auto">
+                    
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-4 pl-6">Filename</th>
+                                    <th class="p-4">Type</th>
+                                    <th class="p-4">Date</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 pr-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advtTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Data will be loaded here -->
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-500">Loading advertisements...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold text-slate-800">Upload Advertisement</h2>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <form id="uploadForm" onsubmit="handleUpload(event)">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Advertisement Type</label>
+                        <input type="text" id="advtType" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="e.g. Banner, Classified">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Unit</label>
+                        <select id="advtUnit" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                            <option value="cm">cm</option>
+                            <option value="meter">meter</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Height</label>
+                        <input type="number" id="advtHeight" step="0.01" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Width</label>
+                        <input type="number" id="advtWidth" step="0.01" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select File (PDF, DOCX, Image)</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="advtFile" class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-8 h-8 mb-4 text-slate-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p class="mb-2 text-sm text-slate-500 font-semibold">Click to upload or drag and drop</p>
+                                <p class="text-xs text-slate-500">PDF, DOCX, PNG, JPG</p>
+                            </div>
+                            <input id="advtFile" type="file" class="hidden" accept=".pdf,.docx,.png,.jpg,.jpeg" required onchange="updateFileName(this)" />
+                        </label>
+                    </div>
+                    <p id="selectedFileName" class="mt-2 text-sm text-brand-600 font-medium text-center hidden"></p>
+                </div>
+
+                <div id="uploadProgress" class="hidden mb-6">
+                    <div class="flex items-center gap-3 text-brand-600 font-medium">
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Generating Advertisement text and images with AI...</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeUploadModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
+                    <button type="submit" id="uploadBtn" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Upload & Translate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold text-slate-800">Edit Translated Text</h2>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Advertisement Details</label>
+                <div class="flex gap-4 mb-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200" id="editAdvtDetails">
+                    <!-- Details will be injected here -->
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Generated Advertisement Text (Gujarati)</label>
+                <textarea id="editTranslationText" rows="8" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none font-medium text-slate-800 text-lg leading-relaxed"></textarea>
+            </div>
+
+            <div class="mb-6" id="editImageContainer" style="display:none;">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Generated Advertisement Image</label>
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center p-2">
+                    <img id="editGeneratedImage" src="" alt="Generated AD" class="max-h-64 object-contain">
+                </div>
+            </div>
+
+            <input type="hidden" id="editAdvtId">
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
+                <button type="button" onclick="saveTranslation()" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let advts = [];
+
+        async function loadAdvts() {
+            try {
+                const response = await fetch('/api/advt/');
+                advts = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error("Error loading advts:", error);
+                document.getElementById('advtTableBody').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Failed to load data</td></tr>`;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('advtTableBody');
+            if (advts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No advertisements found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = advts.map(advt => {
+                const date = new Date(advt.created_at).toLocaleString();
+                let typeIcon = '';
+                if(advt.file_type.includes('pdf')) typeIcon = '📄 PDF';
+                else if(advt.file_type.includes('image')) typeIcon = '🖼️ Image';
+                else typeIcon = '📝 Word';
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4 pl-6 font-medium text-slate-800">${advt.filename}</td>
+                    <td class="p-4 text-slate-500">
+                        <span class="px-2 py-1 bg-slate-100 rounded-md text-xs font-semibold">${typeIcon}</span>
+                    </td>
+                    <td class="p-4 text-slate-500 text-sm">${date}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-green-100 text-green-700 border border-green-200">
+                            ${advt.status}
+                        </span>
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <button onclick="openEditModal('${advt._id}')" class="text-brand-600 hover:text-brand-700 font-semibold text-sm mr-3">Edit</button>
+                        <button onclick="deleteAdvt('${advt._id}')" class="text-red-600 hover:text-red-900 font-semibold text-sm">Delete</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function updateFileName(input) {
+            const label = document.getElementById('selectedFileName');
+            if (input.files && input.files[0]) {
+                label.textContent = `Selected file: ${input.files[0].name}`;
+                label.classList.remove('hidden');
+            } else {
+                label.classList.add('hidden');
+            }
+        }
+
+        async function handleUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('advtFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file first.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('advt_type', document.getElementById('advtType').value);
+            formData.append('height', document.getElementById('advtHeight').value);
+            formData.append('width', document.getElementById('advtWidth').value);
+            formData.append('unit', document.getElementById('advtUnit').value);
+
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadProgress').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/advt/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Upload failed');
+                }
+                
+                closeUploadModal();
+                loadAdvts();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            } finally {
+                document.getElementById('uploadBtn').disabled = false;
+                document.getElementById('uploadProgress').classList.add('hidden');
+                fileInput.value = '';
+                updateFileName(fileInput);
+            }
+        }
+
+        function openEditModal(id) {
+            const advt = advts.find(a => a._id === id);
+            if(advt) {
+                document.getElementById('editAdvtId').value = id;
+                document.getElementById('editTranslationText').value = advt.translated_text || '';
+                
+                const detailsContainer = document.getElementById('editAdvtDetails');
+                detailsContainer.innerHTML = `
+                    <div><strong>Type:</strong> ${advt.advt_type || 'N/A'}</div>
+                    <div><strong>Size:</strong> ${advt.height || 0} x ${advt.width || 0} ${advt.unit || ''}</div>
+                `;
+
+                const imageContainer = document.getElementById('editImageContainer');
+                const imageEl = document.getElementById('editGeneratedImage');
+                if (advt.generated_image_url) {
+                    imageEl.src = advt.generated_image_url;
+                    imageContainer.style.display = 'block';
+                } else {
+                    imageContainer.style.display = 'none';
+                    imageEl.src = '';
+                }
+
+                document.getElementById('editModal').style.display = "block";
+            }
+        }
+
+        async function saveTranslation() {
+            const id = document.getElementById('editAdvtId').value;
+            const text = document.getElementById('editTranslationText').value;
+
+            try {
+                const response = await fetch(`/api/advt/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ translated_text: text })
+                });
+
+                if(response.ok) {
+                    closeEditModal();
+                    loadAdvts();
+                } else {
+                    alert("Failed to save.");
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function deleteAdvt(id) {
+            if(confirm("Are you sure you want to delete this advertisement?")) {
+                try {
+                    const response = await fetch(`/api/advt/${id}`, { method: 'DELETE' });
+                    if(response.ok) {
+                        loadAdvts();
+                    }
+                } catch(e) {
+                    alert("Error: " + e.message);
+                }
+            }
+        }
+
+        // Modals logic
+        function openUploadModal() { document.getElementById('uploadModal').style.display = "block"; }
+        function closeUploadModal() { document.getElementById('uploadModal').style.display = "none"; }
+        function closeEditModal() { document.getElementById('editModal').style.display = "none"; }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('uploadModal')) closeUploadModal();
+            if (event.target == document.getElementById('editModal')) closeEditModal();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', loadAdvts);
+    </script>
+</body>
+</html>

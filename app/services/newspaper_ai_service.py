@@ -389,7 +389,7 @@ Generate the complete report now.
             raise e
 
     async def high_quality_rewrite(
-        self, text: str, config: NewspaperConfig
+        self, text: str, config: NewspaperConfig, instruction: Optional[str] = None
     ) -> NewspaperOutput:
         """
         Rewrite story/text into high-quality, polished Gujarati using the Senior Editor prompt
@@ -429,10 +429,14 @@ Generate the complete report now.
             else:
                 cleaned_text = "SUBHEADING: [Generate an engaging professional subheading here]\n" + cleaned_text
 
+        user_instruction_block = ""
+        if instruction:
+            user_instruction_block = f"\n\n⚠️ USER'S CUSTOM INSTRUCTION TO APPLY:\n{instruction}\n(You MUST apply this custom instruction to the generated output, keeping the response in Gujarati.)\n\n"
+
         task_prompt = f"""
 You are a senior copy-editor and Chief Senior Editor of the SANDESH newsroom.
 Your task is to take the provided news draft, audit it meticulously, apply the elite SANDESH house rules, and write a polished, front-page standard Gujarati copy.
-
+{user_instruction_block}
 MANDATORY RULES FROM UPLOADED SANDESH FRAMEWORK (STRICT ADHERENCE REQUIRED):
 1. **01 News Judgment Master**: Apply 5W1H (Who, What, Where, When, Why, How). Ensure a powerful, engaging Lead/Intro paragraph in Inverted Pyramid style.
 2. **02 Headline-Subheadline Master**: Make headings active, direct, and powerful. Headline must be {heading_min}-{heading_max} words. Subheading must be {subheading_min}-{subheading_max} words.

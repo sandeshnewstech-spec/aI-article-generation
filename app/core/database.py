@@ -28,6 +28,7 @@ async def connect_db():
         # Seed default data if collections are empty
         await seed_defaults()
         await seed_users()
+        await seed_advt_categories()
     except Exception as e:
         print(f"❌ [CRITICAL] Could not connect to MongoDB at {MONGODB_URL}")
         print(f"   Please ensure MongoDB service is running (e.g., 'net start MongoDB' or 'brew services start mongodb-community')")
@@ -155,3 +156,23 @@ async def seed_users():
         }
         await db["users"].insert_one(admin_user)
         print("[OK] Seeded default super admin: admin / admin123")
+
+async def seed_advt_categories():
+    """Seed ADVT categories if the collection is empty."""
+    count = await db["advt_categories"].count_documents({})
+    if count == 0:
+        categories = [
+            {"name": "Display", "description": "All Product ads comes under this category."},
+            {"name": "Legal Notice", "description": "Advocate notice (Lineage rate only)."},
+            {"name": "Notice", "description": "Notice ads from Bank, Statutory bodies, Auctioneer etc."},
+            {"name": "State Government", "description": "All tender notices from State Government Department"},
+            {"name": "Central Government", "description": "All DAVP ads + notification ads from Central Government"},
+            {"name": "Appointment", "description": "All Recruitment ads"},
+            {"name": "Cinema", "description": "All movie ads"},
+            {"name": "Entertainment", "description": "Drama, Musical Parties, Circus etc."},
+            {"name": "Death/Besna/Obituary", "description": "Obituary Ads"},
+            {"name": "Abhinandan", "description": "Abhinandan ads with congratulation message."},
+            {"name": "Classified", "description": "All classified ads (Run on words)"}
+        ]
+        await db["advt_categories"].insert_many(categories)
+        print("[OK] Seeded default ADVT categories")

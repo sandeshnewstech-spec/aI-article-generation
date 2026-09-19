@@ -141,6 +141,7 @@ class GenerateFromKeypointsRequest(BaseModel):
     keypoints: str
     config: NewspaperConfig
     history_id: Optional[str] = None
+    instruction: Optional[str] = None
 
 
 class NewspaperSection(BaseModel):

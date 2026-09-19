@@ -57,3 +57,28 @@ async def full_newspaper(request: Request):
     return templates.TemplateResponse(request=request, name="full_newspaper.html", context={
         "current_page": "full_newspaper"
     })
+
+@router.get("/admin/advt-categories/list")
+async def advt_categories_list(request: Request):
+    return templates.TemplateResponse(request=request, name="advt_categories/list.html", context={
+        "current_page": "advt_categories"
+    })
+
+@router.get("/admin/advt-categories/add")
+async def advt_categories_add(request: Request):
+    return templates.TemplateResponse(request=request, name="advt_categories/add.html", context={
+        "current_page": "advt_categories"
+    })
+
+@router.get("/admin/advt-categories/edit/{category_id}")
+async def advt_categories_edit(request: Request, category_id: str):
+    return templates.TemplateResponse(request=request, name="advt_categories/edit.html", context={
+        "current_page": "advt_categories",
+        "category_id": category_id
+    })
+
+@router.get("/advt")
+async def advt_module(request: Request):
+    return templates.TemplateResponse(request=request, name="advt.html", context={
+        "current_page": "advt"
+    })

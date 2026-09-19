@@ -63,6 +63,15 @@ app.include_router(history_router.router, prefix="/api")
 from app.routers import image_router
 app.include_router(image_router.router, prefix="/api")
 
+# Include ADVT Router
+from app.routers import advt_router, advt_category_router
+app.include_router(advt_router.router, prefix="/api")
+app.include_router(advt_category_router.router, prefix="/api")
+
+# Include Extract Router
+from app.routers import extract_router
+app.include_router(extract_router.router, prefix="/api")
+
 if __name__ == "__main__":
     import uvicorn
 

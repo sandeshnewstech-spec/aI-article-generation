@@ -479,8 +479,9 @@ async def high_quality_rewrite_endpoint(request: GenerateFromKeypointsRequest):
     try:
         config = request.config
         text = request.keypoints  # Use keypoints field for input text
+        instruction = request.instruction
         
-        output = await newspaper_ai.high_quality_rewrite(text, config)
+        output = await newspaper_ai.high_quality_rewrite(text, config, instruction)
         
         # Save to history
         history_id = request.history_id or ""
