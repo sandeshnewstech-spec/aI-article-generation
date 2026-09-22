@@ -394,9 +394,30 @@ class AdvtService:
                 print(f"[WARNING] Strict JSON parse failed ({e_strict}). Attempting robust extraction...")
                 # If it's a list format, try fixing newlines inside strings
                 try:
-                    fixed_str = re.sub(r'(?<!\\)\n', '\\\\n', clean_result)
+                    # State machine to only escape newlines INSIDE quotes
+                    in_string = False
+                    escaped = False
+                    result_chars = []
+                    for char in clean_result:
+                        if char == '"' and not escaped:
+                            in_string = not in_string
+                        
+                        if in_string and char == '\n':
+                            result_chars.append('\\n')
+                        elif in_string and char == '\r':
+                            pass
+                        else:
+                            result_chars.append(char)
+                            
+                        if char == '\\':
+                            escaped = not escaped
+                        else:
+                            escaped = False
+                            
+                    fixed_str = "".join(result_chars)
                     data = json.loads(fixed_str)
-                except Exception:
+                except Exception as e_fixed:
+                    print(f"[WARNING] Fixed string parse failed ({e_fixed}). Attempting regex fallback...")
                     # Fallback to extracting the gujarati_text array
                     match = re.search(r'"gujarati_text"\s*:\s*(\[.*?\])', clean_result, re.DOTALL)
                     if match:

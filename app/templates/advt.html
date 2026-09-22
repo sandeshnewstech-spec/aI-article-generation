@@ -50,7 +50,7 @@
             margin: 0;
             padding: 0;
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -88,18 +88,21 @@
                 <div
                     class="w-10 h-10 bg-gradient-to-br from-red-500 to-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-700/20">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                 </div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">Advertisement (ADVT) Manager</h1>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">Advertisement (ADVT)
+                        Manager</h1>
                 </div>
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="openUploadModal()"
                     class="bg-gradient-to-r from-red-600 to-brand-600 hover:shadow-lg hover:shadow-brand-700/20 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     Upload ADVT
                 </button>
@@ -109,11 +112,12 @@
         <div class="flex-1 flex overflow-hidden">
             <div class="flex-1 bg-slate-50 overflow-y-auto p-6">
                 <div class="w-full max-w-7xl mx-auto">
-                    
+
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <tr
+                                    class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                     <th class="p-4 pl-6">Filename</th>
                                     <th class="p-4">Type</th>
                                     <th class="p-4">Date</th>
@@ -124,7 +128,8 @@
                             <tbody id="advtTableBody" class="divide-y divide-slate-100 text-sm">
                                 <!-- Data will be loaded here -->
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-slate-500">Loading advertisements...</td>
+                                    <td colspan="5" class="p-8 text-center text-slate-500">Loading advertisements...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -140,24 +145,33 @@
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 class="text-xl font-bold text-slate-800">Upload Advertisement</h2>
                 <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
                 </button>
             </div>
-            
+
             <form id="uploadForm" onsubmit="handleUpload(event)">
                 <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <label class="block text-sm font-semibold text-slate-700 mb-3">Processing Options</label>
                     <div class="flex flex-col gap-3">
                         <label class="flex items-center gap-3 text-sm text-slate-700 cursor-pointer">
-                            <input type="checkbox" id="optEngToGuj" class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500" checked onchange="toggleDimensions()">
+                            <input type="checkbox" id="optEngToGuj"
+                                class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500" checked
+                                onchange="toggleDimensions()">
                             <span class="font-medium">English to Gujarati</span>
                         </label>
                         <label class="flex items-center gap-3 text-sm text-slate-700 cursor-pointer">
-                            <input type="checkbox" id="optAddKeyPoints" class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500" onchange="toggleDimensions()">
+                            <input type="checkbox" id="optAddKeyPoints"
+                                class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                                onchange="toggleDimensions()">
                             <span class="font-medium">Add KeyPoints</span>
                         </label>
                         <label class="flex items-center gap-3 text-sm text-slate-700 cursor-pointer">
-                            <input type="checkbox" id="optLegalNotice" class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500" onchange="toggleDimensions()">
+                            <input type="checkbox" id="optLegalNotice"
+                                class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                                onchange="toggleDimensions()">
                             <span class="font-medium">Legal Notice</span>
                         </label>
                     </div>
@@ -166,71 +180,94 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Advertisement Type</label>
-                        <select id="advtType" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <select id="advtType" required
+                            class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                             <option value="" disabled selected>Loading categories...</option>
                         </select>
                     </div>
                     <div id="unitContainer">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Unit</label>
-                        <select id="advtUnit" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <select id="advtUnit"
+                            class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                             <option value="cm">cm</option>
                             <option value="meter">meter</option>
                         </select>
                     </div>
                     <div id="heightContainer">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Height</label>
-                        <input type="number" id="advtHeight" step="0.01" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="0.00">
+                        <input type="number" id="advtHeight" step="0.01"
+                            class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                            placeholder="0.00">
                     </div>
                     <div id="widthContainer">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Width</label>
-                        <input type="number" id="advtWidth" step="0.01" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="0.00">
+                        <input type="number" id="advtWidth" step="0.01"
+                            class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                            placeholder="0.00">
                     </div>
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select Creative Ad File (PDF, DOCX, Image)</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select Creative Ad File (PDF, DOCX,
+                        Image)</label>
                     <div class="flex items-center justify-center w-full">
-                        <label for="advtFile" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <label for="advtFile"
+                            class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-2 text-slate-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                <svg class="w-8 h-8 mb-2 text-slate-500" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                                 </svg>
                                 <p class="mb-1 text-sm text-slate-500 font-semibold">Click to upload creative ad</p>
                                 <p class="text-xs text-slate-500">PDF, DOCX, PNG, JPG</p>
                             </div>
-                            <input id="advtFile" type="file" class="hidden" accept=".pdf,.docx,.png,.jpg,.jpeg" required onchange="updateFileName(this)" />
+                            <input id="advtFile" type="file" class="hidden" accept=".pdf,.docx,.png,.jpg,.jpeg" required
+                                onchange="updateFileName(this)" />
                         </label>
                     </div>
                     <p id="selectedFileName" class="mt-2 text-sm text-brand-600 font-medium text-center hidden"></p>
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select Blank Template (Image or PDF) - Optional</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select Blank Template (Image or PDF)
+                        - Optional</label>
                     <div class="flex items-center justify-center w-full">
-                        <label for="advtBlankFile" class="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <label for="advtBlankFile"
+                            class="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
                             <div class="flex flex-col items-center justify-center pt-4 pb-4">
                                 <p class="mb-1 text-sm text-slate-500 font-semibold">Click to upload blank template</p>
                                 <p class="text-xs text-slate-500">PNG, JPG, PDF</p>
                             </div>
-                            <input id="advtBlankFile" type="file" class="hidden" accept=".png,.jpg,.jpeg,.pdf" onchange="updateBlankFileName(this)" />
+                            <input id="advtBlankFile" type="file" class="hidden" accept=".png,.jpg,.jpeg,.pdf"
+                                onchange="updateBlankFileName(this)" />
                         </label>
                     </div>
-                    <p id="selectedBlankFileName" class="mt-2 text-sm text-brand-600 font-medium text-center hidden"></p>
+                    <p id="selectedBlankFileName" class="mt-2 text-sm text-brand-600 font-medium text-center hidden">
+                    </p>
                 </div>
 
                 <div id="uploadProgress" class="hidden mb-6">
                     <div class="flex items-center gap-3 text-brand-600 font-medium">
-                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
                         </svg>
                         <span>Generating Advertisement text and images with AI...</span>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeUploadModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
-                    <button type="submit" id="uploadBtn" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Upload & Translate</button>
+                    <button type="button" onclick="closeUploadModal()"
+                        class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
+                    <button type="submit" id="uploadBtn"
+                        class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Upload
+                        & Translate</button>
                 </div>
             </form>
         </div>
@@ -242,33 +279,68 @@
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 class="text-xl font-bold text-slate-800">Edit Translated Text</h2>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
                 </button>
             </div>
-            
+
             <div class="mb-4">
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Advertisement Details</label>
-                <div class="flex gap-4 mb-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200" id="editAdvtDetails">
+                <div class="flex gap-4 mb-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200"
+                    id="editAdvtDetails">
                     <!-- Details will be injected here -->
                 </div>
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Generated Advertisement Text (Gujarati)</label>
-                <textarea id="editTranslationText" rows="8" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none font-medium text-slate-800 text-lg leading-relaxed"></textarea>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Generated Advertisement Text
+                    (Gujarati)</label>
+                <textarea id="editTranslationText" rows="8"
+                    class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none font-medium text-slate-800 text-lg leading-relaxed"></textarea>
             </div>
 
             <div class="mb-6" id="editImageContainer" style="display:none;">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Advertisement Canvas (Drag & Edit Text)</label>
-                <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex flex-col items-center justify-center p-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Advertisement Canvas (Drag & Edit
+                    Text)</label>
+                <div
+                    class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex flex-col items-center justify-center p-2">
+                    
+                    <div class="flex items-center gap-3 mb-3 p-2 bg-white border border-slate-200 rounded-lg shadow-sm w-full max-w-xl" id="canvasToolbar" style="opacity: 0.5; pointer-events: none; transition: 0.2s;">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-semibold text-slate-600">Size:</label>
+                            <input type="number" id="tbFontSize" class="w-16 p-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-brand-500" value="12" onchange="updateSelectedText('fontSize', this.value)">
+                        </div>
+                        <div class="h-5 w-px bg-slate-300 mx-1"></div>
+                        <button type="button" id="tbBold" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-black border border-transparent transition-colors" title="Bold" onclick="toggleBold()">B</button>
+                        <div class="h-5 w-px bg-slate-300 mx-1"></div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Left" onclick="updateSelectedText('textAlign', 'left')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"></path></svg>
+                            </button>
+                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Center" onclick="updateSelectedText('textAlign', 'center')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M4 18h16"></path></svg>
+                            </button>
+                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Right" onclick="updateSelectedText('textAlign', 'right')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M4 18h16"></path></svg>
+                            </button>
+                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Justify" onclick="updateSelectedText('textAlign', 'justify')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div id="canvasWrapper" class="relative max-w-full">
                         <canvas id="advtCanvas"></canvas>
                     </div>
                     <div class="mt-4 flex gap-3">
-                        <button type="button" onclick="downloadCanvas('png')" class="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-colors">
+                        <button type="button" onclick="downloadCanvas('png')"
+                            class="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-colors">
                             Download PNG
                         </button>
-                        <button type="button" onclick="downloadCanvas('pdf')" class="px-4 py-2 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-sm font-bold shadow-sm hover:bg-purple-600 hover:text-white transition-colors">
+                        <button type="button" onclick="downloadCanvas('pdf')"
+                            class="px-4 py-2 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-sm font-bold shadow-sm hover:bg-purple-600 hover:text-white transition-colors">
                             Download PDF
                         </button>
                     </div>
@@ -278,8 +350,11 @@
             <input type="hidden" id="editAdvtId">
 
             <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
-                <button type="button" onclick="saveTranslation()" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Save Changes</button>
+                <button type="button" onclick="closeEditModal()"
+                    class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200">Cancel</button>
+                <button type="button" onclick="saveTranslation()"
+                    class="px-6 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 shadow-sm transition-colors">Save
+                    Changes</button>
             </div>
         </div>
     </div>
@@ -293,10 +368,10 @@
                 const response = await fetch('/api/advt-categories/');
                 if (!response.ok) throw new Error('Failed to load categories');
                 advtCategories = await response.json();
-                
+
                 const select = document.getElementById('advtType');
                 select.innerHTML = '<option value="" disabled selected>Select Category...</option>';
-                
+
                 advtCategories.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat.name;
@@ -331,8 +406,8 @@
             tbody.innerHTML = advts.map(advt => {
                 const date = new Date(advt.created_at).toLocaleString();
                 let typeIcon = '';
-                if(advt.file_type.includes('pdf')) typeIcon = '📄 PDF';
-                else if(advt.file_type.includes('image')) typeIcon = '🖼️ Image';
+                if (advt.file_type.includes('pdf')) typeIcon = '📄 PDF';
+                else if (advt.file_type.includes('image')) typeIcon = '🖼️ Image';
                 else typeIcon = '📝 Word';
 
                 return `
@@ -379,7 +454,7 @@
                 label.classList.add('hidden');
             }
         }
-        
+
         function updateBlankFileName(input) {
             const label = document.getElementById('selectedBlankFileName');
             if (input.files && input.files[0]) {
@@ -403,20 +478,20 @@
             const file = fileInput.files[0];
             const formData = new FormData();
             formData.append('file', file);
-            
+
             const blankFileInput = document.getElementById('advtBlankFile');
             if (blankFileInput && blankFileInput.files.length > 0) {
                 formData.append('blank_file', blankFileInput.files[0]);
             }
-            
+
             formData.append('advt_type', document.getElementById('advtType').value);
-            
+
             let h = document.getElementById('advtHeight').value;
             let w = document.getElementById('advtWidth').value;
             formData.append('height', h ? h : "0");
             formData.append('width', w ? w : "0");
             formData.append('unit', document.getElementById('advtUnit').value || "cm");
-            
+
             // Processing options
             formData.append('eng_to_guj', document.getElementById('optEngToGuj').checked);
             formData.append('add_keypoints', document.getElementById('optAddKeyPoints').checked);
@@ -430,17 +505,17 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (!response.ok) {
                     const err = await response.json();
                     throw new Error(err.detail || 'Upload failed');
                 }
-                
+
                 const resData = await response.json();
-                
+
                 closeUploadModal();
                 await loadAdvts();
-                
+
                 // Automatically open the canvas to show the user what happened!
                 if (resData && resData.data && resData.data._id) {
                     openEditModal(resData.data._id);
@@ -457,10 +532,10 @@
 
         function openEditModal(id) {
             const advt = advts.find(a => a._id === id);
-            if(advt) {
+            if (advt) {
                 document.getElementById('editAdvtId').value = id;
                 document.getElementById('editTranslationText').value = advt.translated_text || '';
-                
+
                 const detailsContainer = document.getElementById('editAdvtDetails');
                 detailsContainer.innerHTML = `
                     <div><strong>Type:</strong> ${advt.advt_type || 'N/A'}</div>
@@ -468,18 +543,19 @@
                 `;
 
                 const imageContainer = document.getElementById('editImageContainer');
-                
+
                 if (advt.generated_image_url) {
                     imageContainer.style.display = 'block';
                     document.getElementById('editModal').style.display = "block";
-                    
+
                     setTimeout(() => {
                         if (!fabricCanvas) {
                             fabricCanvas = new fabric.Canvas('advtCanvas');
+                            setupCanvasEvents();
                         }
                         fabricCanvas.clear();
-                        
-                        fabric.Image.fromURL(advt.generated_image_url, function(img) {
+
+                        fabric.Image.fromURL(advt.generated_image_url, function (img) {
                             const wrapperWidth = document.getElementById('canvasWrapper').clientWidth;
                             let scale = 1;
                             if (img.width > wrapperWidth && wrapperWidth > 0) {
@@ -487,10 +563,10 @@
                             } else if (img.width > 700) {
                                 scale = 700 / img.width; // Fallback max width
                             }
-                            
+
                             fabricCanvas.setWidth(img.width * scale);
                             fabricCanvas.setHeight(img.height * scale);
-                            
+
                             fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
                                 scaleX: scale,
                                 scaleY: scale
@@ -503,16 +579,16 @@
                                         // Sort text blocks by their top Y-coordinate to process them top-to-bottom
                                         let sortedBlocks = [...blocks].sort((a, b) => (a.top_percent || 0) - (b.top_percent || 0));
                                         let textObjects = [];
-                                                                      // Robust check for Legal Notice: either type matches, OR the AI output is missing 'top_percent' entirely
+                                        // Robust check for Legal Notice: either type matches, OR the AI output is missing 'top_percent' entirely
                                         const formAdvtTypeStr = document.getElementById('advtType') ? document.getElementById('advtType').value.toLowerCase() : '';
                                         const advtTypeStr = (advt.advt_type || '').toLowerCase();
                                         const isLegalType = advtTypeStr.includes('legal') || formAdvtTypeStr.includes('legal') || blocks.length > 0 && blocks.every(b => b.top_percent === undefined);
-                                        
+
                                         if (isLegalType) {
                                             // Deterministic Sequential Layout Engine for Legal Notice
                                             const cWidth = img.width * scale;
                                             let cHeight = img.height * scale;
-                                            
+
                                             // Draw outer border
                                             const borderRect = new fabric.Rect({
                                                 left: 4,
@@ -525,11 +601,11 @@
                                                 selectable: false
                                             });
                                             textObjects.push(borderRect);
-                                            
+
                                             // Detect if we should use 2 columns based on canvas width (e.g., width > 600 corresponds to 15cm+)
                                             const isTwoColumn = true; // Always 2 columns for legal notice
                                             const padding = 10;
-                                            
+
                                             // Draw center line
                                             const centerLine = new fabric.Line([cWidth / 2, 5, cWidth / 2, cHeight - 5], {
                                                 stroke: '#000000',
@@ -537,18 +613,18 @@
                                                 selectable: false
                                             });
                                             textObjects.push(centerLine);
-                                            
+
                                             const colWidth = (cWidth / 2) - (padding * 1.5);
                                             let leftVals = [padding, (cWidth / 2) + (padding / 2)];
-                                            
+
                                             // Separate blocks
                                             let headingBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading' || (b.text && b.text.includes('જાહેર નોટિસ')));
                                             let advocateBlocks = blocks.filter(b => (b.type || '').toLowerCase() === 'advocate');
                                             let contentBlocks = blocks.filter(b => b !== headingBlock && !advocateBlocks.includes(b));
-                                            
+
                                             let col0_Y = padding;
                                             let col1_Y = padding;
-                                            
+
                                             // 1. Draw Heading in left column only without spacing inside border
                                             if (headingBlock) {
                                                 // Background rect for heading to prevent font ascenders from bleeding
@@ -581,33 +657,33 @@
                                                 if (textObj.height > 25) {
                                                     headingBg.set({ height: textObj.height + 10 });
                                                 }
-                                                
+
                                                 let hOffset = headingBg.height;
                                                 col0_Y = 5 + hOffset + 5;
                                                 // Note: col1_Y remains untouched, so right column text starts at the top
                                             }
-                                            
+
                                             // 2. Merge Content and Split in Half (Account for Advocate Block)
                                             // Replace single newlines with spaces so fabric.js can naturally wrap and justify text without huge gaps.
                                             let fullContentText = contentBlocks.map(b => {
                                                 return (b.text || '').split('\n\n').map(p => p.replace(/\n/g, ' ')).join('\n\n');
                                             }).join('\n\n');
                                             let advText = advocateBlocks.map(b => b.text).join('\n');
-                                            
+
                                             // The right column holds the advocate text, so we should push more content to the left column
                                             // Advocate text is usually bold/multiline, so we weigh its characters heavier (1.5x)
                                             let advWeight = advText.length * 1.5;
                                             let splitIdx = Math.floor((fullContentText.length + advWeight) / 2);
                                             if (splitIdx > fullContentText.length - 10) splitIdx = fullContentText.length - 10;
                                             if (splitIdx < 0) splitIdx = Math.floor(fullContentText.length / 2); // Fallback
-                                            
+
                                             // Find a space to split at so we don't break words completely, though newspaper sometimes breaks words with hyphen
                                             let spaceIdx = fullContentText.lastIndexOf(' ', splitIdx);
                                             if (spaceIdx === -1 || spaceIdx < splitIdx - 50) spaceIdx = splitIdx;
-                                            
+
                                             let leftContent = fullContentText.substring(0, spaceIdx).trim();
                                             let rightContent = fullContentText.substring(spaceIdx).trim();
-                                            
+
                                             // Draw Left Content
                                             if (leftContent) {
                                                 const textObjL = new fabric.Textbox(leftContent, {
@@ -625,7 +701,7 @@
                                                 textObjects.push(textObjL);
                                                 col0_Y += textObjL.height + 4;
                                             }
-                                            
+
                                             // Draw Right Content
                                             if (rightContent) {
                                                 const textObjR = new fabric.Textbox(rightContent, {
@@ -643,19 +719,22 @@
                                                 textObjects.push(textObjR);
                                                 col1_Y += textObjR.height + 4;
                                             }
-                                            
+
                                             // 3. Draw Advocate info at the bottom of Right Column
                                             if (advocateBlocks.length > 0) {
-                                                let advText = advocateBlocks.map(b => b.text).join('\n');
+                                                let advText = advocateBlocks.map(b => {
+                                                    return (b.text || '').split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
+                                                }).join('\n');
+                                                
                                                 const textObjAdv = new fabric.Textbox(advText, {
                                                     left: leftVals[1],
                                                     top: col1_Y + 10,
                                                     width: colWidth,
-                                                    fontSize: 12,
+                                                    fontSize: 11,
                                                     fill: '#000000',
-                                                    fontWeight: '900',
+                                                    fontWeight: 'normal',
                                                     fontFamily: 'Gopika',
-                                                    textAlign: 'center',
+                                                    textAlign: 'left',
                                                     lineHeight: 1.15
                                                 });
                                                 if (typeof textObjAdv.initDimensions === 'function') textObjAdv.initDimensions();
@@ -663,49 +742,54 @@
                                                 textObjects.push(textObjAdv);
                                                 col1_Y += textObjAdv.height + 14;
                                             }
-                                            
-                                            // 4. Dynamic Canvas Expansion (Ensure text never cuts off)
+
+                                            // 4. Dynamic Canvas Height Adjustment (Shrink or Expand to fit text exactly)
                                             let maxY = Math.max(col0_Y, col1_Y) + padding;
-                                            if (maxY > cHeight) {
-                                                cHeight = maxY;
-                                                fabricCanvas.setHeight(cHeight);
-                                                fabricCanvas.backgroundColor = '#FFFFFF'; // Ensure expanded area is white
-                                                borderRect.set({ height: cHeight - 8 });
-                                                centerLine.set({ y2: cHeight - 5 });
-                                            }
+
+                                            cHeight = maxY;
+                                            fabricCanvas.setHeight(cHeight);
+                                            // Fill the background white to hide any original text that might have been there
+                                            const whiteBg = new fabric.Rect({
+                                                left: 0, top: 0, width: cWidth, height: cHeight, fill: '#FFFFFF', selectable: false
+                                            });
+                                            // Insert whiteBg at the very beginning of textObjects
+                                            textObjects.unshift(whiteBg);
+
+                                            borderRect.set({ height: cHeight - 8 });
+                                            centerLine.set({ y2: cHeight - 5 });
 
                                         } else {
                                             // Standard layout engine for other advertisement types
                                             sortedBlocks.forEach(block => {
                                                 const cWidth = img.width * scale;
                                                 const cHeight = img.height * scale;
-                                                
+
                                                 const isWhite = block.color && block.color.toUpperCase() === '#FFFFFF';
                                                 const isBold = block.font_weight && block.font_weight.toLowerCase() === 'bold';
-                                                
+
                                                 // Extract percentages
                                                 let top_p = block.top_percent !== undefined ? block.top_percent : 20;
                                                 let left_p = block.left_percent !== undefined ? block.left_percent : 10;
                                                 let width_p = block.width_percent !== undefined ? block.width_percent : 80;
-                                                
+
                                                 let align = block.text_align ? block.text_align.toLowerCase() : 'left';
                                                 if (align === 'left') {
                                                     width_p = Math.max(width_p, 95 - left_p);
                                                 }
-                                                
+
                                                 let top_val = (top_p / 100) * cHeight;
                                                 let left_val = (left_p / 100) * cWidth;
                                                 let width_val = (width_p / 100) * cWidth;
-                                                
+
                                                 let font_size_p = block.font_size_percent !== undefined ? block.font_size_percent : 3.0;
                                                 let finalFontSize = block.font_size_px !== undefined ? block.font_size_px : (font_size_p / 100) * cHeight;
-                                                
+
                                                 const longestWord = (block.text || '').split(' ').reduce((a, b) => a.length > b.length ? a : b, "");
                                                 if (longestWord.length > 0) {
                                                     const maxFontForWord = width_val / (longestWord.length * 0.55);
                                                     finalFontSize = Math.min(finalFontSize, maxFontForWord);
                                                 }
-                                                
+
                                                 const textObj = new fabric.Textbox(block.text || '', {
                                                     left: left_val,
                                                     top: top_val,
@@ -719,13 +803,13 @@
                                                     lineHeight: 1.1,
                                                     shadow: isWhite ? new fabric.Shadow({ color: 'rgba(0,0,0,0.65)', blur: 5, offsetX: 1, offsetY: 1 }) : null
                                                 });
-                                                
+
                                                 if (typeof textObj.initDimensions === 'function') {
                                                     textObj.initDimensions();
                                                 } else if (typeof textObj._initDimensions === 'function') {
                                                     textObj._initDimensions();
                                                 }
-                                                
+
                                                 textObjects.push(textObj);
                                             });
                                         }
@@ -737,7 +821,7 @@
                                     } else {
                                         throw new Error("Parsed JSON is not an array");
                                     }
-                                } catch(e) {
+                                } catch (e) {
                                     console.error("Canvas rendering fallback:", e);
                                     // Fallback to drawing the actual error to see what failed!
                                     const text = new fabric.Textbox("ERROR: " + e.message + "\n\n" + e.stack, {
@@ -761,16 +845,19 @@
                 }
             }
         }
-        
+
         function downloadCanvas(format) {
             if (!fabricCanvas) return;
             
+            const id = document.getElementById('editAdvtId').value;
+            const advt = advts.find(a => a._id === id);
+
             // Unselect objects so selection boxes don't appear in the exported image
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
-            
+
             const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
-            
+
             if (format === 'png') {
                 const link = document.createElement('a');
                 link.download = 'advertisement.png';
@@ -780,15 +867,126 @@
                 document.body.removeChild(link);
             } else if (format === 'pdf') {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: fabricCanvas.width > fabricCanvas.height ? 'l' : 'p',
-                    unit: 'px',
-                    format: [fabricCanvas.width, fabricCanvas.height]
-                });
                 
-                pdf.addImage(dataURL, 'PNG', 0, 0, fabricCanvas.width, fabricCanvas.height);
+                let pdfUnit = 'px';
+                let pdfWidth = fabricCanvas.width;
+                let pdfHeight = fabricCanvas.height;
+                
+                if (advt && advt.width > 0) {
+                    pdfUnit = (advt.unit || 'cm').toLowerCase();
+                    pdfWidth = parseFloat(advt.width);
+                    
+                    if (advt.height > 0) {
+                        pdfHeight = parseFloat(advt.height);
+                    } else {
+                        pdfHeight = (fabricCanvas.height / fabricCanvas.width) * pdfWidth;
+                    }
+                }
+
+                const pdf = new jsPDF({
+                    orientation: pdfWidth > pdfHeight ? 'l' : 'p',
+                    unit: pdfUnit,
+                    format: [pdfWidth, pdfHeight]
+                });
+
+                pdf.addImage(dataURL, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save('advertisement.pdf');
             }
+        }
+        
+        function setupCanvasEvents() {
+            fabricCanvas.on('selection:created', handleSelection);
+            fabricCanvas.on('selection:updated', handleSelection);
+            fabricCanvas.on('text:selection:changed', handleSelection);
+            fabricCanvas.on('selection:cleared', function() {
+                const tb = document.getElementById('canvasToolbar');
+                if (tb) {
+                    tb.style.opacity = '0.5';
+                    tb.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function handleSelection(e) {
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj || obj.type !== 'textbox') return;
+            const tb = document.getElementById('canvasToolbar');
+            if (tb) {
+                tb.style.opacity = '1';
+                tb.style.pointerEvents = 'auto';
+                
+                let currentFontSize = obj.fontSize;
+                let currentFontWeight = obj.fontWeight;
+                
+                if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                    const styles = obj.getSelectionStyles() || [];
+                    if (styles.length > 0) {
+                        if (styles[0].fontSize) currentFontSize = styles[0].fontSize;
+                        if (styles[0].fontWeight) currentFontWeight = styles[0].fontWeight;
+                    }
+                }
+                
+                document.getElementById('tbFontSize').value = Math.round(currentFontSize);
+                
+                const btnBold = document.getElementById('tbBold');
+                if (currentFontWeight === 'bold' || currentFontWeight === '900') {
+                    btnBold.classList.add('bg-slate-200', 'border-slate-400');
+                } else {
+                    btnBold.classList.remove('bg-slate-200', 'border-slate-400');
+                }
+            }
+        }
+
+        function updateSelectedText(property, value) {
+            if (!fabricCanvas) return;
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj || obj.type !== 'textbox') return;
+            
+            if (property === 'fontSize' && obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                obj.setSelectionStyles({ fontSize: parseInt(value, 10) });
+            } else {
+                if (property === 'fontSize') {
+                    obj.set('fontSize', parseInt(value, 10));
+                } else if (property === 'textAlign') {
+                    obj.set('textAlign', value);
+                }
+            }
+            fabricCanvas.renderAll();
+        }
+
+        function toggleBold() {
+            if (!fabricCanvas) return;
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj || obj.type !== 'textbox') return;
+            
+            const btnBold = document.getElementById('tbBold');
+            
+            if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                const styles = obj.getSelectionStyles() || [];
+                let isBold = false;
+                if (styles.length > 0 && (styles[0].fontWeight === 'bold' || styles[0].fontWeight === '900')) {
+                    isBold = true;
+                }
+                
+                obj.setSelectionStyles({ fontWeight: isBold ? 'normal' : 'bold' });
+                
+                if (!isBold) {
+                    btnBold.classList.add('bg-slate-200', 'border-slate-400');
+                } else {
+                    btnBold.classList.remove('bg-slate-200', 'border-slate-400');
+                }
+            } else {
+                const isBold = obj.fontWeight === 'bold' || obj.fontWeight === '900';
+                obj.set('fontWeight', isBold ? 'normal' : 'bold');
+                
+                if (!isBold) {
+                    btnBold.classList.add('bg-slate-200', 'border-slate-400');
+                } else {
+                    btnBold.classList.remove('bg-slate-200', 'border-slate-400');
+                }
+            }
+            
+            fabricCanvas.renderAll();
         }
 
         async function saveTranslation() {
@@ -802,25 +1000,25 @@
                     body: JSON.stringify({ translated_text: text })
                 });
 
-                if(response.ok) {
+                if (response.ok) {
                     closeEditModal();
                     loadAdvts();
                 } else {
                     alert("Failed to save.");
                 }
-            } catch(e) {
+            } catch (e) {
                 alert("Error: " + e.message);
             }
         }
 
         async function deleteAdvt(id) {
-            if(confirm("Are you sure you want to delete this advertisement?")) {
+            if (confirm("Are you sure you want to delete this advertisement?")) {
                 try {
                     const response = await fetch(`/api/advt/${id}`, { method: 'DELETE' });
-                    if(response.ok) {
+                    if (response.ok) {
                         loadAdvts();
                     }
-                } catch(e) {
+                } catch (e) {
                     alert("Error: " + e.message);
                 }
             }
@@ -832,7 +1030,7 @@
             const widthContainer = document.getElementById('widthContainer');
             const heightInput = document.getElementById('advtHeight');
             const widthInput = document.getElementById('advtWidth');
-            
+
             unitContainer.classList.remove('hidden');
             heightContainer.classList.remove('hidden');
             widthContainer.classList.remove('hidden');
@@ -841,14 +1039,14 @@
         }
 
         // Modals logic
-        function openUploadModal() { 
-            document.getElementById('uploadModal').style.display = "block"; 
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = "block";
             toggleDimensions();
         }
         function closeUploadModal() { document.getElementById('uploadModal').style.display = "none"; }
         function closeEditModal() { document.getElementById('editModal').style.display = "none"; }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == document.getElementById('uploadModal')) closeUploadModal();
             if (event.target == document.getElementById('editModal')) closeEditModal();
         }
@@ -861,4 +1059,5 @@
         });
     </script>
 </body>
+
 </html>
