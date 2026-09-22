@@ -19,7 +19,11 @@ async def upload_advt_file(
     advt_type: str = Form(""),
     height: float = Form(0.0),
     width: float = Form(0.0),
-    unit: str = Form("cm")
+    unit: str = Form("cm"),
+    blank_file: Optional[UploadFile] = File(None),
+    eng_to_guj: bool = Form(False),
+    add_keypoints: bool = Form(False),
+    legal_notice: bool = Form(False)
 ):
     """Upload an advertisement file (PDF, Image, Word), extract and translate text"""
     try:
@@ -31,16 +35,49 @@ async def upload_advt_file(
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
 
+        blank_url = ""
+        if blank_file and blank_file.filename:
+            import time
+            blank_ext = os.path.splitext(blank_file.filename)[1].lower()
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            static_dir = os.path.join(base_dir, "static", "advt_images")
+            os.makedirs(static_dir, exist_ok=True)
+            
+            if blank_ext == ".pdf":
+                # Convert PDF first page to Image using PyMuPDF
+                import fitz
+                pdf_bytes = await blank_file.read()
+                pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+                if len(pdf_document) > 0:
+                    page = pdf_document[0]
+                    pix = page.get_pixmap(dpi=150)
+                    blank_filename = f"blank_{int(time.time())}.png"
+                    blank_path = os.path.join(static_dir, blank_filename)
+                    pix.save(blank_path)
+                    blank_url = f"/static/advt_images/{blank_filename}"
+            else:
+                if not blank_ext:
+                    blank_ext = ".jpg"
+                blank_filename = f"blank_{int(time.time())}{blank_ext}"
+                blank_path = os.path.join(static_dir, blank_filename)
+                with open(blank_path, "wb") as f:
+                    shutil.copyfileobj(blank_file.file, f)
+                blank_url = f"/static/advt_images/{blank_filename}"
+
         translated_text = ""
         file_type = file.content_type
 
         try:
             # Process based on file type
             if "wordprocessingml.document" in file_type or suffix.lower() == '.docx':
-                translated_text, generated_image_url = await advt_service.process_docx(tmp_path, advt_type, height, width, unit)
+                translated_text, generated_image_url = await advt_service.process_docx(
+                    tmp_path, advt_type, height, width, unit, blank_url, eng_to_guj, add_keypoints, legal_notice
+                )
             elif "pdf" in file_type or "image" in file_type:
                 # Use Gemini directly for PDF and Images
-                translated_text, generated_image_url = await advt_service.process_and_translate(tmp_path, file_type, advt_type, height, width, unit)
+                translated_text, generated_image_url = await advt_service.process_and_translate(
+                    tmp_path, file_type, advt_type, height, width, unit, blank_url, eng_to_guj, add_keypoints, legal_notice
+                )
             else:
                 raise HTTPException(status_code=400, detail="Unsupported file format. Please upload PDF, Word (.docx), or an Image.")
         finally:

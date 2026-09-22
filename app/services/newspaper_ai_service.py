@@ -65,10 +65,12 @@ For EACH source provided, generate a corresponding article block starting with "
 
 Inside each block, use this EXACT structure:
 HEADLINE: [Gujarati Headline - {rules.heading_min}-{rules.heading_max} words]
+HEADLINE CAP: [Gujarati Cap Heading]
 SUBHEADING: [Gujarati Subheading - {rules.subheading_min}-{rules.subheading_max} words]
 INTRO PARAGRAPH: [Gujarati Intro - {rules.intro_min}-{rules.intro_max} words]
 BODY PARAGRAPH: [Gujarati Body - {rules.body_min}-{rules.body_max} words]
 INFO BOX: [Gujarati key points summary - {rules.info_box_min}-{rules.info_box_max} words]
+ANKDA: [Gujarati statistics or numbers summary]
 
 COMMON RULES FOR ALL ARTICLES:
 1. Output ONLY in Gujarati
@@ -223,12 +225,16 @@ WORD COUNT REQUIREMENTS:
 - INTRO: {rules.intro_min}-{rules.intro_max} words
 - BODY: {rules.body_min}-{rules.body_max} words
 - INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
+- ANKDA: Key numbers/statistics (optional)
 
 OUTPUT FORMAT:
 HEADLINE: [Merged Headline]
+HEADLINE CAP: [Merged Cap Heading]
+SUBHEADING: [Merged Subheading]
 INTRO PARAGRAPH: [Merged Intro]
 BODY PARAGRAPH: [Merged Body]
 INFO BOX: [Merged Info Box or None]
+ANKDA: [Merged Ankda stats or None]
 
 Generate the merged article now.
 """
@@ -282,9 +288,12 @@ TARGET REQUIREMENTS:
 
 OUTPUT FORMAT:
 HEADLINE: [Refined Headline]
+HEADLINE CAP: [Refined Cap Heading]
+SUBHEADING: [Refined Subheading]
 INTRO PARAGRAPH: [Refined Intro]
 BODY PARAGRAPH: [Refined Body]
 INFO BOX: [Refined Info Box or None]
+ANKDA: [Refined Ankda stats or None]
 
 Rewrite the article now.
 """
@@ -345,6 +354,7 @@ WORD COUNT REQUIREMENTS:
 - INTRO: {rules.intro_min}-{rules.intro_max} words
 - BODY: {rules.body_min}-{rules.body_max} words
 - INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
+- ANKDA: Key numbers/statistics (optional)
 
 CRITICAL OUTPUT RULES:
 - Every section label MUST start on its own NEW LINE.
@@ -359,10 +369,12 @@ ALTERNATIVE HEADLINES:
 1. [Alt Headline 1]
 2. [Alt Headline 2]
 3. [Alt Headline 3]
+HEADLINE CAP: [Gujarati Cap Heading]
 SUBHEADING: [Gujarati Subheading]
 INTRO PARAGRAPH: [Gujarati Intro]
 BODY PARAGRAPH: [Gujarati Body Content — only facts from the keypoints]
 INFO BOX: [Key points summary in Gujarati]
+ANKDA: [Gujarati statistics or numbers summary]
 EDITORIAL NOTES: [Note any missing facts]
 
 Generate the complete report now.
@@ -464,6 +476,7 @@ WORD LIMITS:
 - INTRO PARAGRAPH: {intro_min}-{intro_max} words
 - BODY PARAGRAPH: {body_min}-{body_max} words
 - INFO BOX: {info_box_min}-{info_box_max} words
+- ANKDA: Key statistics summary
 
 OUTPUT FORMAT:
 You MUST follow the exact format below, with each label starting on its own new line. Keep the labels in ENGLISH. Do not add any markdown around labels, just write them as shown:
@@ -473,6 +486,7 @@ ALTERNATIVE HEADLINES:
 1. [Option 1]
 2. [Option 2]
 3. [Option 3]
+HEADLINE CAP: [Premium Cap Heading]
 SUBHEADING: [Engaging Gujarati Subheading]
 INTRO PARAGRAPH: [Polished Lead paragraph applying 5W1H]
 BODY PARAGRAPH: [Polished Body paragraphs in Inverted Pyramid style]
@@ -480,8 +494,9 @@ INFO BOX:
 - [Key Point 1 in Gujarati]
 - [Key Point 2 in Gujarati]
 - [Key Point 3 in Gujarati]
-- [Key Point 4 in Gujarati]
-- [Key Point 5 in Gujarati]
+ANKDA:
+- [Statistic 1 in Gujarati]
+- [Statistic 2 in Gujarati]
 EDITORIAL NOTES: [Brief bulleted list of specific changes: what grammar/spelling errors were fixed, what house style rule was applied, and what vocabulary was elevated]
 
 INPUT DRAFT TO AUDIT, POLISH & CORRECT:
@@ -517,6 +532,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
             "intro": "",
             "body": "",
             "info_box": None,
+            "ankda": None,
             "editorial_notes": None,
         }
 
@@ -530,6 +546,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
             "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION|LEAD|ઇન્ટ્રો|પ્રસ્તાવના|શરૂઆત)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
             "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN|STORY|ARTICLE|બોડી|વિષયવસ્તુ|મુખ્ય લખાણ)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
             "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY|SUMMARY|HIGHLIGHTS|ઇન્ફો|મુખ્ય મુદ્દા)(?:\s*(?:BOX|POINTS|HIGHLIGHTS|બોક્સ))?\s*[:\-]*",
+            "ankda":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:ANKDA|STATS|STATISTICS|આંકડા|આંકડાકીય માહિતી)\s*[:\-]*",
         }
 
         lines = raw_output.split("\n")
@@ -539,7 +556,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
         # Order matters: check longer/more-specific patterns before shorter ones
         ordered_keys = [
             "headline_cap", "alternative_headlines", "editorial_notes",
-            "subheading", "intro", "body", "info_box", "headline"
+            "subheading", "intro", "body", "info_box", "ankda", "headline"
         ]
 
         for line in lines:
@@ -644,6 +661,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
             intro=intro or "પ્રસ્તાવના ઉપલબ્ધ નથી",
             body=body or "વિષયવસ્તુ ઉપલબ્ધ નથી",
             info_box=info_box_val,
+            ankda=clean_markdown(sections.get("ankda")),
             editorial_notes=clean_markdown(sections.get("editorial_notes")),
             validation_passed=False,
             validation_errors=[],

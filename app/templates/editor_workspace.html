@@ -165,14 +165,17 @@
         <!-- Header -->
         <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 z-30 shrink-0">
             <div class="flex items-center gap-4">
-                <a href="/editor" class="flex items-center gap-2 px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all">
+                <a href="/editor"
+                    class="flex items-center gap-2 px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7" />
                     </svg>
                     Back to Dashboard
                 </a>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-base font-black text-slate-900 tracking-tight leading-none border-l pl-3 border-slate-300">Editor Workspace</h1>
+                    <h1
+                        class="text-base font-black text-slate-900 tracking-tight leading-none border-l pl-3 border-slate-300">
+                        Editor Workspace</h1>
                     <span id="editorStatusBadge"
                         class="hidden px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm"></span>
                 </div>
@@ -214,8 +217,7 @@
                 <button onclick="updateReportStatus('Approved')" id="approveBtn"
                     class="hidden bg-gradient-to-r from-emerald-500 to-emerald-700 hover:shadow-lg text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M5 13l4 4L19 7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                     <span>Approve</span>
                 </button>
@@ -279,8 +281,7 @@
                     <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-4">
                         <h2
                             class="text-xs font-extrabold text-slate-800 uppercase tracking-tight mb-4 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
                                 </path>
@@ -322,8 +323,7 @@
                             <div>
                                 <label
                                     class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Headline</label>
-                                <input type="number" id="wc_headline" value="10"
-                                    oninput="updateWorkspaceCounters();"
+                                <input type="number" id="wc_headline" value="10" oninput="updateWorkspaceCounters();"
                                     class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                             </div>
                             <div>
@@ -378,8 +378,7 @@
 
                 <!-- Loading State -->
                 <div id="loading" class="hidden flex-1 flex flex-col items-center justify-center p-12">
-                    <div
-                        class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4">
+                    <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4">
                     </div>
                     <h3 class="text-lg font-bold text-slate-800 mb-1">Writing Your News...</h3>
                     <p class="text-slate-500 text-sm">Our AI Editor is processing your keypoints.</p>
@@ -683,7 +682,7 @@
                 currentVersionIndex = currentArticlesList.length - 1;
                 currentArticleData = currentArticlesList[currentVersionIndex];
                 currentArticleStatus = 'Draft';
-                
+
                 // Set parameter URL dynamically without page reloads
                 window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
 
@@ -781,7 +780,7 @@
                 if (currentArticleStatus !== 'Pending Approval' && currentArticleStatus !== 'Pending' && currentArticleStatus !== 'Approved') {
                     currentArticleStatus = 'Draft';
                 }
-                
+
                 // Set parameter URL dynamically without page reloads
                 window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
 
@@ -1274,12 +1273,12 @@
             }
         }
 
-        window.triggerImageUpload = function() {
+        window.triggerImageUpload = function () {
             const fileInput = document.getElementById('articleImageFile');
             if (fileInput) fileInput.click();
         }
 
-        window.handleImageUpload = async function(event) {
+        window.handleImageUpload = async function (event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1326,7 +1325,7 @@
             }
         }
 
-        window.removeArticleImage = function() {
+        window.removeArticleImage = function () {
             if (!confirm("Are you sure you want to remove the article image?")) return;
 
             if (currentArticleData) {

@@ -1,0 +1,15 @@
+[ERROR] Failed to generate image via google/gemini-3.1-flash-image: OpenRouter returned None content and no valid image. Full response: {'id': 'gen-1790060776-2Mu2Nfppi4a6g1Vxm9Ox', 'object': 'chat.completion', 'created': 1790060776, 'model': 'google/gemini-3.1-flash-image', 'provider': 'Google', 'system_fingerprint': None, 'service_tier': None, 'choices': [{'index': 0, 'logprobs': None, 'finish_reason': 'stop', 'native_finish_reason': 'STOP', 'message': {'role': 'assistant', 'content': None, 'refusal': None, 'reasoning': None}}]}
+Traceback (most recent call last):
+  File "D:\C Data\Documents\GitHub\aI-article-generation\app\services\advt_service.py", line 499, in _process_openrouter_json
+    image_res = await asyncio.to_thread(_generate_gemini_image)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "D:\C Data\Documents\GitHub\aI-article-generation\app\services\advt_service.py", line 496, in _generate_gemini_image
+    raise Exception(f"OpenRouter returned None content and no valid image. Full response: {data}")
+Exception: OpenRouter returned None content and no valid image. Full response: {'id': 'gen-1790060776-2Mu2Nfppi4a6g1Vxm9Ox', 'object': 'chat.completion', 'created': 1790060776, 'model': 'google/gemini-3.1-flash-image', 'provider': 'Google', 'system_fingerprint': None, 'service_tier': None, 'choices': [{'index': 0, 'logprobs': None, 'finish_reason': 'stop', 'native_finish_reason': 'STOP', 'message': {'role': 'assistant', 'content': None, 'refusal': None, 'reasoning': None}}]}
