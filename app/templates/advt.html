@@ -588,7 +588,10 @@
                                             }
                                             
                                             // 2. Merge Content and Split in Half (Account for Advocate Block)
-                                            let fullContentText = contentBlocks.map(b => b.text).join('\n');
+                                            // Replace single newlines with spaces so fabric.js can naturally wrap and justify text without huge gaps.
+                                            let fullContentText = contentBlocks.map(b => {
+                                                return (b.text || '').split('\n\n').map(p => p.replace(/\n/g, ' ')).join('\n\n');
+                                            }).join('\n\n');
                                             let advText = advocateBlocks.map(b => b.text).join('\n');
                                             
                                             // The right column holds the advocate text, so we should push more content to the left column
