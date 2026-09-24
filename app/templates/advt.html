@@ -295,10 +295,21 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Generated Advertisement Text
-                    (Gujarati)</label>
-                <textarea id="editTranslationText" rows="8"
-                    class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none font-medium text-slate-800 text-lg leading-relaxed"></textarea>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-semibold text-slate-700">Generated Advertisement Text (Gujarati)</label>
+                </div>
+                
+                <!-- Dynamic inputs will be inserted here -->
+                <div id="editBlocksContainer" class="flex flex-col gap-4"></div>
+                
+                <!-- Hidden textarea to store actual JSON data for backend -->
+                <textarea id="editTranslationText" style="display:none;"></textarea>
+                <div class="mt-2 flex justify-end">
+                    <button type="button" onclick="updateCanvasFromText()"
+                        class="px-4 py-2 bg-brand-100 text-brand-700 font-semibold rounded-lg hover:bg-brand-200 transition-colors">
+                        Update Canvas Preview
+                    </button>
+                </div>
             </div>
 
             <div class="mb-6" id="editImageContainer" style="display:none;">
@@ -306,31 +317,56 @@
                     Text)</label>
                 <div
                     class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex flex-col items-center justify-center p-2">
-                    
-                    <div class="flex items-center gap-3 mb-3 p-2 bg-white border border-slate-200 rounded-lg shadow-sm w-full max-w-xl" id="canvasToolbar" style="opacity: 0.5; pointer-events: none; transition: 0.2s;">
+
+                    <div class="flex items-center gap-3 mb-3 p-2 bg-white border border-slate-200 rounded-lg shadow-sm w-full max-w-xl"
+                        id="canvasToolbar" style="opacity: 0.5; pointer-events: none; transition: 0.2s;">
                         <div class="flex items-center gap-2">
                             <label class="text-xs font-semibold text-slate-600">Size:</label>
-                            <input type="number" id="tbFontSize" class="w-16 p-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-brand-500" value="12" onchange="updateSelectedText('fontSize', this.value)">
+                            <input type="number" id="tbFontSize"
+                                class="w-16 p-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-brand-500"
+                                value="12" onchange="updateSelectedText('fontSize', this.value)">
                         </div>
                         <div class="h-5 w-px bg-slate-300 mx-1"></div>
-                        <button type="button" id="tbBold" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-black border border-transparent transition-colors" title="Bold" onclick="toggleBold()">B</button>
+                        <button type="button" id="tbBold"
+                            class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-black border border-transparent transition-colors"
+                            title="Bold" onclick="toggleBold()">B</button>
                         <div class="h-5 w-px bg-slate-300 mx-1"></div>
                         <div class="flex items-center gap-1">
-                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Left" onclick="updateSelectedText('textAlign', 'left')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"></path></svg>
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent"
+                                title="Align Left" onclick="updateSelectedText('textAlign', 'left')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h10M4 18h16"></path>
+                                </svg>
                             </button>
-                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Center" onclick="updateSelectedText('textAlign', 'center')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M4 18h16"></path></svg>
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent"
+                                title="Align Center" onclick="updateSelectedText('textAlign', 'center')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M7 12h10M4 18h16"></path>
+                                </svg>
                             </button>
-                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Align Right" onclick="updateSelectedText('textAlign', 'right')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M4 18h16"></path></svg>
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent"
+                                title="Align Right" onclick="updateSelectedText('textAlign', 'right')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M10 12h10M4 18h16"></path>
+                                </svg>
                             </button>
-                            <button type="button" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent" title="Justify" onclick="updateSelectedText('textAlign', 'justify')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 border border-transparent"
+                                title="Justify" onclick="updateSelectedText('textAlign', 'justify')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="canvasWrapper" class="relative max-w-full">
                         <canvas id="advtCanvas"></canvas>
                     </div>
@@ -530,11 +566,62 @@
             }
         }
 
+        function renderEditBlocks(jsonStr) {
+            const container = document.getElementById('editBlocksContainer');
+            container.innerHTML = '';
+            
+            if (!jsonStr) return;
+            
+            try {
+                let parsedData = JSON.parse(jsonStr);
+                let blocks = [];
+                if (Array.isArray(parsedData)) {
+                    blocks = parsedData;
+                } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
+                    blocks = parsedData.gujarati_text;
+                }
+                
+                if (blocks.length > 0) {
+                    blocks.forEach((block, index) => {
+                        const div = document.createElement('div');
+                        
+                        const typeLabel = (block.type || 'Text Block').toUpperCase();
+                        const label = document.createElement('label');
+                        label.className = 'block text-xs font-bold text-slate-500 mb-1 tracking-wider';
+                        label.innerText = typeLabel;
+                        
+                        const ta = document.createElement('textarea');
+                        ta.className = 'block-editor-input w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-slate-800 text-base leading-relaxed resize-y';
+                        ta.value = block.text || '';
+                        ta.dataset.index = index;
+                        const textContent = block.text || '';
+                        const lineCount = textContent.split('\n').length;
+                        const estimatedRows = Math.max(lineCount, Math.ceil(textContent.length / 80));
+                        ta.rows = Math.max(2, Math.min(20, estimatedRows));
+                        
+                        div.appendChild(label);
+                        div.appendChild(ta);
+                        container.appendChild(div);
+                    });
+                } else {
+                    throw new Error("No array blocks found");
+                }
+            } catch(e) {
+                // Fallback to a single textarea if JSON is invalid or not an array
+                const ta = document.createElement('textarea');
+                ta.className = 'block-editor-input w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none font-medium text-slate-800 text-lg leading-relaxed';
+                ta.value = jsonStr;
+                ta.rows = 8;
+                container.appendChild(ta);
+            }
+        }
+
         function openEditModal(id) {
             const advt = advts.find(a => a._id === id);
             if (advt) {
                 document.getElementById('editAdvtId').value = id;
                 document.getElementById('editTranslationText').value = advt.translated_text || '';
+                renderEditBlocks(advt.translated_text || '');
 
                 const detailsContainer = document.getElementById('editAdvtDetails');
                 detailsContainer.innerHTML = `
@@ -574,8 +661,15 @@
 
                             if (advt.translated_text) {
                                 try {
-                                    const blocks = JSON.parse(advt.translated_text);
-                                    if (Array.isArray(blocks)) {
+                                    let parsedData = JSON.parse(advt.translated_text);
+                                    let blocks = [];
+                                    if (Array.isArray(parsedData)) {
+                                        blocks = parsedData;
+                                    } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
+                                        blocks = parsedData.gujarati_text;
+                                    }
+
+                                    if (blocks.length > 0) {
                                         // Sort text blocks by their top Y-coordinate to process them top-to-bottom
                                         let sortedBlocks = [...blocks].sort((a, b) => (a.top_percent || 0) - (b.top_percent || 0));
                                         let textObjects = [];
@@ -598,7 +692,12 @@
                                                 fill: 'transparent',
                                                 stroke: '#000000',
                                                 strokeWidth: 2,
-                                                selectable: false
+                                                selectable: true,
+                                                strokeUniform: true,
+                                                id: 'mainBorder'
+                                            });
+                                            borderRect.setControlsVisibility({
+                                                mt: false, mb: true, ml: false, mr: false, bl: false, br: false, tl: false, tr: false, mtr: false
                                             });
                                             textObjects.push(borderRect);
 
@@ -610,7 +709,8 @@
                                             const centerLine = new fabric.Line([cWidth / 2, 5, cWidth / 2, cHeight - 5], {
                                                 stroke: '#000000',
                                                 strokeWidth: 1,
-                                                selectable: false
+                                                selectable: false,
+                                                id: 'centerLine'
                                             });
                                             textObjects.push(centerLine);
 
@@ -670,17 +770,57 @@
                                             }).join('\n\n');
                                             let advText = advocateBlocks.map(b => b.text).join('\n');
 
-                                            // The right column holds the advocate text, so we should push more content to the left column
-                                            // Advocate text is usually bold/multiline, so we weigh its characters heavier (1.5x)
-                                            let advWeight = advText.length * 1.5;
-                                            let splitIdx = Math.floor((fullContentText.length + advWeight) / 2);
-                                            if (splitIdx > fullContentText.length - 10) splitIdx = fullContentText.length - 10;
-                                            if (splitIdx < 0) splitIdx = Math.floor(fullContentText.length / 2); // Fallback
+                                            // 2.5 Calculate Advocate Height in advance to balance columns
+                                            let advocateHeight = 0;
+                                            if (advocateBlocks.length > 0) {
+                                                advocateHeight += 10;
+                                                advocateBlocks.forEach((b, idx) => {
+                                                    let textLower = (b.text || '').toLowerCase();
+                                                    let isName = idx === 0 || textLower.includes('advocate') || textLower.includes('એડવોકેટ');
+                                                    let t = new fabric.Textbox(b.text, { width: colWidth, fontSize: 11, fontWeight: isName ? '900' : 'normal', fontFamily: 'Gopika', lineHeight: 1.15 });
+                                                    if (typeof t.initDimensions === 'function') t.initDimensions(); else if (typeof t._initDimensions === 'function') t._initDimensions();
+                                                    advocateHeight += t.height + 2;
+                                                });
+                                                advocateHeight += 12;
+                                            }
 
-                                            // Find a space to split at so we don't break words completely, though newspaper sometimes breaks words with hyphen
-                                            let spaceIdx = fullContentText.lastIndexOf(' ', splitIdx);
-                                            if (spaceIdx === -1 || spaceIdx < splitIdx - 50) spaceIdx = splitIdx;
+                                            // Binary search to find optimal split point for balanced column heights
+                                            let bestSplitIdx = Math.floor(fullContentText.length / 2);
+                                            let minDiff = Infinity;
+                                            let low = 0;
+                                            let high = fullContentText.length;
 
+                                            for (let iter = 0; iter < 12; iter++) {
+                                                let mid = Math.floor((low + high) / 2);
+                                                let tempSpaceIdx = fullContentText.lastIndexOf(' ', mid);
+                                                if (tempSpaceIdx === -1 || tempSpaceIdx < mid - 50) tempSpaceIdx = mid;
+
+                                                let leftStr = fullContentText.substring(0, tempSpaceIdx).trim();
+                                                let rightStr = fullContentText.substring(tempSpaceIdx).trim();
+
+                                                let tL = new fabric.Textbox(leftStr, { width: colWidth, fontSize: 11, fontFamily: 'Gopika', textAlign: 'justify', lineHeight: 1.15 });
+                                                if (typeof tL.initDimensions === 'function') tL.initDimensions(); else if (typeof tL._initDimensions === 'function') tL._initDimensions();
+
+                                                let tR = new fabric.Textbox(rightStr, { width: colWidth, fontSize: 11, fontFamily: 'Gopika', textAlign: 'justify', lineHeight: 1.15 });
+                                                if (typeof tR.initDimensions === 'function') tR.initDimensions(); else if (typeof tR._initDimensions === 'function') tR._initDimensions();
+
+                                                let totalLeftH = col0_Y + tL.height + 4;
+                                                let totalRightH = col1_Y + tR.height + 4 + advocateHeight;
+
+                                                let diff = totalLeftH - totalRightH;
+                                                if (Math.abs(diff) < minDiff) {
+                                                    minDiff = Math.abs(diff);
+                                                    bestSplitIdx = tempSpaceIdx;
+                                                }
+
+                                                if (diff > 0) {
+                                                    high = mid - 1;
+                                                } else {
+                                                    low = mid + 1;
+                                                }
+                                            }
+
+                                            let spaceIdx = bestSplitIdx;
                                             let leftContent = fullContentText.substring(0, spaceIdx).trim();
                                             let rightContent = fullContentText.substring(spaceIdx).trim();
 
@@ -722,25 +862,27 @@
 
                                             // 3. Draw Advocate info at the bottom of Right Column
                                             if (advocateBlocks.length > 0) {
-                                                let advText = advocateBlocks.map(b => {
-                                                    return (b.text || '').split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
-                                                }).join('\n');
-                                                
-                                                const textObjAdv = new fabric.Textbox(advText, {
-                                                    left: leftVals[1],
-                                                    top: col1_Y + 10,
-                                                    width: colWidth,
-                                                    fontSize: 11,
-                                                    fill: '#000000',
-                                                    fontWeight: 'normal',
-                                                    fontFamily: 'Gopika',
-                                                    textAlign: 'left',
-                                                    lineHeight: 1.15
+                                                col1_Y += 10;
+                                                advocateBlocks.forEach((b, idx) => {
+                                                    let textLower = (b.text || '').toLowerCase();
+                                                    let isName = idx === 0 || textLower.includes('advocate') || textLower.includes('એડવોકેટ');
+                                                    const textObjAdv = new fabric.Textbox(b.text, {
+                                                        left: leftVals[1],
+                                                        top: col1_Y,
+                                                        width: colWidth,
+                                                        fontSize: 11,
+                                                        fill: '#000000',
+                                                        fontWeight: isName ? '900' : 'normal',
+                                                        fontFamily: 'Gopika',
+                                                        textAlign: 'right',
+                                                        lineHeight: 1.15
+                                                    });
+                                                    if (typeof textObjAdv.initDimensions === 'function') textObjAdv.initDimensions();
+                                                    else if (typeof textObjAdv._initDimensions === 'function') textObjAdv._initDimensions();
+                                                    textObjects.push(textObjAdv);
+                                                    col1_Y += textObjAdv.height + 2;
                                                 });
-                                                if (typeof textObjAdv.initDimensions === 'function') textObjAdv.initDimensions();
-                                                else if (typeof textObjAdv._initDimensions === 'function') textObjAdv._initDimensions();
-                                                textObjects.push(textObjAdv);
-                                                col1_Y += textObjAdv.height + 14;
+                                                col1_Y += 12;
                                             }
 
                                             // 4. Dynamic Canvas Height Adjustment (Shrink or Expand to fit text exactly)
@@ -848,7 +990,7 @@
 
         function downloadCanvas(format) {
             if (!fabricCanvas) return;
-            
+
             const id = document.getElementById('editAdvtId').value;
             const advt = advts.find(a => a._id === id);
 
@@ -856,7 +998,18 @@
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
 
-            const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+            let exportOptions = { format: 'png', quality: 1 };
+            let mainBorder = fabricCanvas.getObjects().find(o => o.id === 'mainBorder');
+            
+            let exportWidth = fabricCanvas.width;
+            let exportHeight = fabricCanvas.height;
+            
+            if (mainBorder) {
+                exportHeight = mainBorder.top + (mainBorder.height * mainBorder.scaleY) + 4;
+                exportOptions.height = exportHeight;
+            }
+
+            const dataURL = fabricCanvas.toDataURL(exportOptions);
 
             if (format === 'png') {
                 const link = document.createElement('a');
@@ -867,19 +1020,24 @@
                 document.body.removeChild(link);
             } else if (format === 'pdf') {
                 const { jsPDF } = window.jspdf;
-                
+
                 let pdfUnit = 'px';
-                let pdfWidth = fabricCanvas.width;
-                let pdfHeight = fabricCanvas.height;
-                
+                let pdfWidth = exportWidth;
+                let pdfHeight = exportHeight;
+
                 if (advt && advt.width > 0) {
                     pdfUnit = (advt.unit || 'cm').toLowerCase();
                     pdfWidth = parseFloat(advt.width);
-                    
+
                     if (advt.height > 0) {
-                        pdfHeight = parseFloat(advt.height);
+                        if (mainBorder) {
+                            let ratio = exportHeight / fabricCanvas.height;
+                            pdfHeight = parseFloat(advt.height) * ratio;
+                        } else {
+                            pdfHeight = parseFloat(advt.height);
+                        }
                     } else {
-                        pdfHeight = (fabricCanvas.height / fabricCanvas.width) * pdfWidth;
+                        pdfHeight = (exportHeight / exportWidth) * pdfWidth;
                     }
                 }
 
@@ -893,16 +1051,27 @@
                 pdf.save('advertisement.pdf');
             }
         }
-        
+
         function setupCanvasEvents() {
             fabricCanvas.on('selection:created', handleSelection);
             fabricCanvas.on('selection:updated', handleSelection);
             fabricCanvas.on('text:selection:changed', handleSelection);
-            fabricCanvas.on('selection:cleared', function() {
+            fabricCanvas.on('selection:cleared', function () {
                 const tb = document.getElementById('canvasToolbar');
                 if (tb) {
                     tb.style.opacity = '0.5';
                     tb.style.pointerEvents = 'none';
+                }
+            });
+            fabricCanvas.on('object:scaling', function(e) {
+                if (e.target && e.target.id === 'mainBorder') {
+                    const border = e.target;
+                    const newHeight = border.height * border.scaleY;
+                    const centerLine = fabricCanvas.getObjects().find(o => o.id === 'centerLine');
+                    if (centerLine) {
+                        centerLine.set({ y2: border.top + newHeight });
+                        fabricCanvas.renderAll();
+                    }
                 }
             });
         }
@@ -914,10 +1083,10 @@
             if (tb) {
                 tb.style.opacity = '1';
                 tb.style.pointerEvents = 'auto';
-                
+
                 let currentFontSize = obj.fontSize;
                 let currentFontWeight = obj.fontWeight;
-                
+
                 if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
                     const styles = obj.getSelectionStyles() || [];
                     if (styles.length > 0) {
@@ -925,9 +1094,9 @@
                         if (styles[0].fontWeight) currentFontWeight = styles[0].fontWeight;
                     }
                 }
-                
+
                 document.getElementById('tbFontSize').value = Math.round(currentFontSize);
-                
+
                 const btnBold = document.getElementById('tbBold');
                 if (currentFontWeight === 'bold' || currentFontWeight === '900') {
                     btnBold.classList.add('bg-slate-200', 'border-slate-400');
@@ -941,7 +1110,7 @@
             if (!fabricCanvas) return;
             const obj = fabricCanvas.getActiveObject();
             if (!obj || obj.type !== 'textbox') return;
-            
+
             if (property === 'fontSize' && obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
                 obj.setSelectionStyles({ fontSize: parseInt(value, 10) });
             } else {
@@ -958,18 +1127,18 @@
             if (!fabricCanvas) return;
             const obj = fabricCanvas.getActiveObject();
             if (!obj || obj.type !== 'textbox') return;
-            
+
             const btnBold = document.getElementById('tbBold');
-            
+
             if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
                 const styles = obj.getSelectionStyles() || [];
                 let isBold = false;
                 if (styles.length > 0 && (styles[0].fontWeight === 'bold' || styles[0].fontWeight === '900')) {
                     isBold = true;
                 }
-                
+
                 obj.setSelectionStyles({ fontWeight: isBold ? 'normal' : 'bold' });
-                
+
                 if (!isBold) {
                     btnBold.classList.add('bg-slate-200', 'border-slate-400');
                 } else {
@@ -978,26 +1147,109 @@
             } else {
                 const isBold = obj.fontWeight === 'bold' || obj.fontWeight === '900';
                 obj.set('fontWeight', isBold ? 'normal' : 'bold');
-                
+
                 if (!isBold) {
                     btnBold.classList.add('bg-slate-200', 'border-slate-400');
                 } else {
                     btnBold.classList.remove('bg-slate-200', 'border-slate-400');
                 }
             }
-            
+
             fabricCanvas.renderAll();
+        }
+
+        function updateCanvasFromText() {
+            const id = document.getElementById('editAdvtId').value;
+            const advtIndex = advts.findIndex(a => a._id === id);
+            if (advtIndex !== -1) {
+                // Gather data from dynamic blocks and rebuild JSON
+                const container = document.getElementById('editBlocksContainer');
+                const inputs = container.querySelectorAll('.block-editor-input');
+                let newJsonStr = advts[advtIndex].translated_text; // Default to existing
+                
+                try {
+                    let parsedData = JSON.parse(advts[advtIndex].translated_text);
+                    let isWrapped = false;
+                    let blocks = [];
+                    if (Array.isArray(parsedData)) {
+                        blocks = parsedData;
+                    } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
+                        blocks = parsedData.gujarati_text;
+                        isWrapped = true;
+                    }
+                    
+                    if (inputs.length === blocks.length) {
+                        inputs.forEach((ta, idx) => {
+                            blocks[idx].text = ta.value;
+                        });
+                        let newJson = isWrapped ? { gujarati_text: blocks } : blocks;
+                        newJsonStr = JSON.stringify(newJson);
+                    } else if (inputs.length === 1) {
+                        newJsonStr = inputs[0].value;
+                    }
+                } catch(e) {
+                    if (inputs.length === 1) {
+                        newJsonStr = inputs[0].value;
+                    }
+                }
+                
+                // Update hidden textarea and local data
+                document.getElementById('editTranslationText').value = newJsonStr;
+                advts[advtIndex].translated_text = newJsonStr;
+                
+                // Preserve scroll position of the modal
+                const modal = document.getElementById('editModal');
+                const scrollTop = modal.scrollTop;
+                
+                // Re-open modal to trigger redraw (this will also re-render blocks with new data)
+                openEditModal(id);
+                
+                // Restore scroll after modal is fully re-initialized
+                setTimeout(() => {
+                    modal.scrollTop = scrollTop;
+                }, 100);
+            }
         }
 
         async function saveTranslation() {
             const id = document.getElementById('editAdvtId').value;
-            const text = document.getElementById('editTranslationText').value;
+            
+            // Gather latest text from dynamic blocks before saving
+            const container = document.getElementById('editBlocksContainer');
+            const inputs = container.querySelectorAll('.block-editor-input');
+            let textToSave = document.getElementById('editTranslationText').value;
+            
+            try {
+                let parsedData = JSON.parse(textToSave);
+                let isWrapped = false;
+                let blocks = [];
+                if (Array.isArray(parsedData)) {
+                    blocks = parsedData;
+                } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
+                    blocks = parsedData.gujarati_text;
+                    isWrapped = true;
+                }
+                
+                if (inputs.length === blocks.length) {
+                    inputs.forEach((ta, idx) => {
+                        blocks[idx].text = ta.value;
+                    });
+                    let newJson = isWrapped ? { gujarati_text: blocks } : blocks;
+                    textToSave = JSON.stringify(newJson);
+                } else if (inputs.length === 1) {
+                    textToSave = inputs[0].value;
+                }
+            } catch(e) {
+                if (inputs.length === 1) {
+                    textToSave = inputs[0].value;
+                }
+            }
 
             try {
                 const response = await fetch(`/api/advt/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ translated_text: text })
+                    body: JSON.stringify({ translated_text: textToSave })
                 });
 
                 if (response.ok) {

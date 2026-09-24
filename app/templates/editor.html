@@ -161,7 +161,8 @@
 
     <script>
         let editorHistoryItems = [];
-        let editorFilteredItems = [];
+        let editorTotalItems = 0;
+        let editorTotalPages = 1;
         let editorCurrentPage = 1;
         const itemsPerPage = 10;
 
@@ -191,10 +192,13 @@
         async function loadEditorHistory() {
             const tbody = document.getElementById('editorHistoryTableBody');
             try {
-                const res = await fetch('/api/history/editor');
-                editorHistoryItems = await res.json();
-                editorFilteredItems = [...editorHistoryItems];
-                editorCurrentPage = 1;
+                const query = document.getElementById('editorSearch').value.toLowerCase();
+                const res = await fetch(`/api/history/editor?page=${editorCurrentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                
+                editorHistoryItems = data.items || [];
+                editorTotalItems = data.total || 0;
+                editorTotalPages = data.total_pages || 1;
 
                 if (editorHistoryItems.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No editorial history found</td></tr>`;
@@ -213,10 +217,8 @@
         function renderEditorTable() {
             const tbody = document.getElementById('editorHistoryTableBody');
             const start = (editorCurrentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const paginatedItems = editorFilteredItems.slice(start, end);
 
-            tbody.innerHTML = paginatedItems.map(item => {
+            tbody.innerHTML = editorHistoryItems.map(item => {
                 const article = item.articles[item.articles.length - 1] || item.articles[0];
                 const date = new Date(item.created_at);
                 const dateStr = date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
@@ -272,41 +274,49 @@
             }).join('');
 
             // Update Info
-            const actualEnd = Math.min(end, editorFilteredItems.length);
-            document.getElementById('editorPaginationInfo').innerText = `Showing ${editorFilteredItems.length === 0 ? 0 : start + 1}-${actualEnd} of ${editorFilteredItems.length}`;
+            const actualEnd = start + editorHistoryItems.length;
+            document.getElementById('editorPaginationInfo').innerText = `Showing ${editorHistoryItems.length === 0 ? 0 : start + 1}-${actualEnd} of ${editorTotalItems}`;
 
             renderEditorPaginationButtons();
         }
 
         function renderEditorPaginationButtons() {
             const container = document.getElementById('editorPaginationButtons');
-            const totalPages = Math.ceil(editorFilteredItems.length / itemsPerPage);
+            const totalPages = editorTotalPages;
             container.innerHTML = '';
 
-            if (totalPages <= 1) return;
+            if (editorTotalItems === 0 || totalPages <= 1) return;
 
             // Prev
             const prevBtn = document.createElement('button');
             prevBtn.disabled = editorCurrentPage === 1;
             prevBtn.className = `p-1.5 rounded-lg border transition-all ${editorCurrentPage === 1 ? 'text-gray-200 border-gray-100 cursor-not-allowed' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`;
             prevBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>';
-            prevBtn.onclick = () => { editorCurrentPage--; renderEditorTable(); };
+            prevBtn.onclick = () => { 
+                if (editorCurrentPage > 1) {
+                    editorCurrentPage--; 
+                    loadEditorHistory(); 
+                }
+            };
             container.appendChild(prevBtn);
 
             // Pages
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= editorCurrentPage - 1 && i <= editorCurrentPage + 1)) {
-                    const btn = document.createElement('button');
-                    btn.innerText = i;
-                    btn.className = `w-8 h-8 rounded-lg text-[10px] font-black transition-all ${i === editorCurrentPage ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 border border-transparent hover:border-slate-200 hover:bg-slate-50'}`;
-                    btn.onclick = () => { editorCurrentPage = i; renderEditorTable(); };
-                    container.appendChild(btn);
-                } else if (i === editorCurrentPage - 2 || i === editorCurrentPage + 2) {
-                    const dot = document.createElement('span');
-                    dot.innerText = '...';
-                    dot.className = 'px-1 text-slate-400';
-                    container.appendChild(dot);
+                if (totalPages > 5 && i > 2 && i < totalPages - 1 && Math.abs(i - editorCurrentPage) > 1) {
+                    if (i === 3 || i === totalPages - 2) {
+                        const dot = document.createElement('span');
+                        dot.innerText = '...';
+                        dot.className = 'px-1 text-slate-400';
+                        container.appendChild(dot);
+                    }
+                    continue;
                 }
+
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = `w-8 h-8 rounded-lg text-[10px] font-black transition-all ${i === editorCurrentPage ? 'bg-brand-600 text-white shadow-md' : 'text-slate-600 border border-transparent hover:border-slate-200 hover:bg-slate-50'}`;
+                btn.onclick = () => { editorCurrentPage = i; loadEditorHistory(); };
+                container.appendChild(btn);
             }
 
             // Next
@@ -314,21 +324,18 @@
             nextBtn.disabled = editorCurrentPage === totalPages;
             nextBtn.className = `p-1.5 rounded-lg border transition-all ${editorCurrentPage === totalPages ? 'text-gray-200 border-gray-100 cursor-not-allowed' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`;
             nextBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
-            nextBtn.onclick = () => { editorCurrentPage++; renderEditorTable(); };
+            nextBtn.onclick = () => { 
+                if (editorCurrentPage < totalPages) {
+                    editorCurrentPage++; 
+                    loadEditorHistory(); 
+                }
+            };
             container.appendChild(nextBtn);
         }
 
         function filterEditorHistory() {
-            const query = document.getElementById('editorSearch').value.toLowerCase();
-            editorFilteredItems = editorHistoryItems.filter(item => {
-                const latestArticle = item.articles[item.articles.length - 1] || item.articles[0];
-                const headline = latestArticle.headline.toLowerCase();
-                const topic = (item.config_used.topic || '').toLowerCase();
-                const username = (item.username || item.created_by_name || 'Admin').toLowerCase();
-                return headline.includes(query) || topic.includes(query) || username.includes(query);
-            });
             editorCurrentPage = 1;
-            renderEditorTable();
+            loadEditorHistory();
         }
 
         async function quickUpdateStatus(historyId, newStatus) {

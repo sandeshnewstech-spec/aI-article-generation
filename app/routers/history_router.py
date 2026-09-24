@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
+from pydantic import BaseModel
 from app.models.data import HistoryItem
 from app.core.database import get_db
 from bson import ObjectId
@@ -8,7 +9,7 @@ from datetime import datetime
 router = APIRouter(prefix="/history", tags=["history"])
 
 @router.get("/", response_model=List[HistoryItem])
-async def get_history(limit: int = 20):
+async def get_history(limit: int = 1000):
     db = get_db()
     cursor = db["history"].find().sort("created_at", -1).limit(limit)
     history = []
@@ -20,18 +21,75 @@ async def get_history(limit: int = 20):
         history.append(HistoryItem(**doc))
     return history
 
+class PaginatedHistoryResponse(BaseModel):
+    items: List[HistoryItem]
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+
 # Editor History Endpoints
-@router.get("/editor", response_model=List[HistoryItem])
-async def get_editor_history(limit: int = 20):
+@router.get("/editor", response_model=PaginatedHistoryResponse)
+async def get_editor_history(page: int = 1, limit: int = 10, search: str = ""):
+    from math import ceil
     db = get_db()
-    cursor = db["editor_history"].find().sort("created_at", -1).limit(limit)
+    
+    query = {}
+    if search:
+        # Assuming we might want to search by topic or headline if they exist inside articles
+        # A full text search could be complex in MongoDB without a text index, 
+        # but let's do a basic regex on nested properties if needed, 
+        # or just fallback to simple username search for now.
+        import re
+        search_regex = re.compile(search, re.IGNORECASE)
+        or_conditions = [
+            {"username": search_regex},
+            {"created_by_name": search_regex},
+            {"topic": search_regex},
+            {"articles.headline": search_regex},
+            {"config_used.topic": search_regex},
+            {"status": search_regex}
+        ]
+        
+        try:
+            from dateutil.parser import parse as parse_date
+            parsed_date = parse_date(search)
+            start_date = parsed_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = parsed_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+            or_conditions.append({"created_at": {"$gte": start_date, "$lte": end_date}})
+        except Exception:
+            pass
+        
+        if "draft" in search.lower():
+            or_conditions.append({"status": {"$exists": False}})
+            or_conditions.append({"status": None})
+            
+        if "admin" in search.lower():
+            or_conditions.append({"username": {"$exists": False}})
+            or_conditions.append({"username": None})
+            or_conditions.append({"created_by_name": {"$exists": False}})
+            or_conditions.append({"created_by_name": None})
+            
+        query = {"$or": or_conditions}
+        
+    total = await db["editor_history"].count_documents(query)
+    skip = (page - 1) * limit
+    
+    cursor = db["editor_history"].find(query).sort("created_at", -1).skip(skip).limit(limit)
     history = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
         if "config_used" not in doc and doc.get("articles"):
             doc["config_used"] = doc["articles"][0].get("config_used")
         history.append(HistoryItem(**doc))
-    return history
+        
+    return PaginatedHistoryResponse(
+        items=history,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=ceil(total / limit) if limit > 0 else 1
+    )
 
 @router.delete("/editor/clear")
 async def clear_editor_history():

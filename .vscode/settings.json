@@ -2,5 +2,6 @@
     "python.analysis.extraPaths": [
         "./"
     ],
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "liveServer.settings.port": 5501
 }

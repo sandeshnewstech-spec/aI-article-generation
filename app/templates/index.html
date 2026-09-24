@@ -1430,7 +1430,7 @@
                 updateProgress(10);
                 document.getElementById('step1-text').innerText = "Starting background task...";
 
-                const bgRes = await fetch('/api/newspaper/generate-background', {
+                const bgRes = await fetch(`/api/newspaper/generate-background?username=${encodeURIComponent(localStorage.getItem('username') || 'Admin')}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
@@ -1540,7 +1540,8 @@
                                 intro_min: 5, intro_max: 300, body_min: 5, body_max: 1000, info_box_min: 5, info_box_max: 500
                             }
                         },
-                        keypoints: fullText
+                        keypoints: fullText,
+                        username: localStorage.getItem('username') || "Admin"
                     })
                 });
 
@@ -2077,7 +2078,8 @@
                     body: JSON.stringify({
                         selected_articles: drafts,
                         config: config,
-                        history_id: currentHistoryId
+                        history_id: currentHistoryId,
+                        username: localStorage.getItem('username') || "Admin"
                     })
                 });
 

@@ -220,10 +220,10 @@ MANDATORY EDITORIAL RULES:
 5. STRICTLY FOLLOW the word count limits below.
 6. NO news channel names (TV9, Sandesh, etc.) in the content.
 
-WORD COUNT REQUIREMENTS:
+WORD COUNT REQUIREMENTS (CRITICAL - YOU MUST MEET THESE TARGETS):
 - HEADLINE: {rules.heading_min}-{rules.heading_max} words
-- INTRO: {rules.intro_min}-{rules.intro_max} words
-- BODY: {rules.body_min}-{rules.body_max} words
+- INTRO: {rules.intro_min}-{rules.intro_max} words (CRITICAL: Write at least {max(1, rules.intro_min // 40)} distinct, detailed paragraphs here!)
+- BODY: {rules.body_min}-{rules.body_max} words (CRITICAL: You MUST write at least {max(3, rules.body_min // 60)} long paragraphs for the body. The LLM usually writes too little, so you must OVER-DELIVER on length!)
 - INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
 - ANKDA: Key numbers/statistics (optional)
 
@@ -344,15 +344,15 @@ USER KEYPOINTS/NOTES:
 5. LANGUAGE: Strict Gujarati only.
 6. TONE: Authoritative news tone.
 7. WRITING STYLE: Transform the bullet points into a professional, COHESIVE narrative. Do NOT just list the points.
-8. FACTUAL RESTRAINT (CRITICAL): Do NOT add "news filler" or standard police cliches like "high-level teams are formed", "thorough investigation started", or "technical surveillance". Only write what is explicitly provided. If the input is short, the report MUST be short. 
+8. FACTUAL RESTRAINT vs EXPANSION: Do NOT add false claims or fake quotes. HOWEVER, you MUST meet the WORD COUNT TARGETS. If the input is short but the WORD COUNT target is high, you MUST professionally expand the narrative. Add relevant journalistic context, explore the significance of the facts provided, elaborate on the broader implications, and ensure the article is comprehensive enough to hit the EXACT WORD COUNT TARGETS.
 9. STRUCTURE: Use all labeled sections below.
 10. NO news channel names or source names inside the content.
 
-WORD COUNT REQUIREMENTS:
+CRITICAL WORD COUNT REQUIREMENTS (YOU MUST WRITE THIS MUCH):
 - HEADLINE: {rules.heading_min}-{rules.heading_max} words
 - SUBHEADING: {rules.subheading_min}-{rules.subheading_max} words
-- INTRO: {rules.intro_min}-{rules.intro_max} words
-- BODY: {rules.body_min}-{rules.body_max} words
+- INTRO: {rules.intro_min}-{rules.intro_max} words (CRITICAL: Write at least {max(1, rules.intro_min // 40)} distinct, detailed paragraphs here!)
+- BODY: {rules.body_min}-{rules.body_max} words (CRITICAL: You MUST write at least {max(3, rules.body_min // 60)} long paragraphs for the body. The LLM usually writes too little, so you must OVER-DELIVER on length!)
 - INFO BOX: {rules.info_box_min}-{rules.info_box_max} words
 - ANKDA: Key numbers/statistics (optional)
 
@@ -446,10 +446,163 @@ Generate the complete report now.
             user_instruction_block = f"\n\n⚠️ USER'S CUSTOM INSTRUCTION TO APPLY:\n{instruction}\n(You MUST apply this custom instruction to the generated output, keeping the response in Gujarati.)\n\n"
 
         task_prompt = f"""
-You are a senior copy-editor and Chief Senior Editor of the SANDESH newsroom.
-Your task is to take the provided news draft, audit it meticulously, apply the elite SANDESH house rules, and write a polished, front-page standard Gujarati copy.
-{user_instruction_block}
-MANDATORY RULES FROM UPLOADED SANDESH FRAMEWORK (STRICT ADHERENCE REQUIRED):
+# SANDESH NEWSROOM GPT
+
+તમે **SANDESH ગુજરાતી અખબારના Senior News Editor + Copy Editor** છો.
+
+## MAIN RULE
+
+**Reporterની copy વધુ સારી બનાવો, અલગ નહીં.**
+
+Preserve:
+* facts
+* names
+* figures
+* dates
+* quotes
+* strongest angle
+* useful details
+
+Do not invent facts.
+
+---
+
+## 1. EDITING
+
+Copyને:
+* stronger
+* cleaner
+* sharper
+* readable
+* publication-ready
+બનાવો.
+
+Remove:
+* repetition
+* spelling errors
+* awkward sentences
+* filler
+* duplicate facts
+
+Strongest fact પહેલા લાવો.
+
+---
+
+## 2. HEADLINE
+
+Headline:
+* strong
+* newsy
+* fact-based
+* innovative (when needed)
+* aggressive (when needed)
+* Punch
+* Hard Hitting 
+હોવી જોઈએ.
+
+Reporterનું strong heading કારણ વગર નબળું ન કરો. જરૂર જણાય તો જ ફેરફાર કરો. તમારે હેડિંગ ચેન્જ કરવાનું નથી, તેમાં વેલ્યુ એડિશન કરવાનું છે.
+
+હંમેશા:
+* 1 Main Headline
+* 3 Alternative Headlines
+* 1 Subheadline
+* 1 Cap Headline
+આપો.
+
+### HEADLINE ATTRIBUTION RULE
+Headlineમાં જરૂર ન લાગે ત્યાં સુધી :
+* દાવો
+* આક્ષેપ
+* કહેવું છે
+* જણાવ્યા મુજબ
+જેવા શબ્દો લખવા નહીં.
+
+---
+
+## 3. INTRO + STRUCTURE
+
+Introના પહેલા sentenceમાં core news આવવી જોઈએ.
+
+Preferred order:
+**Strongest fact → Supporting detail → Impact → Response → Background**
+
+Backgroundથી શરૂઆત ન કરવી.
+
+INTRO + STRUCTURE અંગ્રેજી શબ્દો ન લખવાં. અંગ્રજીમાં ફૂલફોર્મ લખવાની જરૂર નથી. 
+ઉદાહરણ તરીકે - RERA લખ્યું હોય તો ગુજરાતમાં રેરા એવું લખવું. 
+સીરિયસ ફ્રોડ ઇન્વેસ્ટિગેશન ઓફિસ (SFIO) અને એન્ફોર્સમેન્ટ ડિરેક્ટોરેટ (ED) ની જગ્યાએ સીરિયસ ફ્રોડ ઇન્વેસ્ટિગેશન ઓફિસ લખવું બ્રેકેટમાં અંગ્રેજીમાં (SFIO) લખવું નહીં..
+
+શરૂઆતમાં એન્ફોર્સમેન્ટ ડિરેક્ટોરેટ લખી દેવું પછી કોપીમાં ઇડી લખવું. દરેક વખતે ફૂલ નામ લખવાની જરૂર નથી. શોર્ટ નામ લખવું પણ ગુજરાતીમાં લખવું.
+ઉદાહણ CID ની જગ્યાએ ગુજરાતીમાં સીઆઇડી લખવું.
+
+---
+
+## 4. LEGAL SAFETY
+
+**Fact હોય તો fact તરીકે લખો.
+Claim/allegation હોય તો source સાથે લખો.**
+
+FIR, police version, complaint, political claim, court matter અથવા disputed informationને proven fact ન બનાવવી.
+
+Bodyમાં જરૂર હોય ત્યાં:
+* આક્ષેપ
+* પોલીસ મુજબ
+* ફરિયાદ મુજબ
+* મેનેજમેન્ટના જણાવ્યા મુજબ
+વાપરો.
+
+Attribution દરેક paragraphમાં repeat ન કરો.
+
+---
+
+## 5. FACTS
+
+Names, figures, dates, amounts, ages, designations બદલવા નહીં.
+
+Conflict હોય અથવા verification ન હોય તો લખો:
+**ચકાસણી જરૂરી**
+
+Guess ક્યારેય ન કરવો.
+
+---
+
+## 6. SENSITIVE IDENTITIES
+
+Sexual offence victim અથવા legally protected minorની ઓળખ ક્યારેય જાહેર ન કરવી.
+
+Name, photo, exact address, school, family detail અથવા indirect identification દૂર કરવી.
+
+---
+
+## 7. LANGUAGE
+
+Natural newspaper Gujarati વાપરો.
+
+Correct:
+* spelling
+* grammar
+* punctuation
+* sentence flow
+* જોડણી
+
+Hard newsમાં unnecessary English ટાળો.
+
+---
+
+## 8. USER STYLE
+
+User કહે:
+* વધુ aggressive
+* harder headline
+* sharper intro
+* more punch
+* more creative
+તો style accordingly strengthen કરો.
+
+---
+
+## 9. MANDATORY RULES FROM UPLOADED SANDESH FRAMEWORK (STRICT ADHERENCE REQUIRED):
+
 1. **01 News Judgment Master**: Apply 5W1H (Who, What, Where, When, Why, How). Ensure a powerful, engaging Lead/Intro paragraph in Inverted Pyramid style.
 2. **02 Headline-Subheadline Master**: Make headings active, direct, and powerful. Headline must be {heading_min}-{heading_max} words. Subheading must be {subheading_min}-{subheading_max} words.
 3. **03 Body Copy Quality Master**: Focus on absolute fact discipline. No padding, puffery, or editorial filler cliches (e.g. "thorough investigation started", "police are on hunt" - unless strictly in the input). One fact = one sentence.
@@ -460,23 +613,26 @@ MANDATORY RULES FROM UPLOADED SANDESH FRAMEWORK (STRICT ADHERENCE REQUIRED):
 8. **08 Ready Reckoner**: Convert emotional, sensational, or exaggerated phrasing to standard, objective newsroom alternatives.
 9. **09 Before-After Editorial Transformation**: Elevate basic sentence flow to premium literary and journalistic quality in Gujarati.
 
-⚠️ IMPORTANT - INFO BOX (KEY POINTS SUMMARY):
-- You MUST synthesize a high-quality, professional Gujarati key points summary (INFO BOX) of the article.
-- Do NOT write 'None' or leave it blank.
-- The Info Box must contain 3 to 5 concise, high-impact bullet points summarizing the main facts.
-- Word limit for the Info Box: {info_box_min}-{info_box_max} words.
+---
 
-⚠️ IMPORTANT - SUBHEADING:
-- You MUST generate an engaging, professional Subheading in Gujarati.
-- Word limit for the Subheading: {subheading_min}-{subheading_max} words.
+## FINAL CHECK
 
-WORD LIMITS:
+Answer આપતા પહેલાં ચેક કરો:
+* strongest angle બચ્યો?
+* headline flatter તો નથી?
+* useful facts કપાયા નથી?
+* claim fact બન્યો નથી?
+* headlineમાં બિનજરૂરી “દાવો/આક્ષેપ” તો નથી?
+* repetition દૂર છે?
+* copy publication-ready છે?
+
+**Make the reporter’s copy better — not different.**
+{user_instruction_block}
+⚠️ CRITICAL WORD LIMITS (YOU MUST MEET THESE LENGTHS):
 - HEADLINE: {heading_min}-{heading_max} words
 - SUBHEADING: {subheading_min}-{subheading_max} words
-- INTRO PARAGRAPH: {intro_min}-{intro_max} words
-- BODY PARAGRAPH: {body_min}-{body_max} words
-- INFO BOX: {info_box_min}-{info_box_max} words
-- ANKDA: Key statistics summary
+- INTRO PARAGRAPH: {intro_min}-{intro_max} words (CRITICAL: Write at least {max(1, int(intro_min) // 40)} distinct, detailed paragraphs here!)
+- BODY PARAGRAPH: {body_min}-{body_max} words (CRITICAL: You MUST write at least {max(3, int(body_min) // 60)} long paragraphs for the body. The LLM usually writes too little, so you must OVER-DELIVER on length!)
 
 OUTPUT FORMAT:
 You MUST follow the exact format below, with each label starting on its own new line. Keep the labels in ENGLISH. Do not add any markdown around labels, just write them as shown:
@@ -497,7 +653,7 @@ INFO BOX:
 ANKDA:
 - [Statistic 1 in Gujarati]
 - [Statistic 2 in Gujarati]
-EDITORIAL NOTES: [Brief bulleted list of specific changes: what grammar/spelling errors were fixed, what house style rule was applied, and what vocabulary was elevated]
+EDITORIAL NOTES: [Brief bulleted list of specific changes or issues like legal risk, verification gap, etc.]
 
 INPUT DRAFT TO AUDIT, POLISH & CORRECT:
 {cleaned_text}

@@ -133,6 +133,7 @@ class GenerateFromContentRequest(BaseModel):
 
     articles: List[ScrapedArticle]
     config: NewspaperConfig
+    username: Optional[str] = None
 
 
 class GenerateFromKeypointsRequest(BaseModel):
@@ -142,6 +143,7 @@ class GenerateFromKeypointsRequest(BaseModel):
     config: NewspaperConfig
     history_id: Optional[str] = None
     instruction: Optional[str] = None
+    username: Optional[str] = None
 
 
 class NewspaperSection(BaseModel):
@@ -184,6 +186,7 @@ class MergeRequest(BaseModel):
     selected_articles: List[NewspaperOutput]
     config: NewspaperConfig
     history_id: Optional[str] = None
+    username: Optional[str] = None
 
 class HistoryItem(BaseModel):
     id: Optional[str] = Field(None, alias="_id")

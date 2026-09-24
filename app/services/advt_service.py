@@ -123,22 +123,36 @@ class AdvtService:
                 
         base64_image = await asyncio.to_thread(_encode_image)
         
+        if advt_type.lower() == "central government" and not blank_url:
+            import shutil
+            import os
+            import time
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            static_dir = os.path.join(base_dir, "static", "advt_images")
+            os.makedirs(static_dir, exist_ok=True)
+            ext = os.path.splitext(file_path)[1]
+            if not ext: ext = ".png"
+            bg_filename = f"bg_{int(time.time())}{ext}"
+            bg_path = os.path.join(static_dir, bg_filename)
+            shutil.copy2(file_path, bg_path)
+            blank_url = f"/static/advt_images/{bg_filename}"
+            
         formatting_instructions = []
         if eng_to_guj:
             formatting_instructions.append("- Translate the text accurately into Gujarati.")
         if add_keypoints:
             formatting_instructions.append("- Format the text using bullet points for key information.")
-        if legal_notice or advt_type.lower() == "legal notice":
+        if legal_notice or advt_type.lower() == "legal notice" or advt_type.lower() == "central government":
             formatting_instructions.append("- Structure the text as a formal legal/public notice.")
             formatting_instructions.append("- CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely. DO NOT extract the text from any rubber stamp (e.g. English advocate stamps with license numbers). Only extract the actual printed article text.")
             formatting_instructions.append("- CRITICAL for Legal Notice: Top heading MUST be 'જાહેર નોટિસ' (font_size_px: 20, color: '#FFFFFF', background_color: '#000000', font_family: 'Gopika', text_align: 'center').")
             formatting_instructions.append("- Content MUST have font_size_px: 11, color: '#000000', font_family: 'Gopika'.")
-            formatting_instructions.append("- Advocate names MUST have font_size_px: 12, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
+            formatting_instructions.append("- Advocate names MUST have font_size_px: 11, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
             if float(width) >= 15:
                 formatting_instructions.append("- Since width is >= 15, use a 2-COLUMN layout. Split the content logically. Column 1 (left_percent: 2, width_percent: 45), Column 2 (left_percent: 52, width_percent: 45). Place the Top Heading ONLY in Column 1 at the top.")
             else:
                 formatting_instructions.append("- The notice must be structured as a single 1-column layout. Use logical top_percent spacing to separate heading, content, and signatures without overlapping.")
-        if legal_notice or advt_type.lower() == "legal notice":
+        if legal_notice or advt_type.lower() == "legal notice" or advt_type.lower() == "central government":
             prompt = (
                 "You are an expert advertisement copywriter, translator, and graphic designer.\n"
                 "Advertisement Type: Legal Notice\n"
@@ -171,8 +185,8 @@ class AdvtService:
                 "  - 'top_percent': COPY this value EXACTLY from the original OCR block (or the top-most if combined)\n"
                 "  - 'left_percent': COPY this value EXACTLY from the original OCR block (or the left-most if combined)\n"
                 "  - 'width_percent': COPY this value EXACTLY from the original OCR block (or sum widths if combined horizontally)\n"
-                "  - 'color': the hex color code of the text (e.g. '#FFFFFF')\n"
-                "  - 'background_color': the hex color code of the background (e.g. '#000000' or null if transparent)\n"
+                "  - 'color': the hex color code of the text (e.g. '#FFFFFF' or '#000000')\n"
+                "  - 'background_color': the hex color code of the background. CRITICAL: Do NOT use null or transparent. You MUST output an opaque hex color (e.g. '#FFFFFF' for white background, '#000000' for black) so the new text covers the original English text underneath it completely.\n"
                 "  - 'font_weight': 'normal' or 'bold'\n"
                 "  - 'font_family': 'Inter' or 'Gopika'\n"
                 "  - 'text_align': 'left', 'center', or 'right'. CRITICAL: visually inspect the original image and set this accurately.\n"
@@ -264,7 +278,7 @@ class AdvtService:
             formatting_instructions.append("- CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely.")
             formatting_instructions.append("- CRITICAL for Legal Notice: Top heading MUST be 'જાહેર નોટિસ' (font_size_px: 20, color: '#FFFFFF', background_color: '#000000', font_family: 'Gopika', text_align: 'center').")
             formatting_instructions.append("- Content MUST have font_size_px: 11, color: '#000000', font_family: 'Gopika'.")
-            formatting_instructions.append("- Advocate names MUST have font_size_px: 12, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
+            formatting_instructions.append("- Advocate names MUST have font_size_px: 11, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
             if float(width) >= 15:
                 formatting_instructions.append("- Since width is >= 15, use a 2-COLUMN layout. Split the content logically. Column 1 (left_percent: 2, width_percent: 45), Column 2 (left_percent: 52, width_percent: 45). Place the Top Heading ONLY in Column 1 at the top.")
             else:
@@ -641,7 +655,10 @@ class AdvtService:
                 }
                 flux_res = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=flux_payload, timeout=60)
                 flux_data = flux_res.json()
-                generated_image_url = flux_data["choices"][0]["message"]["content"].strip()
+                flux_content = flux_data["choices"][0]["message"].get("content")
+                if flux_content is None:
+                    raise Exception("FLUX fallback returned None content")
+                generated_image_url = flux_content.strip()
                 
                 # Extract markdown URL if present
                 import re
@@ -681,6 +698,9 @@ class AdvtService:
                 except Exception:
                     response.raise_for_status()
             data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
+            content = data["choices"][0]["message"].get("content")
+            if content is None:
+                raise Exception(f"OpenRouter returned empty content. Full response: {data}")
+            return content.strip()
             
         return await asyncio.to_thread(_request)

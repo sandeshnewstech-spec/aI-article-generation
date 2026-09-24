@@ -101,7 +101,7 @@ class BackgroundGenerateResponse(BaseModel):
     message: str
 
 @router.post("/generate-background", response_model=BackgroundGenerateResponse)
-async def generate_newspaper_background(config: NewspaperConfig, background_tasks: BackgroundTasks):
+async def generate_newspaper_background(config: NewspaperConfig, background_tasks: BackgroundTasks, username: str = "Admin"):
     db = get_db()
     history_item = {
         "topic": config.topic,
@@ -109,7 +109,8 @@ async def generate_newspaper_background(config: NewspaperConfig, background_task
         "created_at": datetime.utcnow(),
         "config_used": config.dict(),
         "final_article": None,
-        "status": "processing" # Used for polling
+        "status": "processing", # Used for polling
+        "username": username
     }
     res = await db["history"].insert_one(history_item)
     history_id = str(res.inserted_id)
@@ -136,7 +137,7 @@ async def get_task_status(history_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/generate", response_model=GenerateResponse)
-async def generate_newspaper_article(config: NewspaperConfig):
+async def generate_newspaper_article(config: NewspaperConfig, username: str = "Admin"):
     """
     Generate a newspaper article following strict layout and editorial rules
 
@@ -244,6 +245,7 @@ async def generate_newspaper_article(config: NewspaperConfig):
                 "created_at": datetime.utcnow(),
                 "config_used": config.dict(),
                 "final_article": None,
+                "username": username
             }
             res = await db["history"].insert_one(history_item)
             history_id = str(res.inserted_id)
@@ -408,6 +410,7 @@ async def generate_from_content(request: GenerateFromContentRequest):
                 "created_at": datetime.utcnow(),
                 "config_used": config.dict(),
                 "final_article": None,
+                "username": getattr(request, "username", "Admin")
             }
             if history_item["articles"]:
                 res = await db["history"].insert_one(history_item)
@@ -457,6 +460,7 @@ async def generate_from_keypoints_endpoint(request: GenerateFromKeypointsRequest
                 "created_at": datetime.utcnow(),
                 "config_used": config.dict(),
                 "final_article": None,
+                "username": getattr(request, "username", "Admin")
             }
             res = await db["editor_history"].insert_one(history_item)
             history_id = str(res.inserted_id)
@@ -518,6 +522,7 @@ async def high_quality_rewrite_endpoint(request: GenerateFromKeypointsRequest):
                     "created_at": datetime.utcnow(),
                     "config_used": config.dict(),
                     "final_article": None,
+                    "username": getattr(request, "username", "Admin")
                 }
                 res = await db["editor_history"].insert_one(history_item)
                 history_id = str(res.inserted_id)
@@ -695,6 +700,7 @@ async def merge_articles(request: MergeRequest):
                     "final_reports": [final_output.dict()],
                     "created_at": datetime.utcnow(),
                     "config_used": request.config.dict(),
+                    "username": getattr(request, "username", "Admin")
                 }
                 await db["history"].insert_one(history_item)
                 print(f"[OK] Saved NEW merged history for: {request.config.topic}")
