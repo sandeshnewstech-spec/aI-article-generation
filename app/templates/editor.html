@@ -220,7 +220,9 @@
 
             tbody.innerHTML = editorHistoryItems.map(item => {
                 const article = item.articles[item.articles.length - 1] || item.articles[0];
-                const date = new Date(item.created_at);
+                let dStr = item.created_at;
+                if (dStr && !dStr.endsWith('Z') && !dStr.includes('+')) dStr += 'Z';
+                const date = new Date(dStr);
                 const dateStr = date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
                 const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const username = item.username || item.created_by_name || 'Admin';

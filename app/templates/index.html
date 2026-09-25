@@ -1117,7 +1117,7 @@
                                     <span class="text-xs font-bold text-gray-900 truncate flex-1" title="${item.topic}">
                                         ${hasFinal ? `<span class="text-brand-600 mr-1">[FINAL]</span>` : ''}${displayTopic}
                                     </span>
-                                    <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                    <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${new Date(item.created_at + (item.created_at && !item.created_at.endsWith('Z') && !item.created_at.includes('+') ? 'Z' : '')).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-[10px] text-gray-500">
                                     <span class="${hasFinal ? 'bg-brand-100 text-brand-700' : 'bg-gray-200 text-gray-600'} px-1.5 py-0.5 rounded font-medium">
@@ -1155,7 +1155,16 @@
             tableBody.innerHTML = pageItems.map(item => {
                 const itemId = item.id || item._id;
                 const hasFinal = !!item.final_article || (item.final_reports && item.final_reports.length > 0);
-                const date = new Date(item.created_at);
+                let dateStr = item.created_at;
+                if (dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                    dateStr += 'Z';
+                }
+                const date = new Date(dateStr);
+                
+                // Format nicely: "24 Sept 2026<br>13:19"
+                const dateFormatted = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                const timeFormatted = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                
                 const username = item.username || item.created_by_name || 'Admin';
                 return `
                     <tr class="hover:bg-red-50/50 transition-colors group cursor-default">
@@ -1170,8 +1179,9 @@
                                 <span class="text-xs font-medium text-gray-700">${username}</span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">
-                            ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <td class="px-4 py-3 text-gray-500 text-xs font-semibold">
+                            <div class="text-gray-800">${dateFormatted}</div>
+                            <div class="text-gray-400 mt-0.5">${timeFormatted}</div>
                         </td>
                         <td class="px-3 py-2.5">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.status === 'Approved' ? 'bg-green-100 text-green-700' : item.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' : hasFinal ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}">

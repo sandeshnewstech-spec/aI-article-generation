@@ -998,7 +998,8 @@
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
 
-            let exportOptions = { format: 'png', quality: 1 };
+            // Multiplier 3.125 simulates ~300 DPI for high quality printing (96 * 3.125 = 300)
+            let exportOptions = { format: 'png', quality: 1, multiplier: 3.125 };
             let mainBorder = fabricCanvas.getObjects().find(o => o.id === 'mainBorder');
             
             let exportWidth = fabricCanvas.width;
@@ -1009,11 +1010,50 @@
                 exportOptions.height = exportHeight;
             }
 
-            const dataURL = fabricCanvas.toDataURL(exportOptions);
+            let dataURL = fabricCanvas.toDataURL(exportOptions);
+            
+            // Helper function to inject exact 300 DPI metadata into PNG header (pHYs chunk)
+            function changeDpiDataUrl(base64Image, dpi) {
+                try {
+                    let dataArray = new Uint8Array(atob(base64Image.split(',')[1]).split('').map(c => c.charCodeAt(0)));
+                    const format = base64Image.split(',')[0];
+                    let physChunk = new Uint8Array([0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
+                    let ppcX = Math.round(dpi * 39.3701);
+                    physChunk[8] = physChunk[12] = (ppcX >> 24) & 0xff;
+                    physChunk[9] = physChunk[13] = (ppcX >> 16) & 0xff;
+                    physChunk[10] = physChunk[14] = (ppcX >> 8) & 0xff;
+                    physChunk[11] = physChunk[15] = ppcX & 0xff;
+                    let crcTable = [];
+                    for (let n = 0; n < 256; n++) {
+                        let c = n;
+                        for (let k = 0; k < 8; k++) c = ((c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1));
+                        crcTable[n] = c;
+                    }
+                    let crc = 0xffffffff;
+                    for (let i = 4; i < 17; i++) crc = crcTable[(crc ^ physChunk[i]) & 0xff] ^ (crc >>> 8);
+                    crc ^= 0xffffffff;
+                    physChunk[17] = (crc >> 24) & 0xff; physChunk[18] = (crc >> 16) & 0xff; physChunk[19] = (crc >> 8) & 0xff; physChunk[20] = crc & 0xff;
+                    let idatIdx = 0;
+                    for (let i = 0; i < dataArray.length - 4; i++) {
+                        if (dataArray[i]===73 && dataArray[i+1]===68 && dataArray[i+2]===65 && dataArray[i+3]===84) { idatIdx = i - 4; break; }
+                    }
+                    if(idatIdx === 0) return base64Image;
+                    let newArray = new Uint8Array(dataArray.length + 21);
+                    newArray.set(dataArray.subarray(0, idatIdx), 0);
+                    newArray.set(physChunk, idatIdx);
+                    newArray.set(dataArray.subarray(idatIdx), idatIdx + 21);
+                    let binary = '';
+                    for(let i=0; i<newArray.length; i++) binary += String.fromCharCode(newArray[i]);
+                    return format + ',' + btoa(binary);
+                } catch(e) { return base64Image; }
+            }
+
+            // Force 300 DPI metadata in the image header
+            dataURL = changeDpiDataUrl(dataURL, 300);
 
             if (format === 'png') {
                 const link = document.createElement('a');
-                link.download = 'advertisement.png';
+                link.download = 'advertisement_300dpi.png';
                 link.href = dataURL;
                 document.body.appendChild(link);
                 link.click();
