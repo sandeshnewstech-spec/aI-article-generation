@@ -34,5 +34,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user.get("is_active", True):
         raise HTTPException(status_code=400, detail="Inactive user")
 
+    role = user["role"]
+    role_perm = await db["role_permissions"].find_one({"role": role})
+    modules = role_perm["modules"] if role_perm else []
+
     access_token = create_access_token(subject=user["username"])
-    return {"access_token": access_token, "token_type": "bearer", "role": user["role"]}
+    return {"access_token": access_token, "token_type": "bearer", "role": role, "modules": modules}

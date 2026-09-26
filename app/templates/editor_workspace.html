@@ -248,27 +248,39 @@
                                 </svg>
                                 News Keypoints & Notes
                             </label>
-                            <button type="button" id="clearKeypointsBtn"
-                                onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
-                                class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Clear
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <input type="file" id="keypointsFileInput" class="hidden" accept=".txt,.pdf,.docx,.doc,image/*">
+                                <button type="button" id="clearKeypointsBtn"
+                                    onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
+                                    class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Clear
+                                </button>
+                            </div>
                         </div>
                         <textarea id="keypointsInput" rows="18"
                             placeholder="Type, write, or paste your news keypoints, raw facts, bullet points, or Gujarati story draft here. AI will structure and polish it into a premium front-page article..."
                             class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-red-500/10 focus:border-brand-500 focus:bg-white outline-none transition-all font-medium leading-relaxed resize-none shadow-inner"
                             style="font-family: 'Noto Sans Gujarati', 'Inter', sans-serif; min-height: 340px;"></textarea>
                         <div class="flex items-center justify-between mt-2 px-1">
-                            <span id="charCount"
-                                class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
-                                characters</span>
-                            <span id="wordCount"
-                                class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
-                                words</span>
+                            <div class="flex items-center gap-4">
+                                <span id="charCount"
+                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                    characters</span>
+                                <span id="wordCount"
+                                    class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
+                                    words</span>
+                            </div>
+                            <button type="button" onclick="document.getElementById('keypointsFileInput').click();" 
+                                class="text-[10px] text-slate-500 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-1 outline-none bg-slate-100 hover:bg-red-50 px-2.5 py-1 rounded-md border border-slate-200 hover:border-red-200">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                Upload File
+                            </button>
                         </div>
                     </div>
 
@@ -319,6 +331,18 @@
                         </div>
 
                         <!-- Word Counts -->
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Cap Heading</label>
+                                <input type="number" id="wc_cap_heading" value="5" oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Sub Heading</label>
+                                <input type="number" id="wc_sub_heading" value="15" oninput="updateWorkspaceCounters();"
+                                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label
@@ -392,14 +416,26 @@
                 </div>
 
                 <!-- ChatGPT like Chat Interface -->
-                <div id="chatInterface" class="hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent pt-12 pb-6 px-6 pointer-events-none z-10">
-                    <div class="max-w-6xl mx-auto relative pointer-events-auto bg-white/95 backdrop-blur-xl border-2 border-[#e82526]/40 shadow-[0_8px_30px_#e825261a] rounded-2xl focus-within:border-[#e82526] focus-within:ring-4 focus-within:ring-[#e82526]/15 transition-all duration-300 flex items-end p-1.5 group hover:shadow-[0_12px_40px_#e8252626] hover:border-[#e82526]/60">
+                <div id="chatInterface" class="hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent pt-12 pb-6 px-6 pointer-events-none z-10 flex flex-col items-center">
+                    <!-- Chat History Container -->
+                    <div id="chatHistory" class="w-full max-w-6xl mx-auto mb-3 flex flex-col gap-3 max-h-[350px] overflow-y-auto pointer-events-auto px-2 no-scrollbar hidden">
+                        <!-- Messages will be appended here via JS -->
+                    </div>
+                    <div class="w-full max-w-6xl mx-auto relative pointer-events-auto bg-white/95 backdrop-blur-xl border-2 border-[#e82526]/40 shadow-[0_8px_30px_#e825261a] rounded-2xl focus-within:border-[#e82526] focus-within:ring-4 focus-within:ring-[#e82526]/15 transition-all duration-300 flex items-end p-1.5 group hover:shadow-[0_12px_40px_#e8252626] hover:border-[#e82526]/60">
                         <div class="flex items-center justify-center h-[52px] w-[48px] shrink-0 text-[#e82526]">
                             <svg class="w-5 h-5 animate-[pulse_2s_ease-in-out_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
                         <textarea id="aiChatInput" rows="1" class="flex-1 bg-transparent py-3.5 pr-3 pl-0 text-[16px] font-medium text-slate-800 placeholder-slate-400 outline-none border-none focus:ring-0 resize-none leading-relaxed no-scrollbar" placeholder="સિનીયર એડિટરને સૂચના આપો... (દા.ત., 'હેડલાઇન વધુ આકર્ષક બનાવો')" oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 200) + 'px'" style="min-height: 52px; max-height: 200px;"></textarea>
+                        
+                        <input type="file" id="aiChatFileInput" class="hidden" accept=".txt,.pdf,.docx,.doc,image/*">
+                        <button id="aiChatFileBtn" type="button" class="shrink-0 mb-[6px] mr-2 text-slate-400 hover:text-[#e82526] transition-colors flex items-center justify-center h-10 w-10 bg-transparent rounded-xl hover:bg-red-50" title="Upload File">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                        </button>
+
                         <button id="aiChatSendBtn" class="shrink-0 mb-[6px] mr-[6px] bg-gradient-to-r from-[#e82526] to-[#cc1f20] hover:from-[#cc1f20] hover:to-[#990d0e] text-white rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center h-10 w-10 shadow-md hover:shadow-lg hover:shadow-[#e82526]/30">
                             <svg class="w-4 h-4 -translate-y-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
                         </button>
@@ -504,6 +540,11 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
             if (document.getElementById('chatInterface')) document.getElementById('chatInterface').classList.add('hidden');
+            const chatHistory = document.getElementById('chatHistory');
+            if (chatHistory) {
+                chatHistory.innerHTML = '';
+                chatHistory.classList.add('hidden');
+            }
 
             currentEditingId = null;
             currentArticleData = null;
@@ -595,11 +636,13 @@
             const matchedSlot = allSlots.find(s => s.column_span === cols && s.slot_count === slots);
 
             if (matchedSlot) {
+                document.getElementById('wc_cap_heading').value = matchedSlot.wc_cap_heading || 5;
                 document.getElementById('wc_headline').value = matchedSlot.wc_headline || 10;
+                document.getElementById('wc_sub_heading').value = matchedSlot.wc_sub_heading || 15;
                 document.getElementById('wc_intro').value = matchedSlot.wc_intro || 75;
                 document.getElementById('wc_body').value = matchedSlot.wc_body || 175;
                 document.getElementById('wc_infobox').value = matchedSlot.wc_infobox || 60;
-                document.getElementById('layoutInfo').innerHTML = `<b>${cols} Col | ${slots} Slot</b>: Target H:${matchedSlot.wc_headline}w, I:${matchedSlot.wc_intro}w, B:${matchedSlot.wc_body}w`;
+                document.getElementById('layoutInfo').innerHTML = `<b>${cols} Col | ${slots} Slot</b>: Target CH:${document.getElementById('wc_cap_heading').value}w, H:${document.getElementById('wc_headline').value}w, SH:${document.getElementById('wc_sub_heading').value}w, I:${document.getElementById('wc_intro').value}w, B:${document.getElementById('wc_body').value}w`;
             } else {
                 document.getElementById('layoutInfo').innerText = `${cols} Cols, ${slots} Slot: Using defaults.`;
             }
@@ -673,15 +716,18 @@
                 allowed_sources: [],
                 headline_config: { single_line: false },
                 word_count_rules: {
-                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
+                    cap_heading_min: parseInt(document.getElementById('wc_cap_heading').value),
+                    cap_heading_max: parseInt(document.getElementById('wc_cap_heading').value) + 2,
+                    heading_min: parseInt(document.getElementById('wc_headline').value),
                     heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
-                    subheading_min: 5, subheading_max: 15,
-                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
-                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
-                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
-                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
-                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
-                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
+                    subheading_min: parseInt(document.getElementById('wc_sub_heading').value),
+                    subheading_max: parseInt(document.getElementById('wc_sub_heading').value) + 5,
+                    intro_min: parseInt(document.getElementById('wc_intro').value),
+                    intro_max: parseInt(document.getElementById('wc_intro').value) + 10,
+                    body_min: parseInt(document.getElementById('wc_body').value),
+                    body_max: parseInt(document.getElementById('wc_body').value) + 20,
+                    info_box_min: parseInt(document.getElementById('wc_infobox').value),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 10
                 },
                 editorial_filters: { gujarati_tone: true }
             };
@@ -769,15 +815,18 @@
                 allowed_sources: [],
                 headline_config: { single_line: false },
                 word_count_rules: {
-                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value) - 2),
+                    cap_heading_min: parseInt(document.getElementById('wc_cap_heading').value),
+                    cap_heading_max: parseInt(document.getElementById('wc_cap_heading').value) + 2,
+                    heading_min: parseInt(document.getElementById('wc_headline').value),
                     heading_max: parseInt(document.getElementById('wc_headline').value) + 2,
-                    subheading_min: 5, subheading_max: 15,
-                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value) - 10),
-                    intro_max: parseInt(document.getElementById('wc_intro').value) + 15,
-                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value) - 20),
-                    body_max: parseInt(document.getElementById('wc_body').value) + 40,
-                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value) - 15),
-                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 20
+                    subheading_min: parseInt(document.getElementById('wc_sub_heading').value),
+                    subheading_max: parseInt(document.getElementById('wc_sub_heading').value) + 5,
+                    intro_min: parseInt(document.getElementById('wc_intro').value),
+                    intro_max: parseInt(document.getElementById('wc_intro').value) + 10,
+                    body_min: parseInt(document.getElementById('wc_body').value),
+                    body_max: parseInt(document.getElementById('wc_body').value) + 20,
+                    info_box_min: parseInt(document.getElementById('wc_infobox').value),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value) + 10
                 },
                 editorial_filters: { gujarati_tone: true }
             };
@@ -898,7 +947,7 @@
             const infoBoxHtml = article.info_box ? `
                 <div class="article-infobox mt-8">
                     <h4 class="text-xs font-black uppercase tracking-widest text-brand-600 mb-2">Key Points / Info Box</h4>
-                    <div id="edit_infobox" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1">
+                    <div id="edit_infobox" contenteditable="${isReadOnly ? 'false' : 'true'}" oninput="showSaveBtn(); updateWorkspaceCounters();" class="text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-blue-50 rounded p-1 whitespace-pre-wrap">
                         ${article.info_box}
                     </div>
                     <div id="count_infobox" class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider select-none mt-1 px-1"></div>
@@ -1127,11 +1176,11 @@
 
         window.updateWorkspaceCounters = function () {
             const fields = [
-                { id: 'edit_headline', countId: 'count_headline', targetInputId: 'wc_headline', minOffset: -2, maxOffset: 2, label: 'Headline' },
-                { id: 'edit_subheading', countId: 'count_subheading', targetInputId: null, minVal: 5, maxVal: 15, label: 'Sub-heading' },
-                { id: 'edit_intro', countId: 'count_intro', targetInputId: 'wc_intro', minOffset: -10, maxOffset: 15, label: 'Introduction' },
-                { id: 'edit_body', countId: 'count_body', targetInputId: 'wc_body', minOffset: -20, maxOffset: 40, label: 'Main Content' },
-                { id: 'edit_infobox', countId: 'count_infobox', targetInputId: 'wc_infobox', minOffset: -15, maxOffset: 20, label: 'Key Points / Info Box' }
+                { id: 'edit_headline', countId: 'count_headline', targetInputId: 'wc_headline', minOffset: 0, maxOffset: 2, label: 'Headline' },
+                { id: 'edit_subheading', countId: 'count_subheading', targetInputId: 'wc_sub_heading', minOffset: 0, maxOffset: 5, label: 'Sub-heading' },
+                { id: 'edit_intro', countId: 'count_intro', targetInputId: 'wc_intro', minOffset: 0, maxOffset: 10, label: 'Introduction' },
+                { id: 'edit_body', countId: 'count_body', targetInputId: 'wc_body', minOffset: 0, maxOffset: 20, label: 'Main Content' },
+                { id: 'edit_infobox', countId: 'count_infobox', targetInputId: 'wc_infobox', minOffset: 0, maxOffset: 10, label: 'Key Points / Info Box' }
             ];
 
             fields.forEach(f => {
@@ -1459,6 +1508,22 @@
 
         document.getElementById('keypointsInput').addEventListener('input', updateCounters);
 
+        function appendChatMessage(role, text) {
+            const history = document.getElementById('chatHistory');
+            if (!history) return;
+            history.classList.remove('hidden');
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `max-w-[85%] rounded-2xl p-3.5 text-sm font-medium leading-relaxed ${
+                role === 'user' 
+                ? 'bg-[#e82526] text-white self-end rounded-br-sm shadow-sm' 
+                : 'bg-white border border-slate-200 text-slate-700 self-start rounded-bl-sm shadow-sm'
+            }`;
+            msgDiv.innerText = text;
+            history.appendChild(msgDiv);
+            history.scrollTop = history.scrollHeight;
+        }
+
         async function handleAiChat() {
             const chatInput = document.getElementById('aiChatInput');
             const instruction = chatInput.value.trim();
@@ -1468,6 +1533,8 @@
                 toast("No article to refine. Please generate an article first.", "error");
                 return;
             }
+
+            appendChatMessage('user', instruction);
 
             // Grab all text content of the current article
             const headlineEl = document.getElementById('edit_headline');
@@ -1500,7 +1567,8 @@
 
             document.getElementById('welcomeState').classList.add('hidden');
             document.getElementById('results').classList.add('hidden');
-            if (document.getElementById('chatInterface')) document.getElementById('chatInterface').classList.add('hidden');
+            // We keep chatInterface visible now, so history is shown!
+            // Just hide the chat interface slightly if you want, or leave it visible. Let's leave it visible.
             document.getElementById('loading').classList.remove('hidden');
 
             const config = {
@@ -1512,15 +1580,18 @@
                 allowed_sources: [],
                 headline_config: { single_line: false },
                 word_count_rules: {
-                    heading_min: Math.max(1, parseInt(document.getElementById('wc_headline').value || 10) - 2),
+                    cap_heading_min: parseInt(document.getElementById('wc_cap_heading').value || 5),
+                    cap_heading_max: parseInt(document.getElementById('wc_cap_heading').value || 5) + 2,
+                    heading_min: parseInt(document.getElementById('wc_headline').value || 10),
                     heading_max: parseInt(document.getElementById('wc_headline').value || 10) + 2,
-                    subheading_min: 5, subheading_max: 15,
-                    intro_min: Math.max(1, parseInt(document.getElementById('wc_intro').value || 40) - 10),
-                    intro_max: parseInt(document.getElementById('wc_intro').value || 40) + 15,
-                    body_min: Math.max(1, parseInt(document.getElementById('wc_body').value || 200) - 20),
-                    body_max: parseInt(document.getElementById('wc_body').value || 200) + 40,
-                    info_box_min: Math.max(1, parseInt(document.getElementById('wc_infobox').value || 30) - 15),
-                    info_box_max: parseInt(document.getElementById('wc_infobox').value || 30) + 20
+                    subheading_min: parseInt(document.getElementById('wc_sub_heading').value || 15),
+                    subheading_max: parseInt(document.getElementById('wc_sub_heading').value || 15) + 5,
+                    intro_min: parseInt(document.getElementById('wc_intro').value || 40),
+                    intro_max: parseInt(document.getElementById('wc_intro').value || 40) + 10,
+                    body_min: parseInt(document.getElementById('wc_body').value || 200),
+                    body_max: parseInt(document.getElementById('wc_body').value || 200) + 20,
+                    info_box_min: parseInt(document.getElementById('wc_infobox').value || 30),
+                    info_box_max: parseInt(document.getElementById('wc_infobox').value || 30) + 10
                 },
                 editorial_filters: { gujarati_tone: true }
             };
@@ -1556,6 +1627,8 @@
                 }
 
                 window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
+                
+                appendChatMessage('ai', `I have applied your changes! The article has been updated to Polished (v${currentArticlesList.length}).`);
 
                 renderResults(currentArticleData);
                 syncUIWithStatus();
@@ -1567,6 +1640,7 @@
             } catch (e) {
                 console.error(e);
                 toast("Something went wrong processing your request!", "error");
+                appendChatMessage('ai', "Sorry, something went wrong while processing your request. Please try again.");
                 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('results').classList.remove('hidden');
@@ -1586,6 +1660,103 @@
                 handleAiChat();
             }
         });
+
+        const keypointsFileInput = document.getElementById('keypointsFileInput');
+        if (keypointsFileInput) {
+            keypointsFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const keypointsInput = document.getElementById('keypointsInput');
+                const originalPlaceholder = keypointsInput.placeholder;
+                keypointsInput.disabled = true;
+                keypointsInput.placeholder = "Extracting text from file...";
+                toast("Extracting file content...", "info");
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/extract/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.detail || "Failed to extract text");
+                    }
+                    
+                    const data = await res.json();
+                    if (data.text) {
+                        keypointsInput.value += (keypointsInput.value ? '\\n\\n' : '') + data.text;
+                        if (typeof updateCounters === 'function') updateCounters();
+                        toast("File content added!", "success");
+                    } else {
+                        toast("No text could be extracted.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toast("Error: " + err.message, "error");
+                } finally {
+                    keypointsInput.disabled = false;
+                    keypointsInput.placeholder = originalPlaceholder;
+                    e.target.value = ''; // Reset input
+                }
+            });
+        }
+
+        const aiChatFileBtn = document.getElementById('aiChatFileBtn');
+        if (aiChatFileBtn) {
+            aiChatFileBtn.addEventListener('click', () => {
+                document.getElementById('aiChatFileInput').click();
+            });
+
+            document.getElementById('aiChatFileInput').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const chatInput = document.getElementById('aiChatInput');
+                const originalPlaceholder = chatInput.placeholder;
+                chatInput.disabled = true;
+                chatInput.placeholder = "Extracting text from file...";
+                toast("Extracting file content...", "info");
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/extract/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.detail || "Failed to extract text");
+                    }
+                    
+                    const data = await res.json();
+                    if (data.text) {
+                        const instructionPrefix = chatInput.value ? '\n\n' : "કૃપા કરીને આ નવો ડેટા / ટેબલ સમાચારમાં ઉમેરો:\n\n";
+                        chatInput.value += instructionPrefix + data.text;
+                        chatInput.style.height = ''; 
+                        chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+                        toast("File content added!", "success");
+                    } else {
+                        toast("No text could be extracted.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toast("Error: " + err.message, "error");
+                } finally {
+                    chatInput.disabled = false;
+                    chatInput.placeholder = originalPlaceholder;
+                    e.target.value = ''; // Reset input
+                    chatInput.focus();
+                }
+            });
+        }
 
         function copyMergedArticle() {
             const contentDiv = document.getElementById('mergedArticleContent');

@@ -16,8 +16,10 @@ async def _extract_image_text(file_path: str, mime_type: str) -> str:
     base64_image = await asyncio.to_thread(_encode_image)
     
     prompt = (
-        "Extract all the text from this image accurately. "
-        "Output ONLY the extracted text, in its original language, without any additional explanations."
+        "You are an expert data extractor. Extract all the text, tables, and important details from this document accurately. "
+        "If it is a structured document like an FIR, police report, invoice, or official document, extract the key details clearly (names, dates, incidents, locations). "
+        "Preserve table structures using Markdown formatting. "
+        "Output ONLY the extracted text and tables in its original language, without any conversational filler."
     )
     
     messages = [
@@ -90,22 +92,64 @@ async def extract_text_from_file(file: UploadFile = File(...)):
                 import docx
                 def _extract_docx():
                     doc = docx.Document(tmp_path)
-                    fullText = [para.text for para in doc.paragraphs if para.text.strip()]
+                    fullText = []
+                    
+                    # Extract paragraphs
+                    for para in doc.paragraphs:
+                        if para.text.strip():
+                            fullText.append(para.text.strip())
+                            
+                    # Extract tables
+                    for table in doc.tables:
+                        for row in table.rows:
+                            row_data = []
+                            for cell in row.cells:
+                                clean_text = " ".join(cell.text.split())
+                                if clean_text:
+                                    row_data.append(clean_text)
+                            if row_data:
+                                fullText.append(" | ".join(row_data))
+                                
                     return '\n'.join(fullText)
                 extracted_text = await asyncio.to_thread(_extract_docx)
                 
             elif "pdf" in file_type or suffix_lower == '.pdf':
-                import pypdf
-                def _extract_pdf():
-                    text = ""
-                    with open(tmp_path, "rb") as f:
-                        reader = pypdf.PdfReader(f)
-                        for page in reader.pages:
-                            ext = page.extract_text()
-                            if ext:
-                                text += ext + "\n"
-                    return text
-                extracted_text = await asyncio.to_thread(_extract_pdf)
+                import fitz
+                async def _extract_pdf():
+                    doc = fitz.open(tmp_path)
+                    text_parts = []
+                    
+                    for page_num in range(len(doc)):
+                        page = doc[page_num]
+                        page_text = page.get_text()
+                        
+                        if len(page_text.strip()) > 50:
+                            text_parts.append(page_text)
+                            try:
+                                tables = page.find_tables()
+                                if tables:
+                                    for table in tables:
+                                        df = table.to_pandas()
+                                        if df is not None and not df.empty:
+                                            text_parts.append(df.to_markdown(index=False))
+                            except Exception:
+                                pass
+                        else:
+                            pix = page.get_pixmap(dpi=150)
+                            img_path = f"{tmp_path}_page_{page_num}.png"
+                            pix.save(img_path)
+                            
+                            try:
+                                img_text = await _extract_image_text(img_path, "image/png")
+                                text_parts.append(img_text)
+                            except Exception as e:
+                                print(f"Vision AI failed for page {page_num}: {e}")
+                            finally:
+                                if os.path.exists(img_path):
+                                    os.remove(img_path)
+                                    
+                    return "\n\n".join(text_parts)
+                extracted_text = await _extract_pdf()
                 
             elif "image" in file_type or suffix_lower in ['.png', '.jpg', '.jpeg', '.webp']:
                 extracted_text = await _extract_image_text(tmp_path, file_type)

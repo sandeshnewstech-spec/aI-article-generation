@@ -394,6 +394,7 @@
                     localStorage.setItem('access_token', data.access_token);
                     localStorage.setItem('user_role', data.role);
                     localStorage.setItem('username', document.getElementById('username').value);
+                    localStorage.setItem('modules', JSON.stringify(data.modules || []));
                     window.location.href = '/generator';
                 } else {
                     error.classList.remove('hidden');

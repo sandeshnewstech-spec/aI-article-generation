@@ -341,8 +341,12 @@
                             Role</label>
                         <div class="relative">
                             <select id="role" class="input-premium appearance-none">
-                                <option value="user">User (Standard)</option>
                                 <option value="super_admin">Super Admin</option>
+                                <option value="advt_admin">Advt Admin</option>
+                                <option value="news_editor_admin">News Editor Admin</option>
+                                <option value="news_editor">News Editor</option>
+                                <option value="advt_editor">Advt Editor</option>
+                                <option value="user">User (Standard)</option>
                             </select>
                             <div
                                 class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
@@ -421,6 +425,14 @@
                 return;
             }
 
+            const roleLabels = {
+                'super_admin': 'Super Admin',
+                'advt_admin': 'Advt Admin',
+                'news_editor_admin': 'News Editor Admin',
+                'news_editor': 'News Editor',
+                'advt_editor': 'Advt Editor',
+                'user': 'Staff'
+            };
             list.innerHTML = users.map((user, index) => `
                 <div class="user-card px-6 py-5 flex items-center justify-between fade-in" style="animation-delay: ${index * 0.05}s">
                     <div class="flex items-center gap-5">
@@ -430,8 +442,8 @@
                         <div>
                             <h3 class="font-black text-slate-900 text-lg tracking-tight">${user.username}</h3>
                             <div class="flex items-center gap-3 mt-1">
-                                <span class="badge ${user.role === 'super_admin' ? 'badge-admin' : 'badge-user'}">
-                                    ${user.role === 'super_admin' ? 'Super Admin' : 'Staff'}
+                                <span class="badge ${['super_admin', 'advt_admin', 'news_editor_admin'].includes(user.role) ? 'badge-admin' : 'badge-user'}">
+                                    ${roleLabels[user.role] || 'Staff'}
                                 </span>
                                 <div class="flex items-center gap-1.5 ml-1">
                                     <span class="status-dot ${user.is_active ? 'status-active' : 'status-inactive'}"></span>

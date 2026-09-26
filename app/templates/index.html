@@ -364,7 +364,6 @@
             background: #94a3b8;
         }
 
-        /* Hide scrollbars for chrome/safari/opera but keep functionality */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -372,6 +371,22 @@
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
+        }
+
+        /* Custom Table Horizontal Scrollbar */
+        .table-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 4px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         html,
@@ -534,7 +549,9 @@
 
                         <!-- Hidden Word Counts (still used by logic) -->
                         <div class="hidden">
+                            <input type="number" id="wc_cap_heading" value="5">
                             <input type="number" id="wc_headline" value="10">
+                            <input type="number" id="wc_sub_heading" value="15">
                             <input type="number" id="wc_intro" value="75">
                             <input type="number" id="wc_body" value="175">
                             <input type="number" id="wc_infobox" value="60">
@@ -603,8 +620,8 @@
                         <!-- History Table in Main Area -->
                         <div class="flex-1 w-full">
 
-                            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                                <table class="w-full text-left text-sm">
+                            <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto shadow-sm table-scroll pb-2">
+                                <table class="w-full text-left text-sm min-w-[700px]">
                                     <thead class="bg-gray-50 border-b border-gray-200">
                                         <tr>
                                             <th class="px-4 py-3 font-bold text-gray-600">Topic</th>
@@ -936,23 +953,29 @@
             const matchedSlot = allSlots.find(s => s.column_span === cols && s.slot_count === slots);
 
             if (matchedSlot) {
+                document.getElementById('wc_cap_heading').value = matchedSlot.wc_cap_heading || 5;
                 document.getElementById('wc_headline').value = matchedSlot.wc_headline || 10;
+                document.getElementById('wc_sub_heading').value = matchedSlot.wc_sub_heading || 15;
                 document.getElementById('wc_intro').value = matchedSlot.wc_intro || 75;
                 document.getElementById('wc_body').value = matchedSlot.wc_body || 175;
                 document.getElementById('wc_infobox').value = matchedSlot.wc_infobox || 60;
 
                 document.getElementById('layoutInfo').innerHTML =
                     `<span class="font-bold text-blue-900">${cols} Col | ${slots} Slot</span>: Optimized for 
-                     <span class="font-medium text-blue-700">H: ${matchedSlot.wc_headline}w, I: ${matchedSlot.wc_intro}w, B: ${matchedSlot.wc_body}w, K: ${matchedSlot.wc_infobox || 60}w</span>`;
+                     <span class="font-medium text-blue-700">CH: ${document.getElementById('wc_cap_heading').value}w, H: ${document.getElementById('wc_headline').value}w, SH: ${document.getElementById('wc_sub_heading').value}w, I: ${document.getElementById('wc_intro').value}w, B: ${document.getElementById('wc_body').value}w</span>`;
             } else {
                 // Fallback scaling if combination not found
                 const sizeFactor = cols / slots;
+                const wc_ch = Math.min(10, 4 + Math.floor(cols / 2));
                 const wc_h = Math.min(15, 8 + Math.floor(cols / 2));
+                const wc_sh = Math.min(20, 10 + Math.floor(cols / 2));
                 const wc_i = Math.min(200, Math.floor(35 + (sizeFactor * 25)));
                 const wc_b = Math.min(500, Math.floor(70 + (sizeFactor * 80)));
                 const wc_k = Math.min(100, Math.floor(30 + (sizeFactor * 15)));
 
+                document.getElementById('wc_cap_heading').value = wc_ch;
                 document.getElementById('wc_headline').value = wc_h;
+                document.getElementById('wc_sub_heading').value = wc_sh;
                 document.getElementById('wc_intro').value = wc_i;
                 document.getElementById('wc_body').value = wc_b;
                 document.getElementById('wc_infobox').value = wc_k;
@@ -1169,7 +1192,7 @@
                 return `
                     <tr class="hover:bg-red-50/50 transition-colors group cursor-default">
                         <td class="px-3 py-2.5 max-w-[280px]">
-                            <div class="font-semibold text-gray-900 group-hover:text-brand-700 truncate transition-colors" title="${item.topic}">${item.topic}</div>
+                            <div class="font-semibold text-gray-900 line-clamp-2 whitespace-normal group-hover:text-brand-700 transition-colors" title="${item.topic}">${item.topic}</div>
                         </td>
                         <td class="px-3 py-2.5">
                             <div class="flex items-center gap-2">
@@ -1404,7 +1427,9 @@
             setStepStatus(3, 'pending');
 
             const cat = document.getElementById('selectedCategory').value;
+            const wc_ch = parseInt(document.getElementById('wc_cap_heading').value) || 5;
             const wc_h = parseInt(document.getElementById('wc_headline').value) || 10;
+            const wc_sh = parseInt(document.getElementById('wc_sub_heading').value) || 15;
             const wc_i = parseInt(document.getElementById('wc_intro').value) || 75;
             const wc_b = parseInt(document.getElementById('wc_body').value) || 175;
             const wc_k = parseInt(document.getElementById('wc_infobox').value) || 60;
@@ -1420,16 +1445,18 @@
                 allowed_sources: Array.from(currentSelectedSources),
                 headline_config: { single_line: false },
                 word_count_rules: {
-                    heading_min: Math.max(1, wc_h - 2),
+                    cap_heading_min: wc_ch,
+                    cap_heading_max: wc_ch + 2,
+                    heading_min: wc_h,
                     heading_max: wc_h + 2,
-                    subheading_min: 5,
-                    subheading_max: 15,
-                    intro_min: Math.max(1, wc_i - 10),
-                    intro_max: wc_i + 15,
-                    body_min: Math.max(1, wc_b - 20),
-                    body_max: wc_b + 40,
-                    info_box_min: Math.max(1, wc_k - 15),
-                    info_box_max: wc_k + 20
+                    subheading_min: wc_sh,
+                    subheading_max: wc_sh + 5,
+                    intro_min: wc_i,
+                    intro_max: wc_i + 10,
+                    body_min: wc_b,
+                    body_max: wc_b + 20,
+                    info_box_min: wc_k,
+                    info_box_max: wc_k + 10
                 },
                 editorial_filters: {}
             };

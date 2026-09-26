@@ -19,6 +19,7 @@ class GridCalculator:
     WORD_COUNT_MATRIX = {
         # 1 Column layouts
         (1, 1): {
+            "cap_heading": (3, 5),
             "heading": (6, 8),
             "subheading": (8, 12),
             "intro": (30, 45),
@@ -27,6 +28,7 @@ class GridCalculator:
         },
         # 2 Column layouts
         (2, 1): {
+            "cap_heading": (4, 6),
             "heading": (8, 10),
             "subheading": (10, 14),
             "intro": (40, 60),
@@ -35,6 +37,7 @@ class GridCalculator:
         },
         # 3 Column layouts
         (3, 1): {
+            "cap_heading": (4, 8),
             "heading": (8, 12),
             "subheading": (10, 14),
             "intro": (70, 85),
@@ -43,6 +46,7 @@ class GridCalculator:
         },
         # 4 Column layouts
         (4, 1): {
+            "cap_heading": (5, 8),
             "heading": (12, 16),
             "subheading": (15, 20),
             "intro": (70, 85),
@@ -51,6 +55,7 @@ class GridCalculator:
         },
         # 5 Column layouts
         (5, 1): {
+            "cap_heading": (5, 10),
             "heading": (8, 10),
             "subheading": (16, 20),
             "intro": (70, 90),
@@ -58,6 +63,7 @@ class GridCalculator:
             "info_box": (60, 90)
         },
         (5, 1, "double"): {
+            "cap_heading": (6, 12),
             "heading": (12, 16),
             "subheading": (16, 22),
             "intro": (70, 95),
@@ -127,6 +133,8 @@ class GridCalculator:
             rules = GridCalculator.WORD_COUNT_MATRIX.get(key, GridCalculator.WORD_COUNT_MATRIX[(3, 1)])
         
         return WordCountRules(
+            cap_heading_min=rules.get("cap_heading", (5, 8))[0],
+            cap_heading_max=rules.get("cap_heading", (5, 8))[1],
             heading_min=rules["heading"][0],
             heading_max=rules["heading"][1],
             subheading_min=rules["subheading"][0],
@@ -135,8 +143,8 @@ class GridCalculator:
             intro_max=rules["intro"][1],
             body_min=rules["body"][0],
             body_max=rules["body"][1],
-            info_box_min=rules["info_box"][0] if rules["info_box"] else None,
-            info_box_max=rules["info_box"][1] if rules["info_box"] else None
+            info_box_min=rules["info_box"][0] if rules.get("info_box") else None,
+            info_box_max=rules["info_box"][1] if rules.get("info_box") else None
         )
     
     @staticmethod

@@ -10,6 +10,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+new-ai-rules/
 # App specific
 app/static/
+app/Last finel fonts/

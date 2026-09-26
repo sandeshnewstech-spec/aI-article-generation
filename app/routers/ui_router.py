@@ -82,3 +82,9 @@ async def advt_module(request: Request):
     return templates.TemplateResponse(request=request, name="advt.html", context={
         "current_page": "advt"
     })
+
+@router.get("/admin/roles")
+async def admin_roles(request: Request):
+    return templates.TemplateResponse(request=request, name="roles.html", context={
+        "current_page": "roles"
+    })

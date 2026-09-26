@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandesh AI | Role Permissions</title>
+    <link rel="icon" href="/static/favicon.jpeg" type="image/jpeg">
+    <script src="/static/tailwind.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Design System ──────────────────────────────── */
+        :root {
+            --brand-primary: #ae0a0b;
+            --brand-primary-dark: #800607;
+            --brand-secondary: #0f172a;
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --radius-xl: 1rem;
+            --radius-lg: 0.75rem;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .loader {
+            border: 2px solid rgba(174, 10, 11, 0.1);
+            border-top: 2px solid var(--brand-primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        html, body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-main);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .role-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .role-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: #cbd5e1;
+        }
+
+        .avatar-gradient {
+            background: linear-gradient(135deg, #e82526 0%, #990d0e 100%);
+            box-shadow: 0 4px 12px rgba(232, 37, 38, 0.2);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-admin {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fee2e2;
+        }
+
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.2s;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+        }
+        .btn-edit:hover {
+            background: #f0f9ff;
+            color: #0284c7;
+            border-color: #bae6fd;
+        }
+
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: var(--surface);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .module-checkbox {
+            accent-color: var(--brand-primary);
+        }
+    </style>
+</head>
+
+<body class="bg-white h-full overflow-hidden text-gray-800 font-sans">
+    {% include 'sidebar.html' %}
+    <div class="sb-offset">
+        <!-- Header -->
+        <nav class="glass-nav sticky top-0 z-40">
+            <div class="px-3">
+                <div class="flex justify-between h-14 items-center">
+                    <div class="flex items-center gap-4">
+                        <div class="avatar-gradient w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 21a9.003 9.003 0 008.354-5.646L12 13.11l-8.354 2.244A9.003 9.003 0 0012 21z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-black text-slate-900 tracking-tight">Role Permissions</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-1 w-full px-3 py-4 overflow-y-auto custom-scrollbar">
+            <div class="mb-4 flex items-end justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Manage Access</h2>
+                    <p class="text-sm text-slate-500 mt-1">Configure which modules each role can access.</p>
+                </div>
+            </div>
+
+            <div id="roleList" class="grid grid-cols-1 gap-4">
+                <div class="flex flex-col items-center justify-center py-20 text-slate-400">
+                    <div class="loader mb-4"></div>
+                    <p class="text-sm font-medium">Synchronizing roles...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Modal -->
+    <div id="roleModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-4">
+            <div class="modal-content overflow-hidden transform transition-all">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div>
+                        <h3 id="modalTitle" class="text-xl font-black text-slate-900 tracking-tight">Edit Role</h3>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1" id="modalSub"></p>
+                    </div>
+                    <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 transition-all shadow-sm active:scale-90">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <form id="roleForm" class="flex flex-col flex-1 overflow-hidden">
+                    <input type="hidden" id="edit_role_name">
+                    
+                    <div class="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Allowed Modules</label>
+                        
+                        <div id="modulesContainer" class="space-y-3">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t border-slate-100 flex gap-4 bg-slate-50">
+                        <button type="button" onclick="closeModal()" class="flex-1 px-6 py-3.5 border border-slate-200 text-slate-600 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition active:scale-95">Cancel</button>
+                        <button type="submit" class="flex-[2] px-8 py-3.5 bg-gradient-to-r from-[#e82526] to-[#990d0e] hover:shadow-red-900/40 text-white font-black text-xs uppercase tracking-widest rounded-xl transition shadow-xl shadow-brand-primary/20 active:scale-95">Save Permissions</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        const roleLabels = {
+            'super_admin': 'Super Admin',
+            'advt_admin': 'Advt Admin',
+            'news_editor_admin': 'News Editor Admin',
+            'news_editor': 'News Editor',
+            'advt_editor': 'Advt Editor',
+            'user': 'Staff'
+        };
+
+        const availableModules = [
+            { id: 'generator', name: 'AI Draft Desk', section: 'Generate' },
+            { id: 'editor', name: 'News Editor', section: 'Generate' },
+            { id: 'full_newspaper', name: 'Full Newspaper', section: 'Generate' },
+            { id: 'advt', name: 'Advertisement', section: 'Generate' },
+            { id: 'categories', name: 'Categories & Sources', section: 'Admin' },
+            { id: 'advt_categories', name: 'Advt Categories', section: 'Admin' },
+            { id: 'slots', name: 'Slot Manager', section: 'Admin' },
+            { id: 'users', name: 'Users', section: 'Admin' },
+            { id: 'roles', name: 'Role Permissions', section: 'Admin' }
+        ];
+
+        let allRoles = [];
+
+        async function fetchRoles() {
+            try {
+                const response = await fetch('/api/roles', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.status === 401) window.location.href = '/login';
+                allRoles = await response.json();
+                renderRoles(allRoles);
+            } catch (err) {
+                console.error('Failed to fetch roles', err);
+            }
+        }
+
+        function renderRoles(roles) {
+            const list = document.getElementById('roleList');
+            
+            // Map over hardcoded role enum to ensure all are shown even if not in DB yet
+            const systemRoles = Object.keys(roleLabels);
+            
+            list.innerHTML = systemRoles.map((roleName, index) => {
+                const roleData = roles.find(r => r.role === roleName) || { role: roleName, modules: [] };
+                const label = roleLabels[roleName] || roleName;
+                
+                return `
+                <div class="role-card px-6 py-5 flex items-center justify-between" style="animation: fadeIn 0.4s ease-out; animation-fill-mode: both; animation-delay: ${index * 0.05}s">
+                    <div class="flex items-center gap-5">
+                        <div class="w-14 h-14 rounded-2xl avatar-gradient flex items-center justify-center text-white font-black text-xl">
+                            ${label.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 text-lg tracking-tight">${label}</h3>
+                            <div class="flex flex-wrap items-center gap-2 mt-2 max-w-2xl">
+                                ${roleData.modules.length > 0 
+                                    ? roleData.modules.map(m => `<span class="badge badge-admin bg-slate-100 text-slate-600 border-slate-200">${availableModules.find(am=>am.id===m)?.name || m}</span>`).join('')
+                                    : '<span class="text-xs text-slate-400 font-bold">No modules assigned</span>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openModal('${roleName}')" class="btn-action btn-edit" title="Edit Permissions">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(roleName) {
+            const roleData = allRoles.find(r => r.role === roleName) || { role: roleName, modules: [] };
+            document.getElementById('edit_role_name').value = roleName;
+            document.getElementById('modalSub').textContent = roleLabels[roleName] || roleName;
+            
+            const container = document.getElementById('modulesContainer');
+            container.innerHTML = availableModules.map(mod => `
+                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="modules" value="${mod.id}" ${roleData.modules.includes(mod.id) ? 'checked' : ''} class="w-5 h-5 module-checkbox rounded text-brand-primary focus:ring-brand-primary">
+                    <div>
+                        <div class="font-bold text-sm text-slate-800">${mod.name}</div>
+                        <div class="text-xs text-slate-400">${mod.section} Section</div>
+                    </div>
+                </label>
+            `).join('');
+
+            document.getElementById('roleModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('roleModal').classList.add('hidden');
+        }
+
+        document.getElementById('roleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const roleName = document.getElementById('edit_role_name').value;
+            const checkboxes = document.querySelectorAll('input[name="modules"]:checked');
+            const modules = Array.from(checkboxes).map(cb => cb.value);
+
+            try {
+                const response = await fetch(`/api/roles/${roleName}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ modules })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    fetchRoles();
+                    
+                    // If modifying own role, optionally refresh modules
+                    if (localStorage.getItem('user_role') === roleName) {
+                        localStorage.setItem('modules', JSON.stringify(modules));
+                        window.location.reload();
+                    }
+                } else {
+                    const data = await response.json();
+                    alert(data.detail || 'Failed to update role');
+                }
+            } catch (err) {
+                alert('Error updating role');
+            }
+        });
+
+        fetchRoles();
+    </script>
+</body>
+</html>

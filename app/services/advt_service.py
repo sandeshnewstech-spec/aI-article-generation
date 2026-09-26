@@ -147,7 +147,7 @@ class AdvtService:
             formatting_instructions.append("- CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely. DO NOT extract the text from any rubber stamp (e.g. English advocate stamps with license numbers). Only extract the actual printed article text.")
             formatting_instructions.append("- CRITICAL for Legal Notice: Top heading MUST be 'જાહેર નોટિસ' (font_size_px: 20, color: '#FFFFFF', background_color: '#000000', font_family: 'Gopika', text_align: 'center').")
             formatting_instructions.append("- Content MUST have font_size_px: 11, color: '#000000', font_family: 'Gopika'.")
-            formatting_instructions.append("- Advocate names MUST have font_size_px: 11, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
+            formatting_instructions.append("- Advocate names MUST have font_size_px: 12, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
             if float(width) >= 15:
                 formatting_instructions.append("- Since width is >= 15, use a 2-COLUMN layout. Split the content logically. Column 1 (left_percent: 2, width_percent: 45), Column 2 (left_percent: 52, width_percent: 45). Place the Top Heading ONLY in Column 1 at the top.")
             else:
@@ -158,10 +158,11 @@ class AdvtService:
                 "Advertisement Type: Legal Notice\n"
                 f"Step 1: Visually analyze the original image and {'translate' if eng_to_guj else 'extract'} the text.\n"
                 "Step 2: CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely. DO NOT extract the text from any rubber stamp (e.g. English advocate stamps with license numbers). Only extract the actual printed article text.\n"
+                "Step 3: CRITICAL: IGNORE THE LETTERHEAD AT THE TOP. DO NOT extract advocate names, office addresses, or phone numbers printed at the very top of the page (above the 'જાહેર નોટિસ' or Public Notice heading). START extracting ONLY from the 'જાહેર નોટિસ' heading downwards.\n"
                 "Format your output strictly as a pure JSON ARRAY of objects. Do NOT include a 'thought_process' key or any surrounding object.\n"
                 "The output MUST be a pure JSON array where each object has ONLY the following keys:\n"
                 f"  - 'text': the {'translated Gujarati text' if eng_to_guj else 'extracted text'}\n"
-                "  - 'type': EITHER 'heading' (for જાહેર નોટિસ), 'content' (for body paragraphs), or 'advocate' (for advocate details).\n"
+                "  - 'type': EITHER 'heading' (for જાહેર નોટિસ), 'content' (for body paragraphs), or 'advocate' (for advocate details AT THE BOTTOM).\n"
                 "CRITICAL: Your JSON MUST be 100% syntactically valid. You MUST escape any double quotes inside strings using backslashes (\\\"). Do NOT use trailing commas.\n"
                 "Output ONLY the JSON array, without any markdown formatting.\n"
             )
@@ -278,7 +279,7 @@ class AdvtService:
             formatting_instructions.append("- CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely.")
             formatting_instructions.append("- CRITICAL for Legal Notice: Top heading MUST be 'જાહેર નોટિસ' (font_size_px: 20, color: '#FFFFFF', background_color: '#000000', font_family: 'Gopika', text_align: 'center').")
             formatting_instructions.append("- Content MUST have font_size_px: 11, color: '#000000', font_family: 'Gopika'.")
-            formatting_instructions.append("- Advocate names MUST have font_size_px: 11, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
+            formatting_instructions.append("- Advocate names MUST have font_size_px: 12, font_weight: 'bold', color: '#000000', font_family: 'Gopika'.")
             if float(width) >= 15:
                 formatting_instructions.append("- Since width is >= 15, use a 2-COLUMN layout. Split the content logically. Column 1 (left_percent: 2, width_percent: 45), Column 2 (left_percent: 52, width_percent: 45). Place the Top Heading ONLY in Column 1 at the top.")
             else:
@@ -290,10 +291,11 @@ class AdvtService:
                 f"Step 1: Visually analyze the original advertisement. Group the text into logical paragraphs.\n"
                 f"Step 2: {'Translate the text to Gujarati accurately.' if eng_to_guj else 'Extract the text exactly as written.'}\n"
                 "Step 3: CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely.\n"
+                "Step 4: CRITICAL: IGNORE THE LETTERHEAD AT THE TOP. DO NOT extract advocate names, office addresses, or phone numbers printed at the very top of the page (above the 'જાહેર નોટિસ' or Public Notice heading). START extracting ONLY from the 'જાહેર નોટિસ' heading downwards.\n"
                 "Format your output strictly as a pure JSON ARRAY of objects. Do NOT include a 'thought_process' key or any surrounding object.\n"
                 "The output MUST be a pure JSON array where each object has ONLY the following keys:\n"
                 f"  - 'text': the {'translated Gujarati text' if eng_to_guj else 'extracted text'}\n"
-                "  - 'type': EITHER 'heading' (for જાહેર નોટિસ), 'content' (for body paragraphs), or 'advocate' (for advocate details).\n"
+                "  - 'type': EITHER 'heading' (for જાહેર નોટિસ), 'content' (for body paragraphs), or 'advocate' (for advocate details AT THE BOTTOM).\n"
                 "CRITICAL: Your JSON MUST be 100% syntactically valid. You MUST escape any double quotes inside strings using backslashes (\\\"). Do NOT use trailing commas.\n"
                 "Output ONLY the JSON array, without any markdown formatting or additional explanations.\n\n"
                 f"TEXT:\n{text}"
@@ -375,76 +377,91 @@ class AdvtService:
         import json
         import os
         import time
+        import re
 
         result = await self._call_openrouter(messages)
         
         try:
-            clean_result = result.strip()
-            
-            # Find the first { or [ and last } or ] to extract pure JSON
-            start_idx_brace = clean_result.find('{')
-            start_idx_bracket = clean_result.find('[')
-            start_idx = -1
-            if start_idx_brace != -1 and start_idx_bracket != -1:
-                start_idx = min(start_idx_brace, start_idx_bracket)
-            else:
-                start_idx = max(start_idx_brace, start_idx_bracket)
+            def robust_json_parse(text):
+                import re
+                text = text.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                elif text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
                 
-            end_idx_brace = clean_result.rfind('}')
-            end_idx_bracket = clean_result.rfind(']')
-            end_idx = max(end_idx_brace, end_idx_bracket)
-            
-            if start_idx != -1 and end_idx != -1:
-                clean_result = clean_result[start_idx:end_idx+1]
+                start_brace = text.find('{')
+                start_bracket = text.find('[')
+                start_idx = -1
+                if start_brace != -1 and start_bracket != -1:
+                    start_idx = min(start_brace, start_bracket)
+                elif start_brace != -1:
+                    start_idx = start_brace
+                elif start_bracket != -1:
+                    start_idx = start_bracket
+                    
+                if start_idx == -1:
+                    raise ValueError("No JSON found in text")
+                    
+                end_brace = text.rfind('}')
+                end_bracket = text.rfind(']')
+                end_idx = max(end_brace, end_bracket)
                 
-            import re
-            # Fix common LLM JSON errors (trailing commas)
-            clean_result = re.sub(r',\s*}', '}', clean_result)
-            clean_result = re.sub(r',\s*\]', ']', clean_result)
-            
-            try:
-                data = json.loads(clean_result)
-            except json.JSONDecodeError as e_strict:
-                print(f"[WARNING] Strict JSON parse failed ({e_strict}). Attempting robust extraction...")
-                # If it's a list format, try fixing newlines inside strings
+                if end_idx == -1 or end_idx < start_idx:
+                    raise ValueError("Incomplete JSON structure")
+                    
+                json_str = text[start_idx:end_idx+1]
+                
+                is_array = (start_idx == start_bracket)
+                if is_array and json_str.endswith('}'):
+                    json_str += ']'
+                elif not is_array and json_str.endswith(']'):
+                    json_str += '}'
+                    
+                json_str = re.sub(r',\s*}', '}', json_str)
+                json_str = re.sub(r',\s*\]', ']', json_str)
+                
                 try:
-                    # State machine to only escape newlines INSIDE quotes
-                    in_string = False
-                    escaped = False
-                    result_chars = []
-                    for char in clean_result:
-                        if char == '"' and not escaped:
-                            in_string = not in_string
-                        
-                        if in_string and char == '\n':
-                            result_chars.append('\\n')
-                        elif in_string and char == '\r':
-                            pass
-                        else:
-                            result_chars.append(char)
-                            
-                        if char == '\\':
-                            escaped = not escaped
-                        else:
-                            escaped = False
-                            
-                    fixed_str = "".join(result_chars)
-                    data = json.loads(fixed_str)
-                except Exception as e_fixed:
-                    print(f"[WARNING] Fixed string parse failed ({e_fixed}). Attempting regex fallback...")
-                    # Fallback to extracting the gujarati_text array
-                    match = re.search(r'"gujarati_text"\s*:\s*(\[.*?\])', clean_result, re.DOTALL)
-                    if match:
-                        try:
-                            array_str = match.group(1)
-                            array_str = re.sub(r',\s*\]', ']', array_str)
-                            array_str = re.sub(r'(?<!\\)\n', '\\\\n', array_str)
-                            data = json.loads(array_str)
-                        except Exception as e2:
-                            print(f"[ERROR] Regex JSON extraction failed: {e2}")
-                            raise
+                    return json.loads(json_str)
+                except Exception as e_strict:
+                    print(f"[WARNING] Strict JSON parse failed ({e_strict}). Attempting robust extraction...")
+                    pass
+                    
+                in_string = False
+                escaped = False
+                result_chars = []
+                for char in json_str:
+                    if char == '"' and not escaped:
+                        in_string = not in_string
+                    
+                    if in_string and char == '\n':
+                        result_chars.append('\\n')
+                    elif in_string and char == '\r':
+                        pass
                     else:
-                        raise
+                        result_chars.append(char)
+                        
+                    if char == '\\':
+                        escaped = not escaped
+                    else:
+                        escaped = False
+                        
+                fixed_str = "".join(result_chars)
+                try:
+                    return json.loads(fixed_str)
+                except Exception as e:
+                    print(f"[WARNING] Fixed string parse failed ({e}). Attempting regex fallback...")
+                    match = re.search(r'"gujarati_text"\s*:\s*(\[.*?\])', fixed_str, re.DOTALL)
+                    if match:
+                        array_str = match.group(1)
+                        array_str = re.sub(r',\s*\]', ']', array_str)
+                        return json.loads(array_str)
+                    raise e
+                    
+            data = robust_json_parse(result)
 
             if isinstance(data, list):
                 gujarati_text_list = data
@@ -465,8 +482,8 @@ class AdvtService:
                 total_alpha = sum(1 for c in text if c.isalpha())
                 
                 if total_alpha > 0 and (eng_chars / total_alpha) > 0.8:
-                    # If block is 80% English letters but we expect a Gujarati legal notice, it's a stamp!
-                    if eng_to_guj or legal_notice:
+                    # If block is 80% English letters but we expect a Gujarati notice, it's a stamp!
+                    if eng_to_guj:
                         print(f"[FILTER] Dropped English rubber stamp block: {text}")
                         continue
                         
@@ -477,6 +494,10 @@ class AdvtService:
                     
                 filtered_list.append(block)
                 
+            if len(filtered_list) == 0 and len(gujarati_text_list) > 0:
+                print("[FILTER] Warning: All blocks were filtered! Falling back to unfiltered blocks.")
+                filtered_list = gujarati_text_list
+
             gujarati_text_list = filtered_list
                 
             initial_json_str = json.dumps(gujarati_text_list, ensure_ascii=False)
@@ -690,17 +711,40 @@ class AdvtService:
         }
         
         def _request():
-            response = requests.post(url, headers=headers, json=payload, timeout=120)
-            if not response.ok:
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
                 try:
-                    err = response.json()
-                    raise Exception(err.get("error", {}).get("message", response.text))
-                except Exception:
-                    response.raise_for_status()
-            data = response.json()
-            content = data["choices"][0]["message"].get("content")
-            if content is None:
-                raise Exception(f"OpenRouter returned empty content. Full response: {data}")
-            return content.strip()
+                    response = requests.post(url, headers=headers, json=payload, timeout=120)
+                    if not response.ok:
+                        try:
+                            err = response.json()
+                            raise Exception(err.get("error", {}).get("message", response.text))
+                        except Exception as parse_e:
+                            if not isinstance(parse_e, Exception) or str(parse_e) == "":
+                                response.raise_for_status()
+                            else:
+                                raise Exception(f"HTTP {response.status_code}: {response.text}") from None
+                    
+                    data = response.json()
+                    choices = data.get("choices", [])
+                    if not choices:
+                        raise Exception(f"OpenRouter returned no choices. Full response: {data}")
+                        
+                    choice = choices[0]
+                    if choice.get("finish_reason") == "error":
+                        err_msg = choice.get("error", {}).get("message", "Unknown error")
+                        raise Exception(f"OpenRouter generation error: {err_msg}")
+                        
+                    content = choice.get("message", {}).get("content")
+                    if content is None:
+                        raise Exception(f"OpenRouter returned empty content. Full response: {data}")
+                    
+                    return content.strip()
+                except Exception as e:
+                    print(f"[WARNING] OpenRouter request failed (Attempt {attempt + 1}/{max_retries}): {e}")
+                    if attempt == max_retries - 1:
+                        raise
+                    time.sleep(2 * (attempt + 1))
             
         return await asyncio.to_thread(_request)

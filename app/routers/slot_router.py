@@ -22,7 +22,9 @@ class SlotCreate(BaseModel):
     slot_count: int = 1
     description: Optional[str] = ""
     is_active: bool = True
+    wc_cap_heading: int = 5
     wc_headline: int = 10
+    wc_sub_heading: int = 15
     wc_intro: int = 70
     wc_body: int = 170
 
@@ -33,7 +35,9 @@ class SlotUpdate(BaseModel):
     slot_count: Optional[int] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
+    wc_cap_heading: Optional[int] = None
     wc_headline: Optional[int] = None
+    wc_sub_heading: Optional[int] = None
     wc_intro: Optional[int] = None
     wc_body: Optional[int] = None
 

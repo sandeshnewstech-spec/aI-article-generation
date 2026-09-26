@@ -79,6 +79,8 @@ class HeadlineConfig(BaseModel):
 class WordCountRules(BaseModel):
     """Word count constraints for each section"""
 
+    cap_heading_min: Optional[int] = Field(default=None, description="Minimum words in cap heading")
+    cap_heading_max: Optional[int] = Field(default=None, description="Maximum words in cap heading")
     heading_min: int = Field(ge=1, description="Minimum words in heading")
     heading_max: int = Field(ge=1, description="Maximum words in heading")
     subheading_min: int = Field(ge=1, description="Minimum words in subheading")

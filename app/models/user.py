@@ -4,6 +4,10 @@ from enum import Enum
 
 class UserRole(str, Enum):
     SUPER_ADMIN = "super_admin"
+    ADVT_ADMIN = "advt_admin"
+    NEWS_EDITOR_ADMIN = "news_editor_admin"
+    NEWS_EDITOR = "news_editor"
+    ADVT_EDITOR = "advt_editor"
     USER = "user"
 
 class UserBase(BaseModel):

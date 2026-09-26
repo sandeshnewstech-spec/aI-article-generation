@@ -29,6 +29,7 @@ async def connect_db():
         await seed_defaults()
         await seed_users()
         await seed_advt_categories()
+        await seed_role_permissions()
     except Exception as e:
         print(f"❌ [CRITICAL] Could not connect to MongoDB at {MONGODB_URL}")
         print(f"   Please ensure MongoDB service is running (e.g., 'net start MongoDB' or 'brew services start mongodb-community')")
@@ -176,3 +177,18 @@ async def seed_advt_categories():
         ]
         await db["advt_categories"].insert_many(categories)
         print("[OK] Seeded default ADVT categories")
+
+async def seed_role_permissions():
+    """Seed default role permissions if the collection is empty."""
+    count = await db["role_permissions"].count_documents({})
+    if count == 0:
+        permissions = [
+            {"role": "super_admin", "modules": ["generator", "editor", "full_newspaper", "advt", "categories", "advt_categories", "slots", "users", "roles"]},
+            {"role": "advt_admin", "modules": ["advt", "advt_categories"]},
+            {"role": "news_editor_admin", "modules": ["editor", "full_newspaper", "generator", "categories"]},
+            {"role": "news_editor", "modules": ["editor", "generator"]},
+            {"role": "advt_editor", "modules": ["advt"]},
+            {"role": "user", "modules": []}
+        ]
+        await db["role_permissions"].insert_many(permissions)
+        print("[OK] Seeded default role permissions")
