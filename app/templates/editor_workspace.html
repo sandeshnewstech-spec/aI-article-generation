@@ -249,7 +249,8 @@
                                 News Keypoints & Notes
                             </label>
                             <div class="flex items-center gap-3">
-                                <input type="file" id="keypointsFileInput" class="hidden" accept=".txt,.pdf,.docx,.doc,image/*">
+                                <input type="file" id="keypointsFileInput" class="hidden"
+                                    accept=".txt,.pdf,.docx,.doc,image/*">
                                 <button type="button" id="clearKeypointsBtn"
                                     onclick="document.getElementById('keypointsInput').value = ''; updateCounters();"
                                     class="text-[10px] text-slate-400 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-0.5 outline-none">
@@ -274,10 +275,11 @@
                                     class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">0
                                     words</span>
                             </div>
-                            <button type="button" onclick="document.getElementById('keypointsFileInput').click();" 
+                            <button type="button" onclick="document.getElementById('keypointsFileInput').click();"
                                 class="text-[10px] text-slate-500 hover:text-brand-500 font-bold uppercase transition-all duration-200 flex items-center gap-1 outline-none bg-slate-100 hover:bg-red-50 px-2.5 py-1 rounded-md border border-slate-200 hover:border-red-200">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                 </svg>
                                 Upload File
                             </button>
@@ -333,12 +335,14 @@
                         <!-- Word Counts -->
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Cap Heading</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Cap
+                                    Heading</label>
                                 <input type="number" id="wc_cap_heading" value="5" oninput="updateWorkspaceCounters();"
                                     class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Sub Heading</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 ml-1">Sub
+                                    Heading</label>
                                 <input type="number" id="wc_sub_heading" value="15" oninput="updateWorkspaceCounters();"
                                     class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center font-bold">
                             </div>
@@ -416,28 +420,45 @@
                 </div>
 
                 <!-- ChatGPT like Chat Interface -->
-                <div id="chatInterface" class="hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent pt-12 pb-6 px-6 pointer-events-none z-10 flex flex-col items-center">
+                <div id="chatInterface"
+                    class="hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent pt-12 pb-6 px-6 pointer-events-none z-10 flex flex-col items-center">
                     <!-- Chat History Container -->
-                    <div id="chatHistory" class="w-full max-w-6xl mx-auto mb-3 flex flex-col gap-3 max-h-[350px] overflow-y-auto pointer-events-auto px-2 no-scrollbar hidden">
+                    <div id="chatHistory"
+                        class="w-full max-w-6xl mx-auto mb-3 flex flex-col gap-3 max-h-[350px] overflow-y-auto pointer-events-auto px-2 no-scrollbar hidden">
                         <!-- Messages will be appended here via JS -->
                     </div>
-                    <div class="w-full max-w-6xl mx-auto relative pointer-events-auto bg-white/95 backdrop-blur-xl border-2 border-[#e82526]/40 shadow-[0_8px_30px_#e825261a] rounded-2xl focus-within:border-[#e82526] focus-within:ring-4 focus-within:ring-[#e82526]/15 transition-all duration-300 flex items-end p-1.5 group hover:shadow-[0_12px_40px_#e8252626] hover:border-[#e82526]/60">
+                    <div
+                        class="w-full max-w-6xl mx-auto relative pointer-events-auto bg-white/95 backdrop-blur-xl border-2 border-[#e82526]/40 shadow-[0_8px_30px_#e825261a] rounded-2xl focus-within:border-[#e82526] focus-within:ring-4 focus-within:ring-[#e82526]/15 transition-all duration-300 flex items-end p-1.5 group hover:shadow-[0_12px_40px_#e8252626] hover:border-[#e82526]/60">
                         <div class="flex items-center justify-center h-[52px] w-[48px] shrink-0 text-[#e82526]">
-                            <svg class="w-5 h-5 animate-[pulse_2s_ease-in-out_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <svg class="w-5 h-5 animate-[pulse_2s_ease-in-out_infinite]" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
-                        <textarea id="aiChatInput" rows="1" class="flex-1 bg-transparent py-3.5 pr-3 pl-0 text-[16px] font-medium text-slate-800 placeholder-slate-400 outline-none border-none focus:ring-0 resize-none leading-relaxed no-scrollbar" placeholder="સિનીયર એડિટરને સૂચના આપો... (દા.ત., 'હેડલાઇન વધુ આકર્ષક બનાવો')" oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 200) + 'px'" style="min-height: 52px; max-height: 200px;"></textarea>
-                        
+                        <textarea id="aiChatInput" rows="1"
+                            class="flex-1 bg-transparent py-3.5 pr-3 pl-0 text-[16px] font-medium text-slate-800 placeholder-slate-400 outline-none border-none focus:ring-0 resize-none leading-relaxed no-scrollbar"
+                            placeholder="સિનીયર એડિટરને સૂચના આપો... (દા.ત., 'હેડલાઇન વધુ આકર્ષક બનાવો')"
+                            oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 200) + 'px'"
+                            style="min-height: 52px; max-height: 200px;"></textarea>
+
                         <input type="file" id="aiChatFileInput" class="hidden" accept=".txt,.pdf,.docx,.doc,image/*">
-                        <button id="aiChatFileBtn" type="button" class="shrink-0 mb-[6px] mr-2 text-slate-400 hover:text-[#e82526] transition-colors flex items-center justify-center h-10 w-10 bg-transparent rounded-xl hover:bg-red-50" title="Upload File">
+                        <button id="aiChatFileBtn" type="button"
+                            class="shrink-0 mb-[6px] mr-2 text-slate-400 hover:text-[#e82526] transition-colors flex items-center justify-center h-10 w-10 bg-transparent rounded-xl hover:bg-red-50"
+                            title="Upload File">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                             </svg>
                         </button>
 
-                        <button id="aiChatSendBtn" class="shrink-0 mb-[6px] mr-[6px] bg-gradient-to-r from-[#e82526] to-[#cc1f20] hover:from-[#cc1f20] hover:to-[#990d0e] text-white rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center h-10 w-10 shadow-md hover:shadow-lg hover:shadow-[#e82526]/30">
-                            <svg class="w-4 h-4 -translate-y-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
+                        <button id="aiChatSendBtn"
+                            class="shrink-0 mb-[6px] mr-[6px] bg-gradient-to-r from-[#e82526] to-[#cc1f20] hover:from-[#cc1f20] hover:to-[#990d0e] text-white rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center h-10 w-10 shadow-md hover:shadow-lg hover:shadow-[#e82526]/30">
+                            <svg class="w-4 h-4 -translate-y-[1px]" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M12 19V5m0 0l-7 7m7-7l7 7" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -736,8 +757,8 @@
                 const res = await fetch('/api/newspaper/generate-from-keypoints', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        keypoints, 
+                    body: JSON.stringify({
+                        keypoints,
                         config,
                         username: localStorage.getItem('username') || "Admin"
                     })
@@ -835,9 +856,9 @@
                 const res = await fetch('/api/newspaper/rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        keypoints, 
-                        config, 
+                    body: JSON.stringify({
+                        keypoints,
+                        config,
                         history_id: currentEditingId,
                         username: localStorage.getItem('username') || "Admin"
                     })
@@ -1192,7 +1213,7 @@
                 const htmlContent = el.innerHTML;
                 const chars = text.length;
                 const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
-                
+
                 // Sync to preview (only if user is not actively typing inside the preview itself)
                 const previewEl = document.getElementById(f.id.replace('edit_', 'preview_'));
                 if (previewEl && document.activeElement !== previewEl) {
@@ -1514,11 +1535,10 @@
             history.classList.remove('hidden');
 
             const msgDiv = document.createElement('div');
-            msgDiv.className = `max-w-[85%] rounded-2xl p-3.5 text-sm font-medium leading-relaxed ${
-                role === 'user' 
-                ? 'bg-[#e82526] text-white self-end rounded-br-sm shadow-sm' 
-                : 'bg-white border border-slate-200 text-slate-700 self-start rounded-bl-sm shadow-sm'
-            }`;
+            msgDiv.className = `max-w-[85%] rounded-2xl p-3.5 text-sm font-medium leading-relaxed ${role === 'user'
+                    ? 'bg-[#e82526] text-white self-end rounded-br-sm shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-700 self-start rounded-bl-sm shadow-sm'
+                }`;
             msgDiv.innerText = text;
             history.appendChild(msgDiv);
             history.scrollTop = history.scrollHeight;
@@ -1528,7 +1548,7 @@
             const chatInput = document.getElementById('aiChatInput');
             const instruction = chatInput.value.trim();
             if (!instruction) return;
-            
+
             if (!currentArticleData) {
                 toast("No article to refine. Please generate an article first.", "error");
                 return;
@@ -1559,7 +1579,7 @@
             chatInput.value = '';
             chatInput.style.height = '';
             document.getElementById('aiChatSendBtn').disabled = true;
-            
+
             const loadingTitle = document.querySelector('#loading h3');
             const loadingDesc = document.querySelector('#loading p');
             if (loadingTitle) loadingTitle.innerText = "AI Editor Refining...";
@@ -1600,9 +1620,9 @@
                 const res = await fetch('/api/newspaper/rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        keypoints, 
-                        config, 
+                    body: JSON.stringify({
+                        keypoints,
+                        config,
                         instruction,
                         history_id: currentEditingId,
                         username: localStorage.getItem('username') || "Admin"
@@ -1621,13 +1641,13 @@
                 }
                 currentVersionIndex = currentArticlesList.length - 1;
                 currentArticleData = newArticle;
-                
+
                 if (currentArticleStatus !== 'Pending Approval' && currentArticleStatus !== 'Pending' && currentArticleStatus !== 'Approved') {
                     currentArticleStatus = 'Draft';
                 }
 
                 window.history.replaceState({}, '', '/editor/workspace?id=' + currentEditingId);
-                
+
                 appendChatMessage('ai', `I have applied your changes! The article has been updated to Polished (v${currentArticlesList.length}).`);
 
                 renderResults(currentArticleData);
@@ -1641,18 +1661,18 @@
                 console.error(e);
                 toast("Something went wrong processing your request!", "error");
                 appendChatMessage('ai', "Sorry, something went wrong while processing your request. Please try again.");
-                
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('results').classList.remove('hidden');
                 if (document.getElementById('chatInterface')) document.getElementById('chatInterface').classList.remove('hidden');
             } finally {
                 document.getElementById('aiChatSendBtn').disabled = false;
-                
+
                 if (loadingTitle) loadingTitle.innerText = "Writing Your News...";
                 if (loadingDesc) loadingDesc.innerText = "Our AI Editor is processing your keypoints.";
             }
         }
-        
+
         document.getElementById('aiChatSendBtn').addEventListener('click', handleAiChat);
         document.getElementById('aiChatInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -1681,12 +1701,12 @@
                         method: 'POST',
                         body: formData
                     });
-                    
+
                     if (!res.ok) {
                         const err = await res.json();
                         throw new Error(err.detail || "Failed to extract text");
                     }
-                    
+
                     const data = await res.json();
                     if (data.text) {
                         keypointsInput.value += (keypointsInput.value ? '\\n\\n' : '') + data.text;
@@ -1730,17 +1750,17 @@
                         method: 'POST',
                         body: formData
                     });
-                    
+
                     if (!res.ok) {
                         const err = await res.json();
                         throw new Error(err.detail || "Failed to extract text");
                     }
-                    
+
                     const data = await res.json();
                     if (data.text) {
                         const instructionPrefix = chatInput.value ? '\n\n' : "કૃપા કરીને આ નવો ડેટા / ટેબલ સમાચારમાં ઉમેરો:\n\n";
                         chatInput.value += instructionPrefix + data.text;
-                        chatInput.style.height = ''; 
+                        chatInput.style.height = '';
                         chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
                         toast("File content added!", "success");
                     } else {
@@ -1849,7 +1869,7 @@
             }
         }
 
-        window.syncPreviewEdit = function(targetId, el) {
+        window.syncPreviewEdit = function (targetId, el) {
             const targetEl = document.getElementById(targetId);
             if (targetEl && document.activeElement !== targetEl) {
                 targetEl.innerHTML = el.innerHTML;
