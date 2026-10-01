@@ -13,3 +13,8 @@ selenium
 webdriver-manager
 python-multipart
 pypdf
+pymupdf
+qdrant-client
+sentence-transformers
+torch
+fastembed

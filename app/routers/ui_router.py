@@ -83,6 +83,14 @@ async def advt_module(request: Request):
         "current_page": "advt"
     })
 
+@router.get("/advt/editor/{advt_id}")
+@router.get("/ads/{advt_id}/edit")
+async def advt_editor_page(request: Request, advt_id: str):
+    return templates.TemplateResponse(request=request, name="advt_editor.html", context={
+        "current_page": "advt",
+        "advt_id": advt_id
+    })
+
 @router.get("/admin/roles")
 async def admin_roles(request: Request):
     return templates.TemplateResponse(request=request, name="roles.html", context={

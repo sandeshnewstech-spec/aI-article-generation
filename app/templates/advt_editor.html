@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Editor | Sandesh AI</title>
+    <link rel="icon" href="/static/favicon.jpeg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <!-- Preload Custom Gujarati Fonts -->
+    <link rel="preload" href="/static/fonts/BMA_____.TTF" as="font" type="font/ttf" crossorigin="anonymous">
+    <link rel="preload" href="/static/fonts/BGOT____.TTF" as="font" type="font/ttf" crossorigin="anonymous">
+    <link rel="preload" href="/static/fonts/BGOTB___.TTF" as="font" type="font/ttf" crossorigin="anonymous">
+    <!-- Include Fabric.js, jsPDF, UTIF & HTML2Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="/static/js/unicode_to_gopika.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#e82526',
+                            600: '#990d0e',
+                            700: '#991b1b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'BMA';
+            src: url('/static/fonts/BMA_____.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'BGOT';
+            src: url('/static/fonts/BGOT____.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'BGOTB';
+            src: url('/static/fonts/BGOTB___.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Gopika';
+            src: url('/static/fonts/BGOT____.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            width: 100vw !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* NEWSPAPER STYLES */
+        .ad-preview-html {
+            background-color: #fff;
+            color: #000;
+            font-family: 'BGOT', sans-serif;
+            position: relative;
+            box-sizing: border-box;
+            border: 4px solid #000;
+        }
+
+        .ad-heading-box {
+            background-color: #000;
+            color: #fff;
+            font-family: 'BMA', sans-serif;
+            text-align: center;
+            width: 100%;
+        }
+
+        .ad-columns-container {
+            width: 100%;
+            column-count: 2;
+            column-gap: 10px;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+
+        .ad-paragraph {
+            text-align: justify;
+            text-align-last: left;
+            hyphens: none;
+            -webkit-hyphens: none;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            margin-bottom: 0;
+            line-height: 1.15;
+            margin-top: 0;
+            widows: 1;
+            orphans: 1;
+        }
+
+        .notice-date {
+            text-align: left;
+            text-align-last: left;
+            break-inside: avoid;
+            hyphens: none;
+            -webkit-hyphens: none;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            margin-bottom: 0;
+        }
+
+        .advocate-block {
+            text-align: right;
+            text-align-last: right;
+            break-inside: avoid;
+            hyphens: none;
+            -webkit-hyphens: none;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            margin-bottom: 0;
+        }
+
+        .advocate-block p {
+            margin: 0;
+            text-align: right;
+            text-align-last: right;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+
+        /* Prevent any span inside paragraphs from breaking mid-word */
+        .ad-heading-box span {
+            display: inline;
+        }
+    </style>
+</head>
+
+<body class="bg-white font-sans text-slate-900 antialiased h-screen w-screen flex flex-col overflow-hidden">
+
+    <!-- Font Preloaders -->
+    <div style="font-family: 'BMA'; position: absolute; left: -9999px; visibility: hidden;">BMA Preload</div>
+    <div style="font-family: 'BGOT'; position: absolute; left: -9999px; visibility: hidden;">BGOT Preload</div>
+    <div style="font-family: 'BGOTB'; position: absolute; left: -9999px; visibility: hidden;">BGOTB Preload</div>
+
+    <!-- Top Navigation Header -->
+    <header
+        class="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-6 z-30 shrink-0 shadow-sm sticky top-0">
+        <div class="flex items-center gap-5">
+            <a href="/advt"
+                class="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-semibold text-[13px] transition-all px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50/80 shadow-sm bg-white">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to ADVT List
+            </a>
+            <div class="h-6 w-px bg-slate-200"></div>
+            <div class="flex items-center gap-2.5">
+                <span class="relative flex h-3 w-3">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <h1 class="text-sm font-black text-slate-800 tracking-wider uppercase drop-shadow-sm">Full Page Ad
+                    Editor</h1>
+                <span id="advtMetaBadge"
+                    class="text-[11px] text-slate-500 bg-slate-50 px-2.5 py-0.5 rounded-md border border-slate-200 font-mono font-semibold ml-2 shadow-sm">Loading...</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <!-- Downloads -->
+            <div class="flex items-center bg-slate-50/80 p-1.5 rounded-xl border border-slate-200/80 gap-1.5 shadow-sm">
+                <button type="button" onclick="downloadCanvas('png')"
+                    class="px-3.5 py-1.5 bg-white hover:bg-brand-50 text-brand-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-brand-200 flex items-center gap-1.5 active:scale-95 group">
+                    <svg class="w-3.5 h-3.5 text-brand-500 group-hover:text-brand-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    PNG
+                </button>
+                <button type="button" onclick="downloadCanvas('pdf')"
+                    class="px-3.5 py-1.5 bg-white hover:bg-purple-50 text-purple-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-purple-200 flex items-center gap-1.5 active:scale-95 group">
+                    <svg class="w-3.5 h-3.5 text-purple-500 group-hover:text-purple-600" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    PDF
+                </button>
+                <button type="button" onclick="downloadCanvas('tif')"
+                    class="px-3.5 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-emerald-200 flex items-center gap-1.5 active:scale-95 group">
+                    <svg class="w-3.5 h-3.5 text-emerald-500 group-hover:text-emerald-600" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    TIF
+                </button>
+            </div>
+
+            <div class="h-6 w-px bg-slate-200"></div>
+
+            <button type="button" onclick="saveEditorChanges()"
+                class="px-6 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl text-[13px] font-bold tracking-wide transition-all shadow-lg shadow-red-500/30 flex items-center gap-2 active:scale-95 border border-red-500/50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Save Changes
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Full Page Editor Workspace -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Left Controls & Settings Sidebar -->
+        <aside
+            class="w-[450px] bg-slate-50/30 backdrop-blur-3xl border-r border-slate-200/80 flex flex-col shrink-0 overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20 relative before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/60 before:to-transparent before:-z-10">
+            <!-- Sidebar Header Tabs -->
+            <div
+                class="p-4 border-b border-slate-200/60 bg-white/40 backdrop-blur-md flex items-center justify-between shadow-sm z-10">
+                <span
+                    class="text-[11px] font-black tracking-[0.15em] uppercase bg-gradient-to-r from-slate-700 to-slate-500 bg-clip-text text-transparent">Layout
+                    & Text Inspector</span>
+                <span id="saveStatusIndicator"
+                    class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1.5 shadow-sm"><span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Auto-sync enabled</span>
+            </div>
+
+            <!-- Scrollable Settings Container -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar text-xs relative z-10">
+
+                <!-- 1. COLUMN LAYOUT CONTROL (1, 2, 3, 4 COLUMNS) -->
+                <div
+                    class="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 space-y-4 shadow-sm hover:shadow-md transition-shadow hover:border-brand-200/60 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <label
+                            class="font-bold text-slate-800 tracking-wide uppercase text-[11px] flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m3 9v-5m0 0V9m0 2h4m-4 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2Z">
+                                </path>
+                            </svg>
+                            Column Layout
+                        </label>
+                        <span
+                            class="text-[10px] bg-brand-950 text-brand-600 px-2 py-0.5 rounded font-mono font-bold border border-brand-800/50">1
+                            - 4 Cols</span>
+                    </div>
+
+                    <!-- Column Count Buttons -->
+                    <div class="grid grid-cols-4 gap-1.5 p-1 bg-white border border-slate-200 rounded-lg">
+                        <button type="button" id="colBtn1" onclick="setColumnCount(1)"
+                            class="py-1.5 rounded text-xs font-bold transition-all text-slate-600 hover:text-slate-900">1
+                            Col</button>
+                        <button type="button" id="colBtn2" onclick="setColumnCount(2)"
+                            class="py-1.5 rounded text-xs font-bold transition-all text-slate-600 hover:text-slate-900">2
+                            Cols</button>
+                        <button type="button" id="colBtn3" onclick="setColumnCount(3)"
+                            class="py-1.5 rounded text-xs font-bold transition-all text-slate-600 hover:text-slate-900">3
+                            Cols</button>
+                        <button type="button" id="colBtn4" onclick="setColumnCount(4)"
+                            class="py-1.5 rounded text-xs font-bold transition-all text-slate-600 hover:text-slate-900">4
+                            Cols</button>
+                    </div>
+
+                    <!-- Column Sizing Mode & Width/Height Controls -->
+                    <div class="space-y-2 pt-1 border-t border-slate-900">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-600">Total Ad Width (cm):</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustAdWidth(-0.2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="adWidthInput" step="0.1" min="3.0" max="30.0"
+                                    onchange="setAdWidth(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustAdWidth(0.2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-0.5">
+                            <span class="text-slate-600">Total Ad Height (cm):</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustAdHeight(-0.5)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="adHeightInput" step="0.1" min="4.0" max="50.0"
+                                    onchange="setAdHeight(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustAdHeight(0.5)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div class="pt-0.5 flex gap-1">
+                            <button type="button" onclick="autoFitAdHeight()"
+                                class="flex-1 py-1 bg-slate-50 hover:bg-slate-200 text-brand-600 hover:text-brand-700 font-bold rounded text-[11px] flex items-center justify-center gap-1 transition-colors border border-slate-300/60"
+                                title="Shrink box to fit text">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4">
+                                    </path>
+                                </svg>
+                                Auto-Fit Box
+                            </button>
+                            <button type="button" onclick="autoStretchLineHeight()"
+                                class="flex-1 py-1 bg-slate-50 hover:bg-slate-200 text-brand-600 hover:text-brand-700 font-bold rounded text-[11px] flex items-center justify-center gap-1 transition-colors border border-slate-300/60"
+                                title="Adjust Line Height to exactly fill the box">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                Stretch Text
+                            </button>
+                        </div>
+
+
+                        <!-- Equal Widths Toggle -->
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="text-slate-700 flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="equalColWidthsToggle" checked
+                                    onchange="toggleEqualColWidths(this.checked)"
+                                    class="rounded bg-white border-slate-300 text-brand-600 focus:ring-0">
+                                <span>Equal Column Widths</span>
+                            </label>
+                        </div>
+
+                        <!-- Per Column Custom Widths Container -->
+                        <div id="customColWidthsContainer" class="space-y-1.5 pt-1"></div>
+
+                        <!-- Column Balance (+1 / -1) & Gutter Line Options -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-900">
+                            <span class="text-slate-600">Balance Columns:</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="adjustLayoutOffset(-1)"
+                                    class="px-2.5 py-1 bg-slate-50 hover:bg-slate-200 text-slate-900 rounded font-bold transition-all flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                                    </svg>
+                                    -1
+                                </button>
+                                <span id="layoutOffsetDisplay"
+                                    class="font-mono text-brand-600 font-bold px-1.5">0</span>
+                                <button type="button" onclick="adjustLayoutOffset(1)"
+                                    class="px-2.5 py-1 bg-slate-50 hover:bg-slate-200 text-slate-900 rounded font-bold transition-all flex items-center gap-1">
+                                    +1
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Column Gutter Rule Width -->
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-slate-600">Column Rule Line:</span>
+                            <select id="colRuleSelect" onchange="setColumnRule(this.value)"
+                                class="bg-white border border-slate-300 rounded px-2 py-1 text-slate-900 outline-none">
+                                <option value="1">Solid Line (1px)</option>
+                                <option value="2">Thick Line (2px)</option>
+                                <option value="0">None / Hide Line</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. BLACK HEADING BOX CONTROLS ("જાહેર નોટીસ") -->
+                <div
+                    class="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 space-y-4 shadow-sm hover:shadow-md transition-shadow hover:border-brand-200/60 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <label
+                            class="font-bold text-slate-800 tracking-wide uppercase text-[11px] flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h7"></path>
+                            </svg>
+                            Black Heading Box ("જાહેર નોટિસ")
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[11px] text-slate-600 block mb-1">Heading Layout:</span>
+                            <div class="flex bg-white p-0.5 border border-slate-200 rounded-lg">
+                                <button type="button" id="hLayoutLeftBtn" onclick="setHeadingLayout('left')"
+                                    class="flex-1 py-1 text-[11px] font-bold rounded transition-all text-slate-600">1st
+                                    Col</button>
+                                <button type="button" id="hLayoutFullBtn" onclick="setHeadingLayout('full')"
+                                    class="flex-1 py-1 text-[11px] font-bold rounded transition-all text-slate-600">Full
+                                    Width</button>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-slate-600 block mb-1">Box Height (px):</span>
+                            <input type="number" id="headingHeightInput" min="20" max="250" value="25"
+                                onchange="setHeadingBgHeight(this.value)"
+                                class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <span class="text-[11px] text-slate-600 block mb-1">Text Y Position (Offset):</span>
+                            <input type="number" id="headingTextYInput" min="-50" max="150" value="0"
+                                onchange="setHeadingTextY(this.value)"
+                                class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-slate-600 block mb-1">Heading Font Size (pt):</span>
+                            <input type="number" id="headingFontSizeInput" step="0.5" min="10" max="72" value="20"
+                                onchange="setHeadingFontSize(this.value)"
+                                class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <!-- 3. TYPOGRAPHY & SPACING CONTROLS (LINE HEIGHT, LETTER SPACING, WORD SPACING) -->
+                    <div
+                        class="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-4 space-y-4 shadow-sm hover:shadow-md transition-shadow hover:border-brand-200/60 relative overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <label
+                                class="font-bold text-slate-800 tracking-wide uppercase text-[11px] flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h7"></path>
+                                </svg>
+                                Typography & Line Height Controls
+                            </label>
+                        </div>
+
+                        <!-- Line Height / Line Spacing Control -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-600 text-xs">Line Height (Spacing):</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustLineHeight(-0.05)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="lineHeightInput" step="0.05" min="0.80" max="3.00" value="1.15"
+                                    onchange="setLineHeight(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustLineHeight(0.05)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Letter / Character Spacing Control -->
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+                            <span class="text-slate-600 text-xs">Letter Spacing (Char):</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustCharSpacing(-5)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="charSpacingInput" step="5" min="-50" max="300" value="0"
+                                    onchange="setCharSpacing(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustCharSpacing(5)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Word Spacing Control -->
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+                            <span class="text-slate-600 text-xs">Word Spacing (Space):</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustWordSpacing(-2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="wordSpacingInput" step="2" min="-20" max="100" value="0"
+                                    onchange="setWordSpacing(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustWordSpacing(2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. BHASHA BHARATI (RAMINGTON TYPEWRITER) COMPATIBILITY TOGGLE -->
+                    <div class="bg-brand-50 border border-brand-200 rounded-xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-slate-800 font-bold flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="bhashaBharatiToggle"
+                                    onchange="toggleBhashaBharatiMode(this.checked)"
+                                    class="rounded bg-white border-brand-400 text-brand-600 focus:ring-brand-500 w-4 h-4">
+                                <span class="text-xs">Input from Bhasha Bharati (Remington)</span>
+                            </label>
+                            <span
+                                class="text-[10px] bg-brand-600 text-white px-2 py-0.5 rounded font-bold">TYPEWRITER</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-snug">
+                            Operators typing from Bhasha Bharati Premier Pack (Remington Gujarati layout) can paste/type
+                            text directly. Converts ASCII character codes to clean Gujarati Unicode without broken
+                            matras/conjuncts.
+                        </p>
+                    </div>
+
+                    <!-- 4. DYNAMIC TEXT BLOCKS & PER-LINE FORMATTING CONTROLS -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800 tracking-wide uppercase text-[11px]">Text Content &
+                                Line Formatting</span>
+                            <button type="button" onclick="updateCanvasFromText()"
+                                class="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                    </path>
+                                </svg>
+                                Sync to Canvas
+                            </button>
+                        </div>
+
+                        <div id="editBlocksContainer" class="space-y-4">
+                            <!-- Dynamic text blocks will be inserted here -->
+                        </div>
+                    </div>
+
+                </div>
+        </aside>
+
+        <!-- Right Canvas Viewport Area -->
+        <main class="flex-1 flex flex-col bg-slate-100 relative overflow-hidden">
+
+            <!-- Top Canvas Controls Toolbar (Zoom, Fit, View Modes) -->
+            <div class="h-11 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-20 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-600">Zoom:</span>
+                    <button type="button" onclick="zoomStep(-0.1)"
+                        class="w-7 h-7 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold text-xs flex items-center justify-center transition-all">-</button>
+                    <input type="range" id="zoomRangeSlider" min="10" max="500" value="100"
+                        oninput="onZoomSliderInput(this.value)" class="w-32 accent-brand-600 cursor-pointer">
+                    <button type="button" onclick="zoomStep(0.1)"
+                        class="w-7 h-7 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold text-xs flex items-center justify-center transition-all">+</button>
+
+                    <div class="flex items-center bg-slate-100 border border-slate-200 rounded px-2 py-0.5">
+                        <input type="number" id="zoomPercentInput" min="10" max="1000" value="100"
+                            onchange="onZoomInputPercent(this.value)"
+                            class="w-12 bg-transparent text-center font-mono font-bold text-xs text-slate-900 outline-none">
+                        <span class="text-xs font-mono text-slate-600">%</span>
+                    </div>
+
+                    <div class="h-4 w-px bg-slate-50 mx-1"></div>
+
+                    <button type="button" onclick="setCanvasZoomPreset(1.0)"
+                        class="px-2.5 py-1 bg-slate-50 hover:bg-slate-200 text-slate-800 rounded text-xs font-semibold transition-all">100%</button>
+                    <button type="button" onclick="fitCanvasToWidth()"
+                        class="px-2.5 py-1 bg-slate-50 hover:bg-slate-200 text-slate-800 rounded text-xs font-semibold transition-all">Fit
+                        Width</button>
+                    <button type="button" onclick="fitCanvasToPage()"
+                        class="px-2.5 py-1 bg-slate-50 hover:bg-slate-200 text-slate-800 rounded text-xs font-semibold transition-all">Fit
+                        Page</button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-600 flex items-center gap-1 font-mono">
+                        <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        300 DPI High-Res Canvas
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden relative">
+                <!-- Vertical DTP Canvas Toolbar (Left Side) -->
+                <div id="canvasToolbar"
+                    class="w-12 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-3 opacity-50 pointer-events-none transition-opacity shrink-0 z-10">
+
+                    <span
+                        class="text-[9px] text-slate-500 font-bold uppercase tracking-wider -rotate-90 my-3">Edit</span>
+
+                    <!-- Size -->
+                    <div
+                        class="flex flex-col items-center gap-0.5 bg-slate-100 rounded border border-slate-200 p-1 w-10">
+                        <span class="text-[8px] text-slate-600">Size</span>
+                        <input type="number" id="ctSize" value="11" min="5" max="72"
+                            class="w-full bg-transparent text-slate-900 text-[11px] text-center outline-none"
+                            onchange="applyCanvasFormat('fontSize', this.value)">
+                    </div>
+
+                    <div class="w-6 h-px bg-slate-50 my-1"></div>
+
+                    <!-- Edit Text -->
+                    <button type="button" id="ctEditText" onclick="openCanvasEditPopup()"
+                        class="w-8 h-8 flex items-center justify-center rounded text-brand-600 hover:text-brand-700 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Edit Text">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <div class="w-6 h-px bg-slate-50 my-1"></div>
+
+                    <!-- Bold -->
+                    <button type="button" id="ctBold" onclick="applyCanvasFormat('bold')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-serif font-bold text-sm transition-colors border border-transparent"
+                        title="Bold">B</button>
+
+                    <div class="w-6 h-px bg-slate-50 my-1"></div>
+
+                    <!-- Break Line -->
+                    <button type="button" id="ctBreak" onclick="document.execCommand('insertParagraph')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Split Line Here">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </button>
+
+                    <div class="w-6 h-px bg-slate-50 my-1"></div>
+
+                    <!-- Alignments -->
+                    <button type="button" id="ctAlignLeft" onclick="applyCanvasFormat('align', 'left')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Left">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h10M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <button type="button" id="ctAlignCenter" onclick="applyCanvasFormat('align', 'center')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M7 12h10M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <button type="button" id="ctAlignRight" onclick="applyCanvasFormat('align', 'right')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Right">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M10 12h10M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <button type="button" id="ctAlignJustify" onclick="applyCanvasFormat('align', 'justify')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
+                        title="Justify">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <button type="button" id="ctAlignFJ" onclick="applyCanvasFormat('align', 'force-justify')"
+                        class="w-8 h-8 flex items-center justify-center rounded text-brand-600 hover:text-brand-700 hover:bg-slate-50 font-bold text-[10px] transition-colors border border-transparent"
+                        title="Force Justify">FJ</button>
+                </div>
+
+                <!-- Canvas Scroll & Viewport Area -->
+                <div id="canvasScrollArea"
+                    class="flex-1 overflow-y-auto overflow-x-auto p-12 flex justify-center items-start relative select-none bg-slate-100 bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:24px_24px]">
+                    <div id="canvasInner" class="my-6 relative shadow-2xl transition-all duration-75">
+                        <div id="canvasWrapper"
+                            class="relative inline-block border border-slate-200 bg-white shadow-2xl rounded mb-12">
+                            <div id="advtHtmlWrapper" style="transform-origin: top left;">
+                                <div id="advtHtmlContainer" class="ad-preview-html"></div>
+                            </div>
+                            <canvas id="advtCanvas" style="display:none;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hidden Storage Input -->
+    <input type="hidden" id="editAdvtId" value="{{ advt_id }}">
+    <input type="hidden" id="editTranslationText" value="">
+
+    <!-- Full Editor Script Logic -->
+    <script>
+        const CURRENT_ADVT_ID = "{{ advt_id }}";
+        let advtData = null;
+        let fabricCanvas = null;
+
+        // Editor layout & column state
+        window.customColumnCount = 2; // Default 2 columns for legal notice
+        window.customAdWidth = 8.0; // Default ad width in cm
+        window.customColWidths = []; // Per-column widths in cm
+        window.equalColWidths = true;
+        window.customBorderHeight = null;
+        window.currentLayoutOffset = 0;
+        window.canvasZoom = 1.0;
+        window.bhashaBharatiMode = false;
+        window.columnRuleWidth = 1;
+
+        // Typography & Spacing State
+        window.customLineHeight = 1.15;
+        window.customCharSpacing = 0;
+        window.customWordSpacing = 0;
+        window.previewReady = true; // Flag to track if canvas preview is up-to-date
+
+        const BASE_DPI = 300;
+        const DPI_SCALE = BASE_DPI / 96; // 3.125
+        const PT_TO_PX = (BASE_DPI / 72) * 0.85; // ~3.5416 px per pt
+
+        // Ensure custom fonts are loaded before drawing canvas
+        async function ensureFontsLoaded() {
+            try {
+                await document.fonts.ready;
+                const fonts = ['BMA', 'BGOT', 'BGOTB'];
+                for (const font of fonts) {
+                    await document.fonts.load(`16px "${font}"`);
+                }
+            } catch (e) {
+                console.warn("Font preloading error:", e);
+            }
+        }
+
+        function wrapWordsNoBreak(htmlString) {
+            let temp = document.createElement('div');
+            temp.innerHTML = htmlString;
+
+            function processNode(node) {
+                if (node.nodeType === 3) {
+                    let text = node.nodeValue;
+                    if (!text || text.trim() === '') return;
+                    let words = text.split(/(\s+)/);
+                    if (words.length <= 1) {
+                        // If it's a single word, just wrap it anyway to be safe!
+                        let span = document.createElement('span');
+                        span.style.whiteSpace = 'nowrap';
+                        span.textContent = text;
+                        node.parentNode.replaceChild(span, node);
+                        return;
+                    }
+
+                    let frag = document.createDocumentFragment();
+                    for (let i = 0; i < words.length; i++) {
+                        if (words[i].trim() === '') {
+                            frag.appendChild(document.createTextNode(words[i]));
+                        } else {
+                            let span = document.createElement('span');
+                            span.style.whiteSpace = 'nowrap';
+                            span.textContent = words[i];
+                            frag.appendChild(span);
+                        }
+                    }
+                    node.parentNode.replaceChild(frag, node);
+                } else if (node.nodeType === 1) {
+                    if (node.style && node.style.whiteSpace === 'nowrap') return;
+                    let children = Array.from(node.childNodes);
+                    for (let child of children) {
+                        processNode(child);
+                    }
+                }
+            }
+
+            let children = Array.from(temp.childNodes);
+            for (let child of children) {
+                processNode(child);
+            }
+
+            return temp.innerHTML;
+        }
+
+        // Bhasha Bharati / Remington Typewriter ASCII to Unicode Converter
+        function bhashaBharatiRemingtonToGopika(str) {
+            if (!str) return '';
+            // Basic mapping for Remington legacy ASCII keys used in Bhasha Bharati Pack
+            let remingtonMap = {
+                'q': 'ત્', 'w': 'દ્', 'e': 'મા', 'r': 'ી', 't': 'ૂ', 'y': 'બ', 'u': 'હ', 'i': 'ગ', 'o': 'દ', 'p': 'જ',
+                'a': 'ં', 's': 'ે', 'd': '્', 'f': 'િ', 'g': 'ુ', 'h': 'પ', 'j': 'ર', 'k': 'ક', 'l': 'ત',
+                'z': '્ર', 'x': 'ં', 'c': 'મ', 'v': 'ન', 'b': 'વ', 'n': 'લ', 'm': 'સ',
+                'Q': 'ફ', 'W': 'ઠ', 'E': 'ઓ', 'R': 'ી', 'T': 'ૂ', 'Y': 'ભ', 'U': 'ઙ', 'I': 'ઘ', 'O': 'ધ', 'P': 'ઝ',
+                'A': 'ઁ', 'S': 'ૈ', 'D': '્', 'F': 'ર્િ', 'G': 'ુ', 'H': 'ફ', 'J': 'ૃ', 'K': 'ખ', 'L': 'થ',
+                'Z': 'ર્', 'X': 'ં', 'C': 'ણ', 'V': 'ં', 'B': 'ળ', 'N': 'છ', 'M': 'શ'
+            };
+            let out = '';
+            for (let i = 0; i < str.length; i++) {
+                let ch = str[i];
+                out += remingtonMap[ch] || ch;
+            }
+            return out;
+        }
+
+        // Helper to convert text to Gopika while preserving English characters
+        // Splits by Unicode word boundaries FIRST, converts each word to Gopika,
+        // then wraps each converted word in a nowrap span so the browser never breaks mid-word.
+        function convertWithEnglishPreserved(text) {
+            if (typeof unicodeToGopika !== 'function') return text;
+            if (!text) return '';
+
+            // Split by spaces but keep the spaces as separate tokens
+            let tokens = text.split(/(\s+)/);
+            let result = '';
+
+            for (let i = 0; i < tokens.length; i++) {
+                let token = tokens[i];
+
+                // If it's whitespace, pass through as-is
+                if (/^\s+$/.test(token)) {
+                    result += token;
+                    continue;
+                }
+
+                // If it's empty, skip
+                if (!token) continue;
+
+                // Check if this token is purely English (letters, digits, common punctuation)
+                if (/^[A-Za-z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=]+$/.test(token)) {
+                    // English word — wrap in Arial span, no Gopika conversion
+                    result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: 11pt; white-space: nowrap;">${token}</span>`;
+                } else {
+                    // Could be Gujarati, or mixed Gujarati+punctuation
+                    // Extract English sub-tokens, convert rest through Gopika
+                    let englishMatches = [];
+                    let placeholderText = token.replace(/[A-Za-z0-9]+/g, function (match) {
+                        englishMatches.push(match);
+                        return String.fromCharCode(0xE000 + englishMatches.length - 1);
+                    });
+
+                    let converted = unicodeToGopika(placeholderText);
+
+                    // Put the English text back
+                    for (let j = 0; j < englishMatches.length; j++) {
+                        let placeholder = String.fromCharCode(0xE000 + j);
+                        let engSpan = `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: 11pt;">${englishMatches[j]}</span>`;
+                        converted = converted.replace(placeholder, engSpan);
+                    }
+
+                    // Wrap the entire Gopika word in a nowrap span so the browser
+                    // cannot break it mid-character (Gopika uses ASCII codes for Gujarati)
+                    result += `<span style="white-space:nowrap">${converted}</span>`;
+                }
+            }
+
+            return result;
+        }
+
+        // Font & Character Parser (BMA for Heading, BGOT for Paragraph, BGOTB for Bold)
+        function parseInlineBoldAndFont(text, defaultWeight, baseFont = 'BGOT', initialIsBold = false) {
+            let cleanText = "";
+            let isBold = initialIsBold;
+            let styles = {};
+            let pIdx = 0;
+            let cIdx = 0;
+
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '*') {
+                    isBold = !isBold;
+                    continue;
+                }
+                cleanText += text[i];
+                if (text[i] === '\n') {
+                    pIdx++;
+                    cIdx = 0;
+                } else {
+                    let fontName = baseFont;
+                    if (baseFont === 'BMA') {
+                        fontName = 'BMA';
+                    } else if (isBold || defaultWeight === 'bold' || defaultWeight === '900') {
+                        fontName = 'BGOTB';
+                    } else {
+                        fontName = 'BGOT';
+                    }
+
+                    if (fontName !== baseFont) {
+                        if (!styles[pIdx]) styles[pIdx] = {};
+                        styles[pIdx][cIdx] = { fontFamily: fontName };
+                    }
+
+                    cIdx++;
+                }
+            }
+            return { cleanText, styles, finalIsBold: isBold };
+        }
+
+        // Initialize Page Data
+        async function loadAdData() {
+            try {
+                const response = await fetch(`/api/advt`);
+                if (!response.ok) throw new Error("Failed to fetch ads list");
+                const advts = await response.json();
+                advtData = advts.find(a => a._id === CURRENT_ADVT_ID);
+
+                if (!advtData) {
+                    alert("Ad not found!");
+                    window.location.href = '/advt';
+                    return;
+                }
+
+                // Update Header Metadata
+                document.getElementById('advtMetaBadge').innerText = `${advtData.advt_type || 'Legal Notice'} (${advtData.width || 0}x${advtData.height || 0} ${advtData.unit || 'cm'})`;
+                document.getElementById('editTranslationText').value = advtData.translated_text || '';
+
+                // Parse Json Configs
+                let parsedData = null;
+                try { parsedData = JSON.parse(advtData.translated_text); } catch (e) { }
+
+                if (parsedData) {
+                    window.customColumnCount = parsedData.column_count || 2;
+                    window.customAdWidth = parsedData.ad_width || advtData.width || (window.customColumnCount * 4.0);
+                    window.currentLayoutOffset = parsedData.layout_offset || 0;
+                    window.customBorderHeight = parsedData.border_height || null;
+                    window.columnRuleWidth = parsedData.column_rule_width !== undefined ? parsedData.column_rule_width : 1;
+                    window.customLineHeight = parsedData.line_height !== undefined ? parsedData.line_height : 1.15;
+                    window.customCharSpacing = parsedData.char_spacing !== undefined ? parsedData.char_spacing : 0;
+                    window.customWordSpacing = parsedData.word_spacing !== undefined ? parsedData.word_spacing : 0;
+                    if (parsedData.col_widths && Array.isArray(parsedData.col_widths)) {
+                        window.customColWidths = parsedData.col_widths;
+                        window.equalColWidths = false;
+                    }
+                }
+
+                renderLeftControlBlocks(advtData.translated_text);
+                updateZoomButtons();
+                updateColumnUI();
+
+                // Build Canvas
+                await buildCanvasPreview();
+            } catch (err) {
+                console.error("Error loading ad:", err);
+                alert("Error loading ad: " + err.message);
+            }
+        }
+
+        // Set Column Count with preset widths: 1 Col = 4 cm, 2 Cols = 8 cm, 3 Cols = 12 cm, 4 Cols = 16 cm
+        function setColumnCount(count) {
+            window.customColumnCount = count;
+            if (count === 1) window.customAdWidth = 4.0;
+            else if (count === 2) window.customAdWidth = 8.0;
+            else if (count === 3) window.customAdWidth = 12.0;
+            else if (count === 4) window.customAdWidth = 16.0;
+
+            if (window.equalColWidths) {
+                window.customColWidths = [];
+            }
+
+            // Auto fit height whenever column changes
+            window.customAdHeight = null;
+            window.customBorderHeight = null;
+
+            updateColumnUI();
+            updateCanvasFromText();
+        }
+
+        function updateColumnUI() {
+            [1, 2, 3, 4].forEach(c => {
+                const btn = document.getElementById(`colBtn${c}`);
+                if (btn) {
+                    if (c === window.customColumnCount) {
+                        btn.className = "py-1.5 rounded text-xs font-bold transition-all bg-brand-600 text-white shadow";
+                    } else {
+                        btn.className = "py-1.5 rounded text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
+                    }
+                }
+            });
+
+            document.getElementById('adWidthInput').value = (window.customAdWidth || (window.customColumnCount * 4.0)).toFixed(1);
+            const hInput = document.getElementById('adHeightInput');
+            if (hInput) hInput.value = (window.customAdHeight || 25.0).toFixed(1);
+            document.getElementById('equalColWidthsToggle').checked = window.equalColWidths;
+            document.getElementById('colRuleSelect').value = window.columnRuleWidth;
+
+            // Sync Typography inputs
+            const lhIn = document.getElementById('lineHeightInput');
+            if (lhIn) lhIn.value = (window.customLineHeight || 1.15).toFixed(2);
+            const csIn = document.getElementById('charSpacingInput');
+            if (csIn) csIn.value = window.customCharSpacing || 0;
+            const wsIn = document.getElementById('wordSpacingInput');
+            if (wsIn) wsIn.value = window.customWordSpacing || 0;
+
+            // Render Custom Column Width Controls
+            const container = document.getElementById('customColWidthsContainer');
+            container.innerHTML = '';
+
+            if (!window.equalColWidths && window.customColumnCount > 1) {
+                for (let i = 0; i < window.customColumnCount; i++) {
+                    let defaultWidth = (window.customAdWidth / window.customColumnCount).toFixed(1);
+                    let val = window.customColWidths[i] || defaultWidth;
+
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between text-slate-700 text-[11px] bg-white px-2 py-1 rounded border border-slate-200";
+                    div.innerHTML = `
+                        <span>Col ${i + 1} Width (cm):</span>
+                        <input type="number" step="0.1" min="1.0" max="25.0" value="${val}" onchange="setSingleColWidth(${i}, this.value)" class="w-16 bg-slate-100 border border-slate-300 rounded px-1 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                    `;
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        // Typography & Spacing Functions
+        function adjustLineHeight(delta) {
+            let current = parseFloat(document.getElementById('lineHeightInput').value) || window.customLineHeight || 1.15;
+            current = Math.max(0.8, Math.min(3.0, Math.round((current + delta) * 100) / 100));
+            setLineHeight(current);
+        }
+
+        function setLineHeight(val) {
+            let num = parseFloat(val);
+            if (isNaN(num) || num < 0.8) num = 1.15;
+            window.customLineHeight = Math.max(0.8, Math.min(3.0, Math.round(num * 100) / 100));
+            document.getElementById('lineHeightInput').value = window.customLineHeight.toFixed(2);
+            updateCanvasFromText();
+        }
+
+        function adjustCharSpacing(delta) {
+            let current = parseInt(document.getElementById('charSpacingInput').value) || window.customCharSpacing || 0;
+            current = Math.max(-50, Math.min(300, current + delta));
+            setCharSpacing(current);
+        }
+
+        function setCharSpacing(val) {
+            let num = parseInt(val);
+            if (isNaN(num)) num = 0;
+            window.customCharSpacing = Math.max(-50, Math.min(300, num));
+            document.getElementById('charSpacingInput').value = window.customCharSpacing;
+            if (typeof buildCanvasPreview === 'function') buildCanvasPreview();
+        }
+
+        function adjustWordSpacing(delta) {
+            let current = parseInt(document.getElementById('wordSpacingInput').value) || window.customWordSpacing || 0;
+            current = Math.max(-20, Math.min(100, current + delta));
+            setWordSpacing(current);
+        }
+
+        function setWordSpacing(val) {
+            let num = parseInt(val);
+            if (isNaN(num)) num = 0;
+            window.customWordSpacing = Math.max(-20, Math.min(100, num));
+            document.getElementById('wordSpacingInput').value = window.customWordSpacing;
+            if (typeof buildCanvasPreview === 'function') buildCanvasPreview();
+        }
+
+        function toggleEqualColWidths(isEqual) {
+            window.equalColWidths = isEqual;
+            if (isEqual) window.customColWidths = [];
+            updateColumnUI();
+            updateCanvasFromText();
+        }
+
+        function setSingleColWidth(idx, val) {
+            window.customColWidths[idx] = parseFloat(val) || 3.0;
+            updateCanvasFromText();
+        }
+
+        function adjustAdWidth(delta) {
+            let current = parseFloat(document.getElementById('adWidthInput').value) || window.customAdWidth || 6.2;
+            current = Math.max(3.0, Math.min(30.0, Math.round((current + delta) * 10) / 10));
+            setAdWidth(current);
+        }
+
+        function setAdWidth(val) {
+            let num = parseFloat(val);
+            if (isNaN(num) || num < 3.0) num = 6.2;
+            window.customAdWidth = Math.max(3.0, Math.min(30.0, Math.round(num * 10) / 10));
+            document.getElementById('adWidthInput').value = window.customAdWidth.toFixed(1);
+            updateCanvasFromText();
+        }
+
+        function adjustAdHeight(delta) {
+            let current = parseFloat(document.getElementById('adHeightInput').value) || window.customAdHeight || 25.0;
+            current = Math.max(4.0, Math.min(50.0, Math.round((current + delta) * 10) / 10));
+            setAdHeight(current);
+        }
+
+        function setAdHeight(val) {
+            let num = parseFloat(val);
+            if (isNaN(num) || num < 4.0) num = 8.0;
+            window.customAdHeight = Math.max(4.0, Math.min(50.0, Math.round(num * 10) / 10));
+            window.customBorderHeight = (window.customAdHeight / 2.54) * BASE_DPI;
+            document.getElementById('adHeightInput').value = window.customAdHeight.toFixed(1);
+            updateCanvasFromText();
+        }
+
+        function autoFitAdHeight() {
+            window.customAdHeight = null;
+            window.customBorderHeight = null;
+            updateCanvasFromText();
+        }
+
+        function autoStretchLineHeight() {
+            if (!window.customBorderHeight) return;
+
+            let container = document.getElementById('advtHtmlContainer');
+            let colsContainer = container.querySelector('.ad-columns-container');
+            if (!colsContainer) return;
+
+            let minLH = 0.8;
+            let maxLH = 4.0;
+            let bestLH = window.customLineHeight || 1.15;
+
+            let paragraphs = container.querySelectorAll('.ad-paragraph, .notice-date, .advocate-block, .advocate-block p');
+
+            for (let i = 0; i < 20; i++) {
+                let midLH = (minLH + maxLH) / 2;
+                paragraphs.forEach(p => p.style.lineHeight = midLH);
+
+                // In column-fill: auto with a fixed height, overflow creates a new column horizontally
+                let isOverflowing = colsContainer.scrollWidth > colsContainer.clientWidth;
+
+                if (isOverflowing) {
+                    maxLH = midLH;
+                } else {
+                    minLH = midLH;
+                    bestLH = midLH;
+                }
+            }
+
+            setLineHeight(bestLH);
+        }
+
+
+        function setColumnRule(val) {
+            window.columnRuleWidth = parseInt(val) || 0;
+            updateCanvasFromText();
+        }
+
+        function adjustLayoutOffset(delta) {
+            window.currentLayoutOffset = (window.currentLayoutOffset || 0) + delta;
+            document.getElementById('layoutOffsetDisplay').innerText = window.currentLayoutOffset > 0 ? '+' + window.currentLayoutOffset : window.currentLayoutOffset;
+            updateCanvasFromText();
+        }
+
+        function toggleBhashaBharatiMode(isON) {
+            window.bhashaBharatiMode = isON;
+            if (isON) {
+                // Automatically convert existing input text fields from Remington
+                const container = document.getElementById('editBlocksContainer');
+                const inputs = container.querySelectorAll('.block-editor-input');
+                inputs.forEach(ta => {
+                    ta.value = bhashaBharatiRemingtonToGopika(ta.value);
+                });
+                updateCanvasFromText();
+            }
+        }
+
+        // Left Panel Settings Control Blocks
+        function renderLeftControlBlocks(jsonStr) {
+            const container = document.getElementById('editBlocksContainer');
+            container.innerHTML = '';
+            if (!jsonStr) return;
+
+            try {
+                let parsedData = JSON.parse(jsonStr);
+                let blocks = [];
+                if (Array.isArray(parsedData)) blocks = parsedData;
+                else if (parsedData && Array.isArray(parsedData.gujarati_text)) blocks = parsedData.gujarati_text;
+
+                if (blocks.length > 0) {
+                    blocks.forEach((block, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-slate-100 border border-slate-200 rounded-xl p-3 space-y-2 relative';
+
+                        const typeLabel = (block.type || 'Text Block').toUpperCase();
+                        let textContent = block.text || '';
+                        const fSize = block.font_size || (typeLabel === 'HEADING' ? 20 : 11);
+                        const fAlign = block.text_align || (typeLabel === 'HEADING' ? 'center' : 'justify');
+                        const fWeight = block.font_weight || 'normal';
+                        const fLayout = block.layout_position || 'full';
+                        const bgHeight = block.bg_height || 25;
+                        const textOffsetY = block.text_offset_y !== undefined ? block.text_offset_y : 0;
+
+                        if (typeLabel === 'HEADING') {
+                            document.getElementById('headingHeightInput').value = bgHeight;
+                            document.getElementById('headingTextYInput').value = textOffsetY;
+                            document.getElementById('headingFontSizeInput').value = fSize;
+                            setHeadingLayoutUI(fLayout);
+                        }
+
+                        div.innerHTML = `
+                            <div class="flex items-center justify-between gap-2 border-b border-slate-900 pb-2">
+                                <label class="text-[11px] font-bold text-brand-600 tracking-wider">${typeLabel}</label>
+                                <div class="flex items-center gap-1 bg-white border border-slate-200 p-0.5 rounded-md">
+                                    <span class="text-[10px] text-slate-600 font-medium px-1">Size:</span>
+                                    <input type="number" step="0.5" class="block-format-size w-12 text-xs bg-slate-100 border border-slate-300 rounded px-1 text-center text-slate-900 outline-none" value="${fSize}" onchange="updateCanvasFromText()">
+                                    <div class="w-px h-3.5 bg-slate-50 mx-0.5"></div>
+                                    <button type="button" class="block-format-bold p-1 rounded text-slate-600 hover:text-slate-900 ${fWeight === 'bold' || fWeight === '900' ? 'bg-slate-50 text-slate-900 font-bold' : ''}" title="Toggle Bold">B</button>
+                                    <div class="w-px h-3.5 bg-slate-50 mx-0.5"></div>
+                                    <button type="button" data-align="left" class="block-format-align p-1 rounded ${fAlign === 'left' ? 'bg-slate-50 text-slate-900' : 'text-slate-600'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16"></path></svg></button>
+                                    <button type="button" data-align="center" class="block-format-align p-1 rounded ${fAlign === 'center' ? 'bg-slate-50 text-slate-900' : 'text-slate-600'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M7 12h10M4 18h16"></path></svg></button>
+                                    <button type="button" data-align="right" class="block-format-align p-1 rounded ${fAlign === 'right' ? 'bg-slate-50 text-slate-900' : 'text-slate-600'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M10 12h10M4 18h16"></path></svg></button>
+                                    <button type="button" data-align="justify" class="block-format-align p-1 rounded ${fAlign === 'justify' ? 'bg-slate-50 text-slate-900' : 'text-slate-600'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                                    <button type="button" data-align="force-justify" class="block-format-align px-1.5 py-0.5 rounded text-[9px] font-bold ${fAlign === 'force-justify' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:text-slate-900'}" title="FORCE JUSTIFY">FJ</button>
+                                </div>
+                            </div>
+                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-xs font-sans leading-relaxed resize-y focus:border-brand-500 outline-none" rows="4" data-index="${index}"></textarea>
+                            <input type="hidden" class="block-format-bold-val" value="${fWeight}">
+                            <input type="hidden" class="block-format-align-val" value="${fAlign}">
+                            <input type="hidden" class="block-format-layout-val" value="${fLayout}">
+                        `;
+                        div.querySelector('textarea').value = textContent;
+
+                        // Align buttons event
+                        div.querySelectorAll('.block-format-align').forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                div.querySelectorAll('.block-format-align').forEach(b => b.classList.remove('bg-slate-50', 'bg-brand-600', 'text-slate-900'));
+                                this.classList.add(this.dataset.align === 'force-justify' ? 'bg-brand-600' : 'bg-slate-50', 'text-slate-900');
+                                div.querySelector('.block-format-align-val').value = this.dataset.align;
+                                updateCanvasFromText();
+                            });
+                        });
+
+                        // Bold button event
+                        div.querySelector('.block-format-bold').addEventListener('click', function () {
+                            const valInput = div.querySelector('.block-format-bold-val');
+                            if (valInput.value === 'bold' || valInput.value === '900') {
+                                valInput.value = 'normal';
+                                this.classList.remove('bg-slate-50', 'text-slate-900');
+                            } else {
+                                valInput.value = 'bold';
+                                this.classList.add('bg-slate-50', 'text-slate-900');
+                            }
+                            updateCanvasFromText();
+                        });
+
+                        // Typing event (Bhasha Bharati support)
+                        div.querySelector('.block-editor-input').addEventListener('input', function (e) {
+                            if (window.bhashaBharatiMode) {
+                                let curPos = this.selectionStart;
+                                this.value = bhashaBharatiRemingtonToGopika(this.value);
+                                this.selectionStart = this.selectionEnd = curPos;
+                            }
+                            updateCanvasFromText();
+                        });
+
+                        container.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error("Error rendering left control blocks:", e);
+            }
+        }
+
+        function setHeadingLayout(mode) {
+            setHeadingLayoutUI(mode);
+            const hLayoutInput = document.querySelector('.block-format-layout-val');
+            if (hLayoutInput) hLayoutInput.value = mode;
+            updateCanvasFromText();
+        }
+
+        function setHeadingLayoutUI(mode) {
+            const btnLeft = document.getElementById('hLayoutLeftBtn');
+            const btnFull = document.getElementById('hLayoutFullBtn');
+            if (btnLeft && btnFull) {
+                if (mode === 'left') {
+                    btnLeft.className = "flex-1 py-1 text-[11px] font-bold rounded transition-all bg-brand-600 text-white shadow";
+                    btnFull.className = "flex-1 py-1 text-[11px] font-bold rounded transition-all text-slate-600 hover:text-slate-900";
+                } else {
+                    btnFull.className = "flex-1 py-1 text-[11px] font-bold rounded transition-all bg-brand-600 text-white shadow";
+                    btnLeft.className = "flex-1 py-1 text-[11px] font-bold rounded transition-all text-slate-600 hover:text-slate-900";
+                }
+            }
+        }
+
+        function setHeadingBgHeight(val) {
+            updateCanvasFromText();
+        }
+
+        function setHeadingTextY(val) {
+            updateCanvasFromText();
+        }
+
+        function setHeadingFontSize(val) {
+            const firstSizeInput = document.querySelector('.block-format-size');
+            if (firstSizeInput) firstSizeInput.value = val;
+            updateCanvasFromText();
+        }
+
+        // Build HTML Preview using CSS columns and manual rules
+        async function buildCanvasPreview() {
+            await ensureFontsLoaded();
+
+            const container = document.getElementById('advtHtmlContainer');
+            if (!container) return;
+
+            if (!advtData) return;
+
+            let widthInCm = window.customAdWidth || (advtData.width > 0 ? advtData.width : 6.2);
+            let physicalScreenPx = (widthInCm / 2.54) * BASE_DPI;
+
+            // Adjust height if auto fit is not set
+            let heightInCm = window.customAdHeight || (advtData.height > 0 ? advtData.height : 25.0);
+            let heightPx = (heightInCm / 2.54) * BASE_DPI;
+
+            container.style.width = physicalScreenPx + 'px';
+            container.style.height = 'auto'; // Always auto to let text balance perfectly
+            if (window.customBorderHeight) {
+                container.style.minHeight = window.customBorderHeight + 'px'; // Expand beyond user height if needed, but don't shrink below
+            } else {
+                container.style.minHeight = '0px'; // Allow shrinking below default height
+            }
+            let padPx = 5 * DPI_SCALE;
+            container.style.paddingTop = '0px';
+            container.style.paddingBottom = '0px';
+            container.style.paddingLeft = padPx + 'px';
+            container.style.paddingRight = padPx + 'px';
+            container.style.position = 'relative'; // for absolute column rules
+
+            container.innerHTML = '';
+
+            if (advtData.translated_text) {
+                try {
+                    let parsedData = JSON.parse(advtData.translated_text);
+                    let blocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
+
+                    if (blocks.length > 0) {
+                        const colCount = Math.max(1, Math.min(4, window.customColumnCount || 2));
+
+                        let headingBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading' || (b.text && b.text.includes('જાહેર નોટિસ')));
+                        let advocateBlocks = blocks.filter(b => (b.type || '').toLowerCase() === 'advocate');
+                        let contentBlocks = blocks.filter(b => b !== headingBlock && !advocateBlocks.includes(b));
+
+                        let colsContainer = document.createElement('div');
+                        colsContainer.className = 'ad-columns-container';
+                        colsContainer.contentEditable = "true";
+                        colsContainer.style.outline = "none";
+                        colsContainer.style.columnCount = colCount;
+                        colsContainer.style.columnGap = (8 * DPI_SCALE) + 'px';
+                        // column-rule handled by manual HTML divs below (html2canvas can't render CSS column-rule)
+
+                        if (window.customBorderHeight) {
+                            let offsetPx = (window.currentLayoutOffset || 0) * (5 * DPI_SCALE);
+                            colsContainer.style.height = (window.customBorderHeight + offsetPx) + 'px';
+                            colsContainer.style.columnFill = 'balance';
+                        } else {
+                            colsContainer.style.height = 'auto';
+                            colsContainer.style.columnFill = 'balance';
+                        }
+
+                        if (headingBlock) {
+                            let rawHText = headingBlock.text || 'જાહેર નોટિસ';
+                            let convertedH = convertWithEnglishPreserved(rawHText);
+                            let hFontSize = (headingBlock.font_size || 20) * PT_TO_PX;
+                            let hBgHeight = (headingBlock.bg_height ? parseFloat(headingBlock.bg_height) : 25) * DPI_SCALE;
+
+                            let hDiv = document.createElement('div');
+                            hDiv.className = 'ad-heading-box';
+                            hDiv.style.display = 'block';
+                            hDiv.style.height = hBgHeight + 'px';
+                            hDiv.style.minHeight = hBgHeight + 'px';
+                            hDiv.style.lineHeight = hBgHeight + 'px';
+                            hDiv.style.boxSizing = 'border-box';
+                            hDiv.style.fontSize = hFontSize + 'px';
+                            hDiv.style.marginBottom = padPx + 'px';
+                            hDiv.style.width = 'auto'; // override CSS width 100% so margins work
+
+                            // Apply offset using a relative span for reliable html2canvas rendering
+                            let offsetY = headingBlock.text_offset_y ? (parseFloat(headingBlock.text_offset_y) * DPI_SCALE) : 0;
+                            hDiv.innerHTML = `<span style="position: relative; top: ${offsetY}px;">${convertedH}</span>`;
+                            let isLeftLayout = headingBlock.layout_position ? headingBlock.layout_position === 'left' : true;
+                            if (window.customCharSpacing) hDiv.style.letterSpacing = window.customCharSpacing + 'px';
+                            if (window.customWordSpacing) hDiv.style.wordSpacing = window.customWordSpacing + 'px';
+                            if (isLeftLayout) {
+                                hDiv.style.columnSpan = 'none';
+                                hDiv.style.marginTop = '0px';
+                                hDiv.style.marginLeft = -padPx + 'px';
+                                // The column gap is 8 * DPI_SCALE, so extend exactly halfway across the gap to touch the center rule
+                                hDiv.style.marginRight = -(4 * DPI_SCALE) + 'px';
+                            } else {
+                                hDiv.style.columnSpan = 'all';
+                                hDiv.style.marginTop = '0px';
+                                hDiv.style.marginLeft = -padPx + 'px';
+                                hDiv.style.marginRight = -padPx + 'px';
+                            }
+                            colsContainer.appendChild(hDiv);
+                        }
+
+                        // Setup Content Blocks
+                        contentBlocks.forEach((b, idx) => {
+                            if (!b.text || !b.text.trim()) return;
+                            // Adding 1 to idx because index 0 is reserved for the heading in the sidebar UI
+                            let realIndex = idx + (headingBlock ? 1 : 0);
+
+                            let tText = b.text.trim();
+                            let convertedText = convertWithEnglishPreserved(tText);
+
+                            let baseFontSize = (b.font_size || 11) * PT_TO_PX;
+                            let bFontWeight = b.font_weight || 'normal';
+                            let baseFontFamily = (bFontWeight === 'bold' || bFontWeight === '900') ? 'BGOTB' : 'BGOT';
+                            let baseAlign = b.text_align || 'justify';
+
+                            let paragraphs = convertedText.split(/\r?\n/);
+                            paragraphs.forEach(pText => {
+                                if (!pText.trim()) return;
+                                let p = document.createElement('p');
+                                p.setAttribute('data-block-index', realIndex);
+                                p.className = 'ad-paragraph';
+                                p.style.fontSize = baseFontSize + 'px';
+                                p.style.fontFamily = baseFontFamily;
+                                p.style.fontWeight = 'normal';
+                                p.style.lineHeight = window.customLineHeight || 1.15;
+                                if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
+                                if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
+                                p.style.textAlign = baseAlign;
+                                if (baseAlign === 'force-justify') {
+                                    p.style.textAlignLast = 'justify';
+                                }
+
+                                // Date Line check
+                                if (pText.includes('તા:') || pText.includes('તારીખ')) {
+                                    p.className = 'notice-date';
+                                }
+
+                                p.innerHTML = pText;
+                                colsContainer.appendChild(p);
+                            });
+                        });
+
+                        // Advocate Blocks
+                        if (advocateBlocks.length > 0) {
+                            let advWrapper = document.createElement('div');
+                            advWrapper.className = 'advocate-block';
+                            advocateBlocks.forEach((b, idx) => {
+                                let realIndex = idx + (headingBlock ? 1 : 0) + contentBlocks.length;
+                                let rawAdvText = (b.text || '').trim();
+                                let convertedAdv = convertWithEnglishPreserved(rawAdvText);
+                                let baseFontSize = (b.font_size || 12) * PT_TO_PX;
+                                let defaultW = b.font_weight || 'normal';
+                                let advBaseFont = (defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
+
+                                let paragraphs = convertedAdv.split(/\r?\n/);
+                                paragraphs.forEach(pText => {
+                                    if (!pText.trim()) return;
+                                    let p = document.createElement('p');
+                                    p.setAttribute('data-block-index', realIndex);
+                                    p.style.fontSize = baseFontSize + 'px';
+                                    p.style.fontFamily = advBaseFont;
+                                    p.style.lineHeight = window.customLineHeight || 1.15;
+                                    if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
+                                    if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
+                                    p.innerHTML = pText;
+                                    advWrapper.appendChild(p);
+                                });
+                            });
+                            colsContainer.appendChild(advWrapper);
+                        }
+
+
+
+                        container.appendChild(colsContainer);
+
+                        setTimeout(() => {
+                            // Add real HTML div column rules AFTER layout settles
+                            // (html2canvas can't render CSS column-rule, and needs explicit height)
+                            container.querySelectorAll('.manual-column-rule').forEach(el => el.remove());
+                            if (window.columnRuleWidth > 0 && colCount > 1) {
+                                let containerW = parseFloat(container.style.width) || container.offsetWidth;
+                                let ruleHeight = container.offsetHeight;
+                                let gap = 8 * DPI_SCALE;
+                                let colW = (containerW - (2 * padPx) - (gap * (colCount - 1))) / colCount;
+
+                                for (let r = 1; r < colCount; r++) {
+                                    let ruleLine = document.createElement('div');
+                                    ruleLine.className = 'manual-column-rule';
+                                    ruleLine.style.position = 'absolute';
+                                    ruleLine.style.top = '0';
+                                    ruleLine.style.height = ruleHeight + 'px';
+                                    ruleLine.style.width = window.columnRuleWidth + 'px';
+                                    ruleLine.style.backgroundColor = '#000';
+                                    ruleLine.style.left = (padPx + (colW * r) + (gap * (r - 0.5))) + 'px';
+                                    ruleLine.style.zIndex = '10';
+                                    container.appendChild(ruleLine);
+                                }
+                            }
+                            let currentH = container.offsetHeight;
+                            let actualCmHeight = Math.round(((currentH / BASE_DPI) * 2.54) * 10) / 10;
+
+                            if (!window.customBorderHeight) {
+                                window.customBorderHeight = currentH;
+                                window.customAdHeight = actualCmHeight;
+                                const hInput = document.getElementById('adHeightInput');
+                                if (hInput) hInput.value = actualCmHeight.toFixed(1);
+                            }
+
+                            const badge = document.getElementById('advtMetaBadge');
+                            if (badge) badge.innerText = `${advtData.advt_type || 'Legal Notice'} (${widthInCm.toFixed(1)}x${actualCmHeight.toFixed(1)} cm)`;
+
+                            // Update Fabric log variables so zooming math keeps working
+                            if (fabricCanvas) {
+                                fabricCanvas._logW = container.offsetWidth;
+                                fabricCanvas._logH = container.offsetHeight;
+                            } else {
+                                window._htmlLogW = container.offsetWidth;
+                                window._htmlLogH = container.offsetHeight;
+                            }
+
+                            applyCanvasZoom();
+                        }, 50);
+                    }
+                } catch (e) {
+                    console.error("HTML render error:", e);
+                }
+            }
+        }
+
+        function setupCanvasEvents() { }
+        function showFloatingLineToolbar(e) { }
+        function hideFloatingLineToolbar() { }
+        function setFloatingLineAlign(alignMode) { }
+        function toggleFloatingLineBold() { }
+
+        function updateCanvasFromText() {
+            const container = document.getElementById('editBlocksContainer');
+            const inputs = container.querySelectorAll('.block-editor-input');
+            if (!advtData) return;
+
+            try {
+                let parsedData = JSON.parse(advtData.translated_text || '[]');
+                let blocks = [];
+                if (Array.isArray(parsedData)) blocks = parsedData;
+                else if (parsedData && Array.isArray(parsedData.gujarati_text)) blocks = parsedData.gujarati_text;
+
+                // Sync inputs to blocks only if count matches
+                if (inputs.length === blocks.length) {
+                    inputs.forEach((ta, idx) => {
+                        blocks[idx].text = ta.value;
+                        const parent = ta.parentElement;
+                        const sizeInput = parent.querySelector('.block-format-size');
+                        if (sizeInput) blocks[idx].font_size = parseFloat(sizeInput.value);
+                        const boldInput = parent.querySelector('.block-format-bold-val');
+                        if (boldInput) blocks[idx].font_weight = boldInput.value;
+                        const alignInput = parent.querySelector('.block-format-align-val');
+                        if (alignInput) blocks[idx].text_align = alignInput.value;
+                    });
+
+                    const hBgHeight = parseFloat(document.getElementById('headingHeightInput').value) || 25;
+                    const hTextY = parseFloat(document.getElementById('headingTextYInput').value) || 0;
+                    const hBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading');
+                    if (hBlock) {
+                        hBlock.bg_height = hBgHeight;
+                        hBlock.text_offset_y = hTextY;
+                        const hLayoutInput = document.querySelector('.block-format-layout-val');
+                        if (hLayoutInput) hBlock.layout_position = hLayoutInput.value;
+                    }
+
+                    let newJson = {
+                        gujarati_text: blocks,
+                        layout_offset: window.currentLayoutOffset || 0,
+                        border_height: window.customBorderHeight || null,
+                        ad_width: window.customAdWidth || (window.customColumnCount * 4.0),
+                        ad_height: window.customAdHeight || 25.0,
+                        column_count: window.customColumnCount || 2,
+                        col_widths: window.customColWidths,
+                        column_rule_width: window.columnRuleWidth,
+                        line_height: window.customLineHeight || 1.15,
+                        char_spacing: window.customCharSpacing || 0,
+                        word_spacing: window.customWordSpacing || 0
+                    };
+
+                    const newJsonStr = JSON.stringify(newJson);
+                    document.getElementById('editTranslationText').value = newJsonStr;
+                    advtData.translated_text = newJsonStr;
+                }
+
+                // Always rebuild preview regardless of inputs/blocks count
+                buildCanvasPreview();
+            } catch (e) {
+                console.error("Error updating HTML from text:", e);
+                // Even on error, try to rebuild preview
+                buildCanvasPreview();
+            }
+        }
+
+        async function saveEditorChanges() {
+            const newJsonStr = document.getElementById('editTranslationText').value;
+            try {
+                const res = await fetch(`/api/advt/${CURRENT_ADVT_ID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ translated_text: newJsonStr })
+                });
+                if (!res.ok) throw new Error("Failed to save changes");
+                document.getElementById('saveStatusIndicator').innerText = "Saved successfully!";
+                setTimeout(() => {
+                    document.getElementById('saveStatusIndicator').innerText = "Auto-sync enabled";
+                }, 3000);
+            } catch (err) {
+                alert("Save error: " + err.message);
+            }
+        }
+
+        // High-DPI Smooth Unlimited Zoom & Pan (10% to 1000%+)
+        function applyCanvasZoom() {
+            const zoom = window.canvasZoom || 1.0;
+            const displayRatio = 0.45;
+            const effectiveZoom = zoom * displayRatio;
+
+            const htmlWrapper = document.getElementById('advtHtmlWrapper');
+            const htmlContainer = document.getElementById('advtHtmlContainer');
+            if (htmlWrapper && htmlContainer) {
+                htmlWrapper.style.transform = `scale(${effectiveZoom})`;
+
+                const cssWidth = htmlContainer.offsetWidth * effectiveZoom;
+                const cssHeight = htmlContainer.offsetHeight * effectiveZoom;
+
+                const inner = document.getElementById('canvasInner');
+                if (inner) {
+                    inner.style.width = cssWidth + 'px';
+                    inner.style.height = cssHeight + 'px';
+                }
+            }
+        }
+
+        function setCanvasZoom(z) {
+            window.canvasZoom = Math.max(0.1, Math.min(10.0, z));
+            updateZoomButtons();
+            applyCanvasZoom();
+        }
+
+        function zoomStep(delta) {
+            setCanvasZoom(window.canvasZoom + delta);
+        }
+
+        function setCanvasZoomPreset(z) {
+            setCanvasZoom(z);
+        }
+
+        function onZoomSliderInput(val) {
+            setCanvasZoom(parseFloat(val) / 100);
+        }
+
+        function onZoomInputPercent(val) {
+            setCanvasZoom((parseFloat(val) || 100) / 100);
+        }
+
+        function updateZoomButtons() {
+            const percent = Math.round(window.canvasZoom * 100);
+            document.getElementById('zoomRangeSlider').value = Math.min(500, percent);
+            document.getElementById('zoomPercentInput').value = percent;
+        }
+
+        function fitCanvasToWidth() {
+            const area = document.getElementById('canvasScrollArea');
+            let logW = window._htmlLogW;
+            if (fabricCanvas && fabricCanvas._logW) logW = fabricCanvas._logW;
+            if (!area || !logW) return;
+            const availW = area.clientWidth - 80;
+            const fitZoom = (availW / (logW * 0.45));
+            setCanvasZoom(fitZoom);
+        }
+
+        function fitCanvasToPage() {
+            const area = document.getElementById('canvasScrollArea');
+            let logH = window._htmlLogH;
+            if (fabricCanvas && fabricCanvas._logH) logH = fabricCanvas._logH;
+            if (!area || !logH) return;
+            const availH = area.clientHeight - 80;
+            const fitZoom = (availH / (logH * 0.45));
+            setCanvasZoom(fitZoom);
+        }
+
+        // Ctrl + Wheel Zooming Event
+        document.getElementById('canvasScrollArea').addEventListener('wheel', function (e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                setCanvasZoom(window.canvasZoom + delta);
+            }
+        }, { passive: false });
+
+        // Download PNG, PDF, TIF High-Res Export
+        async function downloadCanvas(format) {
+            await ensureFontsLoaded();
+            const container = document.getElementById('advtHtmlContainer');
+            if (!container) return;
+            await new Promise(r => setTimeout(r, 200));
+
+            async function fetchFontAsBase64(url) {
+                try {
+                    const resp = await fetch(url);
+                    const blob = await resp.blob();
+                    return await new Promise(res => {
+                        const fr = new FileReader();
+                        fr.onloadend = () => res(fr.result);
+                        fr.readAsDataURL(blob);
+                    });
+                } catch (e) { return null; }
+            }
+
+            const [bmaB64, bgotB64, bgotbB64] = await Promise.all([
+                fetchFontAsBase64('/static/fonts/BMA_____.TTF'),
+                fetchFontAsBase64('/static/fonts/BGOT____.TTF'),
+                fetchFontAsBase64('/static/fonts/BGOTB___.TTF'),
+            ]);
+
+            let css = '*{box-sizing:border-box;} p{margin:0;}\n';
+            if (bmaB64) css += `@font-face{font-family:'BMA';src:url('${bmaB64}') format('truetype');}\n`;
+            if (bgotB64) css += `@font-face{font-family:'BGOT';src:url('${bgotB64}') format('truetype');}\n`;
+            if (bgotbB64) css += `@font-face{font-family:'BGOTB';src:url('${bgotbB64}') format('truetype');}\n`;
+
+            // Copy only our own ad CSS rules (.ad-*, .notice-date, .advocate-block)
+            for (const sheet of Array.from(document.styleSheets)) {
+                try {
+                    for (const rule of Array.from(sheet.cssRules)) {
+                        if (rule.selectorText && /ad-|notice-date|advocate-block/.test(rule.selectorText)) {
+                            css += rule.cssText + '\n';
+                        }
+                    }
+                } catch (e) { /* cross-origin sheet, skip */ }
+            }
+
+            const W = container.offsetWidth;
+            const H = container.offsetHeight;
+
+            const clone = container.cloneNode(true);
+            clone.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
+            clone.querySelectorAll('*').forEach(e => { if (e.style.outline) e.style.outline = 'none'; });
+            clone.style.width = W + 'px';
+            clone.style.height = H + 'px';
+            clone.style.minHeight = H + 'px';
+            clone.style.margin = '0';
+            clone.style.transform = 'none';
+
+            const xml = new XMLSerializer().serializeToString(clone);
+            const svg =
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">` +
+                `<foreignObject x="0" y="0" width="${W}" height="${H}">` +
+                `<div xmlns="http://www.w3.org/1999/xhtml" style="background:#fff;width:${W}px;height:${H}px;">` +
+                `<style>${css}</style>${xml}</div></foreignObject></svg>`;
+            const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+
+            const loadImg = () => new Promise((res, rej) => {
+                const im = new Image();
+                im.onload = () => res(im);
+                im.onerror = rej;
+                im.src = svgUrl;
+            });
+
+            let dataURL = '';
+            try {
+                await loadImg();                       // warm-up so embedded fonts get decoded
+                await new Promise(r => setTimeout(r, 300));
+                const img = await loadImg();
+                const canvas = document.createElement('canvas');
+                canvas.width = W; canvas.height = H;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, W, H);
+                ctx.drawImage(img, 0, 0);
+                dataURL = canvas.toDataURL('image/png', 1.0);
+            } catch (err) {
+                console.error('Export failed', err);
+                alert('Image download failed. Please check console.');
+                return;
+            }
+
+            if (format === 'png') {
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `ADVT_${CURRENT_ADVT_ID}.png`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            } else if (format === 'pdf') {
+                const { jsPDF } = window.jspdf;
+
+                // Page size exactly image ke pixels se (300 DPI)
+                const pageW = (W / BASE_DPI) * 2.54;   // cm
+                const pageH = (H / BASE_DPI) * 2.54;   // cm
+
+                const pdf = new jsPDF({
+                    orientation: pageW > pageH ? 'landscape' : 'portrait',
+                    unit: 'cm',
+                    format: [pageW, pageH],
+                    compress: true
+                });
+
+                pdf.addImage(dataURL, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
+                pdf.save(`ADVT_${CURRENT_ADVT_ID}.pdf`);
+            } else if (format === 'tif') {
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `ADVT_${CURRENT_ADVT_ID}.tif`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+        }
+        // --- CANVAS WYSIWYG TOOLBAR LOGIC ---
+        // --- CANVAS WYSIWYG TOOLBAR LOGIC ---
+        let activeCanvasElement = null;
+
+        // Prevent toolbar clicks from clearing canvas text selection
+        document.getElementById('canvasToolbar').addEventListener('mousedown', (e) => {
+            e.preventDefault();
+        });
+
+        function updateCanvasToolbarState() {
+            let sel = window.getSelection();
+            if (sel.rangeCount > 0) {
+                let range = sel.getRangeAt(0);
+                if (document.getElementById('advtHtmlContainer').contains(range.commonAncestorContainer)) {
+                    // Enable toolbar
+                    const tb = document.getElementById('canvasToolbar');
+                    if (tb) tb.classList.remove('opacity-50', 'pointer-events-none');
+
+                    let p = range.commonAncestorContainer;
+                    if (p.nodeType === 3) p = p.parentNode;
+                    let activeP = p.closest('p, .ad-heading-box, div[style*="text-align"]');
+
+                    if (activeCanvasElement && activeCanvasElement !== activeP) {
+                        activeCanvasElement.style.outline = "none";
+                    }
+
+                    if (activeP) {
+                        activeCanvasElement = activeP;
+                        activeCanvasElement.style.outline = "2px dashed #0ea5e9";
+
+                        const currentSize = parseFloat(window.getComputedStyle(activeP).fontSize) / PT_TO_PX;
+                        document.getElementById('ctSize').value = Math.round(currentSize);
+                    }
+                    return;
+                }
+            }
+        }
+
+        function openCanvasEditPopup() {
+            if (!activeCanvasElement) return;
+
+            // Check if it has a block index attached (we need to add this to updateCanvasFromText)
+            let blockIdx = activeCanvasElement.getAttribute('data-block-index');
+
+            // If it's a heading
+            if (activeCanvasElement.classList.contains('ad-heading-box')) {
+                // Focus heading textarea (which doesn't exist separately, it's just index 0 or heading block)
+                let ta = document.querySelector('.block-editor-input'); // First one is usually heading
+                if (ta) highlightLeftSidebarInput(ta);
+            }
+            // If it's a paragraph, we need to ensure data-block-index was set during render
+            else if (blockIdx !== null) {
+                let ta = document.querySelector(`.block-editor-input[data-index="${blockIdx}"]`);
+                if (ta) highlightLeftSidebarInput(ta);
+            } else {
+                // Fallback: just alert them
+                alert("Please edit the text using the left sidebar boxes to preserve Unicode and formatting.");
+            }
+        }
+
+        function highlightLeftSidebarInput(textarea) {
+            textarea.focus();
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            let container = textarea.closest('div');
+            let origBg = container.style.backgroundColor;
+            container.style.transition = 'background-color 0.4s';
+            container.style.backgroundColor = '#0284c7'; // Brand blue
+            setTimeout(() => {
+                container.style.backgroundColor = origBg;
+            }, 800);
+        }
+
+        document.getElementById('advtHtmlContainer').addEventListener('mouseup', updateCanvasToolbarState);
+        document.getElementById('advtHtmlContainer').addEventListener('keyup', updateCanvasToolbarState);
+
+        function splitAndAlignSelection(alignVal) {
+            let sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) return false;
+
+            let range = sel.getRangeAt(0);
+            let p = range.commonAncestorContainer;
+            if (p.nodeType === 3) p = p.parentNode;
+            let parentP = p.closest('p');
+
+            if (!parentP || parentP.tagName.toLowerCase() !== 'p') return false;
+
+            // Extract the selected content
+            let extracted = range.extractContents();
+
+            // Create a new P for the extracted text
+            let newP = document.createElement('p');
+            newP.className = 'ad-paragraph';
+            newP.style.cssText = parentP.style.cssText; // copy styles (font, size)
+
+            if (alignVal === 'force-justify') {
+                newP.style.textAlign = 'justify';
+                newP.style.textAlignLast = 'justify';
+            } else {
+                newP.style.textAlign = alignVal;
+                newP.style.textAlignLast = (alignVal === 'justify') ? 'left' : alignVal;
+            }
+            newP.appendChild(extracted);
+
+            // Insert a marker to split the original paragraph
+            let marker = document.createElement('span');
+            marker.id = "split_marker_temp";
+            range.insertNode(marker);
+
+            let html = parentP.innerHTML;
+            let parts = html.split('<span id="split_marker_temp"></span>');
+
+            if (parts.length === 2) {
+                parentP.innerHTML = parts[0];
+
+                let afterP = document.createElement('p');
+                afterP.className = 'ad-paragraph';
+                afterP.style.cssText = parentP.style.cssText;
+                afterP.innerHTML = parts[1];
+
+                parentP.parentNode.insertBefore(newP, parentP.nextSibling);
+                parentP.parentNode.insertBefore(afterP, newP.nextSibling);
+
+                // Clean up empty pieces
+                if (!parentP.textContent.trim()) parentP.style.display = 'none';
+                if (!afterP.textContent.trim()) afterP.style.display = 'none';
+
+                sel.removeAllRanges();
+                return true;
+            }
+            return false;
+        }
+
+        function applyCanvasFormat(type, val) {
+            if (type === 'bold') {
+                document.execCommand('bold', false, null);
+                return;
+            }
+
+            if (type === 'align') {
+                // Try smart split first!
+                if (splitAndAlignSelection(val)) {
+                    return;
+                }
+
+                if (activeCanvasElement) {
+                    if (val === 'force-justify') {
+                        activeCanvasElement.style.textAlign = 'justify';
+                        activeCanvasElement.style.textAlignLast = 'justify';
+                    } else {
+                        activeCanvasElement.style.textAlign = val;
+                        activeCanvasElement.style.textAlignLast = (val === 'justify') ? 'left' : val;
+                    }
+                }
+            }
+
+            if (type === 'fontSize') {
+                if (activeCanvasElement) {
+                    activeCanvasElement.style.fontSize = (parseFloat(val) * PT_TO_PX) + 'px';
+                }
+            }
+        }
+        // ------------------------------------
+
+        // DOM Ready Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdData();
+        });
+    </script>
+</body>
+
+</html>

@@ -512,58 +512,42 @@
         /**
          * Resize Fabric.js canvas for the current zoom level.
          * Uses fabricCanvas.setZoom() so all drawn objects scale correctly.
-         * Crisp rendering: Fabric.js already accounts for devicePixelRatio internally.
+         * High-DPI Crisp rendering using devicePixelRatio.
          */
         function applyCanvasZoom() {
             if (!fabricCanvas) return;
             const zoom = window.canvasZoom || 1.0;
 
-            // Store the original logical size once (at zoom=1, 96 PPI)
+            // Store the original 300 DPI logical size once
             if (!fabricCanvas._logW) fabricCanvas._logW = fabricCanvas.getWidth();
             if (!fabricCanvas._logH) fabricCanvas._logH = fabricCanvas.getHeight();
 
             const logW = fabricCanvas._logW;
             const logH = fabricCanvas._logH;
 
-            const cssWidth = logW * zoom;
-            const cssHeight = logH * zoom;
+            // Display ratio converts 300 DPI logical size to clear screen preview bounds
+            const displayRatio = 0.45;
+            const effectiveZoom = zoom * displayRatio;
 
-            // 1. Set Fabric canvas logical size
-            fabricCanvas.setWidth(cssWidth);
-            fabricCanvas.setHeight(cssHeight);
+            const cssWidth = Math.round(logW * effectiveZoom);
+            const cssHeight = Math.round(logH * effectiveZoom);
 
-            // 2. Override DOM canvas element for crisp high-DPI rendering
-            const dpr = Math.max(window.devicePixelRatio || 1, 2);
-            
-            const htmlPreview = document.getElementById('htmlAdPreview');
-            if (htmlPreview) {
-                htmlPreview.style.transformOrigin = '0 0';
-                htmlPreview.style.transform = 'scale(' + zoom + ')';
-            }
+            // 1. Set Fabric canvas dimensions
+            fabricCanvas.setDimensions({
+                width: cssWidth,
+                height: cssHeight
+            });
 
-            const lowerCanvas = fabricCanvas.lowerCanvasEl;
+            // 2. Apply viewport zoom transformation matrix
+            fabricCanvas.setZoom(effectiveZoom);
 
-            const upperCanvas = fabricCanvas.upperCanvasEl;
-
-            if (lowerCanvas && upperCanvas) {
-                [lowerCanvas, upperCanvas].forEach(el => {
-                    el.width = cssWidth * dpr;
-                    el.height = cssHeight * dpr;
-                    el.style.width = cssWidth + 'px';
-                    el.style.height = cssHeight + 'px';
-                });
-
-                const ctx = fabricCanvas.getContext();
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const ctx = fabricCanvas.getContext();
+            if (ctx) {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
             }
 
-            fabricCanvas.setZoom(zoom);
-            
-                                fabricCanvas.renderAll();
-                                updateHtmlPreview(); // Update HTML DOM view
-
+            fabricCanvas.renderAll();
 
             // Let scroll container know the real content size
             const inner = document.getElementById('canvasInner');
@@ -979,499 +963,7 @@
         }
 
         function openEditModal(id) {
-            const advt = advts.find(a => a._id === id);
-            if (advt) {
-                document.getElementById('editAdvtId').value = id;
-                document.getElementById('editTranslationText').value = advt.translated_text || '';
-                renderEditBlocks(advt.translated_text || '');
-
-                // Restore Layout Offset, Border Height, and Ad Width
-                let parsedForOffset = null;
-                try { parsedForOffset = JSON.parse(advt.translated_text); } catch (e) { }
-                window.currentLayoutOffset = (parsedForOffset && parsedForOffset.layout_offset) ? parsedForOffset.layout_offset : 0;
-
-                // Restore column count (default 2 for legal notice)
-                if (parsedForOffset && parsedForOffset.column_count) {
-                    window.customColumnCount = parsedForOffset.column_count;
-                } else {
-                    window.customColumnCount = 2;
-                }
-                window.customBorderHeight = (parsedForOffset && parsedForOffset.border_height) ? parsedForOffset.border_height : null;
-
-                const isLegal = advt.advt_type && advt.advt_type.toLowerCase().includes('legal');
-                const formIsLegal = document.getElementById('advtType') && document.getElementById('advtType').value.toLowerCase().includes('legal');
-
-                if (parsedForOffset && parsedForOffset.ad_width) {
-                    window.customAdWidth = parseFloat(parsedForOffset.ad_width);
-                } else if (isLegal || formIsLegal) {
-                    window.customAdWidth = 6.2;
-                } else if (advt && advt.width > 0) {
-                    window.customAdWidth = advt.unit === 'inch' ? advt.width * 2.54 : advt.width;
-                } else {
-                    window.customAdWidth = 6.2;
-                }
-
-                if (isLegal || formIsLegal) {
-                    document.getElementById('legalLayoutControls').classList.remove('hidden');
-                    document.getElementById('legalLayoutControls').classList.add('flex');
-                    document.getElementById('layoutOffsetDisplay').innerText = window.currentLayoutOffset > 0 ? '+' + window.currentLayoutOffset : window.currentLayoutOffset;
-                    const adWidthInput = document.getElementById('adWidthInput');
-                    if (adWidthInput) adWidthInput.value = window.customAdWidth.toFixed(1);
-                    // Sync column toggle buttons
-                    const c1 = document.getElementById('col1Btn');
-                    const c2 = document.getElementById('col2Btn');
-                    const balRow = document.getElementById('balanceColumnsRow');
-                    if (c1 && c2) {
-                        if (window.customColumnCount === 1) {
-                            c1.classList.add('bg-brand-600', 'text-white');
-                            c1.classList.remove('bg-white', 'text-brand-700');
-                            c2.classList.remove('bg-brand-600', 'text-white');
-                            c2.classList.add('bg-white', 'text-brand-700');
-                            if (balRow) balRow.style.display = 'none';
-                        } else {
-                            c2.classList.add('bg-brand-600', 'text-white');
-                            c2.classList.remove('bg-white', 'text-brand-700');
-                            c1.classList.remove('bg-brand-600', 'text-white');
-                            c1.classList.add('bg-white', 'text-brand-700');
-                            if (balRow) balRow.style.display = 'flex';
-                        }
-                    }
-                } else {
-                    document.getElementById('legalLayoutControls').classList.remove('flex');
-                    document.getElementById('legalLayoutControls').classList.add('hidden');
-                }
-
-                const detailsContainer = document.getElementById('editAdvtDetails');
-                detailsContainer.innerHTML = `
-                    <div><strong>Type:</strong> ${advt.advt_type || 'N/A'}</div>
-                    <div><strong>Size:</strong> ${advt.height || 0} x ${advt.width || 0} ${advt.unit || ''}</div>
-                `;
-
-                const imageContainer = document.getElementById('editImageContainer');
-
-                if (advt.generated_image_url) {
-                    imageContainer.style.display = 'block';
-                    document.getElementById('editModal').style.display = "block";
-
-                    setTimeout(async () => {
-                        await ensureFontsLoaded();
-                        if (!fabricCanvas) {
-                            fabricCanvas = new fabric.Canvas('advtCanvas');
-                            setupCanvasEvents();
-                        }
-                        fabricCanvas.clear();
-
-                        fabric.Image.fromURL(advt.generated_image_url, function (img) {
-                            // User wants it to look EXACTLY physical size on screen (e.g. 6.2cm = 2.44 inches). 
-                            // Assuming standard 96 PPI screen.
-                            let widthInCm = window.customAdWidth || 6.2;
-                            let physicalScreenPx = (widthInCm / 2.54) * 96;
-
-                            let scale = 1;
-                            if (img.width > 0) {
-                                scale = physicalScreenPx / img.width;
-                            }
-
-                            fabricCanvas.setWidth(img.width * scale);
-                            fabricCanvas.setHeight(img.height * scale);
-
-                            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-                                scaleX: scale,
-                                scaleY: scale
-                            });
-
-                            if (advt.translated_text) {
-                                try {
-                                    let parsedData = JSON.parse(advt.translated_text);
-                                    let blocks = [];
-                                    if (Array.isArray(parsedData)) {
-                                        blocks = parsedData;
-                                    } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
-                                        blocks = parsedData.gujarati_text;
-                                    }
-
-                                    if (blocks.length > 0) {
-                                        // Sort text blocks by their top Y-coordinate to process them top-to-bottom
-                                        let sortedBlocks = [...blocks].sort((a, b) => (a.top_percent || 0) - (b.top_percent || 0));
-                                        let textObjects = [];
-                                        // Robust check for Legal Notice: either type matches, OR the AI output is missing 'top_percent' entirely
-                                        const formAdvtTypeStr = document.getElementById('advtType') ? document.getElementById('advtType').value.toLowerCase() : '';
-                                        const advtTypeStr = (advt.advt_type || '').toLowerCase();
-                                        const isLegalType = advtTypeStr.includes('legal') || formAdvtTypeStr.includes('legal') || blocks.length > 0 && blocks.every(b => b.top_percent === undefined);
-
-                                        if (isLegalType) {
-                                            // Deterministic Sequential Layout Engine for Legal Notice
-                                            const cWidth = img.width * scale;
-                                            let cHeight = img.height * scale;
-
-                                            if (window.customBorderHeight) {
-                                                cHeight = window.customBorderHeight + 8;
-                                            }
-
-                                            // Draw outer border
-                                            const borderRect = new fabric.Rect({
-                                                left: 4,
-                                                top: 4,
-                                                width: cWidth - 8,
-                                                height: cHeight - 8,
-                                                fill: 'transparent',
-                                                stroke: '#000000',
-                                                strokeWidth: 2,
-                                                selectable: true,
-                                                strokeUniform: true,
-                                                id: 'mainBorder'
-                                            });
-                                            borderRect.setControlsVisibility({
-                                                mt: false, mb: true, ml: false, mr: true, bl: false, br: false, tl: false, tr: false, mtr: false
-                                            });
-                                            textObjects.push(borderRect);
-
-                                            // Detect if we should use 2 columns based on canvas width (e.g., width > 600 corresponds to 15cm+)
-                                            const isTwoColumn = true; // Always 2 columns for legal notice
-                                            const padding = 10;
-
-                                            let targetExportPx = 945; // default 8cm at 300 DPI
-                                            if (advt && advt.width > 0) {
-                                                targetExportPx = advt.unit === 'inch' ? advt.width * 300 : (advt.width / 2.54) * 300;
-                                            }
-                                            // ptToPx = 0.85 makes the font slightly smaller so it perfectly fits 4-5 words per line,
-                                            // which naturally reduces the wide gaps caused by justification.
-                                            const ptToPx = 0.85;
-
-                                            // Draw center line
-                                            const centerLine = new fabric.Line([cWidth / 2, 5, cWidth / 2, cHeight - 5], {
-                                                stroke: '#000000',
-                                                strokeWidth: 1,
-                                                selectable: false,
-                                                id: 'centerLine'
-                                            });
-                                            textObjects.push(centerLine);
-
-                                            const colWidth = (cWidth / 2) - (padding * 1.5);
-                                            let leftVals = [padding, (cWidth / 2) + (padding / 2)];
-
-                                            // Separate blocks
-                                            let headingBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading' || (b.text && b.text.includes('જાહેર નોટિસ')));
-                                            let advocateBlocks = blocks.filter(b => (b.type || '').toLowerCase() === 'advocate');
-                                            let contentBlocks = blocks.filter(b => b !== headingBlock && !advocateBlocks.includes(b));
-
-                                            let col0_Y = padding;
-                                            let col1_Y = padding;
-
-                                            function parseInlineBold(text, defaultWeight, initialIsBold = false) {
-                                                let cleanText = "";
-                                                let isBold = initialIsBold;
-                                                let styles = {};
-                                                let pIdx = 0;
-                                                let cIdx = 0;
-                                                for (let i = 0; i < text.length; i++) {
-                                                    if (text[i] === '*') {
-                                                        isBold = !isBold;
-                                                        continue;
-                                                    }
-                                                    cleanText += text[i];
-                                                    if (text[i] === '\n') {
-                                                        pIdx++;
-                                                        cIdx = 0;
-                                                    } else {
-                                                        if (isBold && defaultWeight !== 'bold' && defaultWeight !== '900') {
-                                                            if (!styles[pIdx]) styles[pIdx] = {};
-                                                            styles[pIdx][cIdx] = { fontFamily: 'BGOTB' };
-                                                        } else if (!isBold && (defaultWeight === 'bold' || defaultWeight === '900')) {
-                                                            if (!styles[pIdx]) styles[pIdx] = {};
-                                                            styles[pIdx][cIdx] = { fontFamily: 'BGOT' };
-                                                        }
-                                                        cIdx++;
-                                                    }
-                                                }
-                                                return { cleanText, styles, finalIsBold: isBold };
-                                            }
-
-                                            // 1. Draw Heading
-                                            if (headingBlock) {
-                                                let isLeftLayout = headingBlock.layout_position ? headingBlock.layout_position === 'left' : true;
-                                                let hLeft = 4;
-                                                let hWidth = isLeftLayout ? (cWidth / 2) - 4 : cWidth - 8;
-
-                                                let currentBgHeight = headingBlock.bg_height ? parseFloat(headingBlock.bg_height) : 35;
-
-                                                // Background rect for heading to prevent font ascenders from bleeding
-                                                const headingBg = new fabric.Rect({
-                                                    left: hLeft,
-                                                    top: 4,
-                                                    width: hWidth,
-                                                    height: currentBgHeight,
-                                                    fill: '#000000',
-                                                    selectable: true,
-                                                    lockMovementX: true,
-                                                    lockMovementY: true,
-                                                    id: 'headingBg'
-                                                });
-                                                headingBg.setControlsVisibility({
-                                                    mt: false, mb: true, ml: false, mr: false, bl: false, br: false, tl: false, tr: false, mtr: false
-                                                });
-                                                textObjects.push(headingBg);
-
-                                                let defaultHWeight = headingBlock.font_weight || '900';
-                                                let rawHText = headingBlock.text || 'જાહેર નોટિસ';
-                                                let convertedH = (typeof unicodeToGopika === 'function') ? unicodeToGopika(rawHText) : rawHText;
-                                                let parsedHeading = parseInlineBold(convertedH, defaultHWeight);
-
-                                                let textOffsetY = headingBlock.text_offset_y !== undefined ? parseFloat(headingBlock.text_offset_y) : 0;
-                                                let textTop = 4 + Math.max(0, (currentBgHeight - 25) / 2) + textOffsetY;
-
-                                                const textObj = new fabric.Textbox(parsedHeading.cleanText, {
-                                                    left: hLeft,
-                                                    top: textTop,
-                                                    width: hWidth,
-                                                    fontSize: (headingBlock.font_size || 20) * ptToPx,
-                                                    fill: '#FFFFFF',
-                                                    fontWeight: 'normal',
-                                                    fontFamily: 'BMA',
-                                                    textAlign: headingBlock.text_align || 'center',
-                                                    lineHeight: 1.15,
-                                                    shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.65)', blur: 5, offsetX: 1, offsetY: 1 }),
-                                                    styles: parsedHeading.styles,
-                                                    selectable: true,
-                                                    lockMovementX: true,
-                                                    lockScalingX: true,
-                                                    lockScalingY: true,
-                                                    hasControls: false,
-                                                    id: 'headingText'
-                                                });
-                                                if (typeof textObj.initDimensions === 'function') textObj.initDimensions();
-                                                else if (typeof textObj._initDimensions === 'function') textObj._initDimensions();
-                                                textObjects.push(textObj);
-
-                                                if (!headingBlock.bg_height && textObj.height > 25) {
-                                                    headingBg.set({ height: textObj.height + 10 });
-                                                }
-
-                                                let hOffset = headingBg.height;
-                                                col0_Y = 5 + hOffset + 5;
-                                                if (!isLeftLayout) {
-                                                    col1_Y = 5 + hOffset + 5; // Also start right column below heading
-                                                    centerLine.set({ y1: col0_Y - 5 }); // Push center line down
-                                                } else {
-                                                    col1_Y = 10;
-                                                    centerLine.set({ y1: 4 });
-                                                }
-                                            }
-
-                                            // Extract Place & Date ("સ્થળ"...) from the bottom of the content blocks so it stays on the left side
-                                            let placeDateText = "";
-                                            if (contentBlocks.length > 0) {
-                                                let lastBlock = contentBlocks[contentBlocks.length - 1];
-                                                if (lastBlock && lastBlock.text) {
-                                                    let match = lastBlock.text.match(/(?:^|\n)\s*(સ્થળ[\s\S]*)$/);
-                                                    if (match) {
-                                                        placeDateText = match[1].trim();
-                                                        lastBlock.text = lastBlock.text.substring(0, match.index).trim();
-                                                    }
-                                                }
-                                            }
-
-                                            // 2. Process Content Blocks (Support individual line alignment via multiple blocks)
-
-                                            let advocateHeight = 0;
-                                            if (advocateBlocks.length > 0) {
-                                                advocateHeight += 10;
-                                                advocateBlocks.forEach((b, idx) => {
-                                                    let textLower = (b.text || '').trim().toLowerCase();
-                                                    let isName = idx === 0 || textLower.includes('advocate') || textLower.includes('એડવોકેટ');
-                                                    let defaultW = b.font_weight || (isName ? '900' : 'normal');
-                                                    let advFont = (isName || defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
-                                                    let rawAdvText = (b.text || '').trim();
-                                                    let convertedAdv = (typeof unicodeToGopika === 'function') ? unicodeToGopika(rawAdvText) : rawAdvText;
-                                                    let parsedAdv = parseInlineBold(convertedAdv, defaultW);
-                                                    let t = new fabric.Textbox(parsedAdv.cleanText, { width: colWidth, fontSize: (b.font_size || 12) * ptToPx, fontWeight: 'normal', fontFamily: advFont, textAlign: b.text_align || 'right', lineHeight: 1.1, styles: parsedAdv.styles });
-                                                    if (typeof t.initDimensions === 'function') t.initDimensions(); else if (typeof t._initDimensions === 'function') t._initDimensions();
-                                                    advocateHeight += t.height + 2;
-                                                });
-                                                advocateHeight += 12;
-                                            }
-
-                                            let placeDateHeight = 0;
-                                            let cFontSizePD = 11;
-                                            let cFontWeightPD = 'normal';
-                                            if (contentBlocks.length > 0) {
-                                                cFontSizePD = contentBlocks[0].font_size || cFontSizePD;
-                                                cFontWeightPD = contentBlocks[0].font_weight || cFontWeightPD;
-                                                if ((cFontWeightPD === 'bold' || cFontWeightPD === '900') && !contentBlocks[0].font_size) cFontSizePD = 12;
-                                            }
-                                            if (placeDateText) {
-                                                let convertedPd = (typeof unicodeToGopika === 'function') ? unicodeToGopika(placeDateText) : placeDateText;
-                                                let parsedPd = parseInlineBold(convertedPd, cFontWeightPD);
-                                                let pdFont = (cFontWeightPD === 'bold' || cFontWeightPD === '900') ? 'BGOTB' : 'BGOT';
-                                                let t = new fabric.Textbox(parsedPd.cleanText, { width: colWidth, fontSize: cFontSizePD * ptToPx, fontWeight: 'normal', fontFamily: pdFont, textAlign: 'left', lineHeight: 1.1, styles: parsedPd.styles });
-                                                if (typeof t.initDimensions === 'function') t.initDimensions(); else if (typeof t._initDimensions === 'function') t._initDimensions();
-                                                placeDateHeight = t.height + 15;
-                                            }
-
-                                            let contentTotalHeight = 0;
-                                            let parsedContentBlocks = [];
-                                            contentBlocks.forEach(b => {
-                                                if (!b.text || !b.text.trim()) return;
-                                                let tText = (b.text || '').trim().replace(/\n\n/g, '[PARAGRAPH]').replace(/\n/g, ' ').replace(/\[PARAGRAPH\]/g, '\n\n');
-                                                let convertedText = (typeof unicodeToGopika === 'function') ? unicodeToGopika(tText) : tText;
-                                                let bFontWeight = b.font_weight || 'normal';
-                                                let bFontSize = b.font_size || 11;
-                                                if ((bFontWeight === 'bold' || bFontWeight === '900') && !b.font_size) bFontSize = 12;
-                                                let parsed = parseInlineBold(convertedText, bFontWeight);
-                                                let bFontFamily = (bFontWeight === 'bold' || bFontWeight === '900') ? 'BGOTB' : 'BGOT';
-                                                let bAlign = b.text_align || 'justify';
-                                                if (bAlign === 'justify') bAlign = 'justify-left';
-
-                                                let t = new fabric.Textbox(parsed.cleanText, { width: colWidth, fontSize: bFontSize * ptToPx, fontWeight: 'normal', fontFamily: bFontFamily, textAlign: bAlign, lineHeight: 1.1, styles: parsed.styles });
-                                                if (typeof t.initDimensions === 'function') t.initDimensions(); else if (typeof t._initDimensions === 'function') t._initDimensions();
-
-                                                contentTotalHeight += t.height + 8;
-                                                let lines = t.textLines || (t._textLines ? t._textLines.map(l => l.join('')) : []);
-
-                                                parsedContentBlocks.push({
-                                                    origText: convertedText,
-                                                    cleanText: parsed.cleanText,
-                                                    lines: lines,
-                                                    styles: parsed.styles,
-                                                    fontSize: bFontSize,
-                                                    fontFamily: bFontFamily,
-                                                    align: bAlign,
-                                                    fontWeight: bFontWeight,
-                                                    height: t.height
-                                                });
-                                            });
-
-                                            let leftColumnLimit = 99999;
-                                            if (isTwoColumn) {
-                                                let totalExtraPx = advocateHeight + placeDateHeight + (col1_Y - col0_Y);
-                                                leftColumnLimit = (contentTotalHeight + totalExtraPx) / 2;
-                                                leftColumnLimit += (window.currentLayoutOffset || 0) * (cFontSizePD * ptToPx * 1.1);
-                                            }
-
-                                            let currCol = 0;
-                                            let currY = col0_Y;
-
-                                            parsedContentBlocks.forEach(b => {
-                                                if (!b.cleanText.trim()) return;
-
-                                                if (currCol === 0 && isTwoColumn) {
-                                                    if (currY + b.height <= col0_Y + leftColumnLimit + 20) {
-                                                        let textObj = new fabric.Textbox(b.cleanText, { left: leftVals[0], top: currY, width: colWidth, fontSize: b.fontSize * ptToPx, fontWeight: 'normal', fill: '#000000', fontFamily: b.fontFamily, textAlign: b.align, lineHeight: 1.1, styles: b.styles });
-                                                        if (typeof textObj.initDimensions === 'function') textObj.initDimensions(); else if (typeof textObj._initDimensions === 'function') textObj._initDimensions();
-                                                        textObjects.push(textObj);
-                                                        currY += textObj.height + 8;
-                                                    } else {
-                                                        let remainingHeight = (col0_Y + leftColumnLimit) - currY;
-                                                        let lineHeightPx = b.fontSize * ptToPx * 1.1;
-                                                        let linesThatFit = Math.ceil(remainingHeight / lineHeightPx);
-                                                        if (linesThatFit > b.lines.length) linesThatFit = b.lines.length;
-                                                        if (linesThatFit < 1) linesThatFit = 1;
-
-                                                        let splitIdxInCleanText = 0;
-                                                        let currentIdx = 0;
-                                                        for (let i = 0; i < linesThatFit; i++) {
-                                                            let lineStr = b.lines[i].trim();
-                                                            if (!lineStr) continue;
-                                                            let foundIdx = b.cleanText.indexOf(lineStr, currentIdx);
-                                                            if (foundIdx !== -1) currentIdx = foundIdx + lineStr.length;
-                                                        }
-                                                        splitIdxInCleanText = currentIdx;
-
-                                                        let cleanCount = 0;
-                                                        let splitIndexInOriginal = b.origText.length;
-                                                        for (let i = 0; i < b.origText.length; i++) {
-                                                            if (cleanCount >= splitIdxInCleanText) {
-                                                                while (i < b.origText.length && b.origText[i] === '*') i++;
-                                                                splitIndexInOriginal = i;
-                                                                break;
-                                                            }
-                                                            if (b.origText[i] !== '*') cleanCount++;
-                                                        }
-
-                                                        let leftOriginalText = b.origText.substring(0, splitIndexInOriginal).trim();
-                                                        let rightOriginalText = b.origText.substring(splitIndexInOriginal).trim();
-
-                                                        let isEndOfParagraph = b.origText.substring(Math.max(0, splitIndexInOriginal - 1), splitIndexInOriginal + 2).includes('\n');
-                                                        let cAlignLeft = b.align;
-                                                        if (cAlignLeft === 'justify-left' && !isEndOfParagraph) cAlignLeft = 'justify';
-
-                                                        let leftParsed = parseInlineBold(leftOriginalText, b.fontWeight, false);
-                                                        let rightParsed = parseInlineBold(rightOriginalText, b.fontWeight, leftParsed.finalIsBold);
-
-                                                        if (leftParsed.cleanText) {
-                                                            let textObjL = new fabric.Textbox(leftParsed.cleanText, { left: leftVals[0], top: currY, width: colWidth, fontSize: b.fontSize * ptToPx, fontWeight: 'normal', fill: '#000000', fontFamily: b.fontFamily, textAlign: cAlignLeft, lineHeight: 1.1, styles: leftParsed.styles });
-                                                            if (typeof textObjL.initDimensions === 'function') textObjL.initDimensions(); else if (typeof textObjL._initDimensions === 'function') textObjL._initDimensions();
-                                                            textObjects.push(textObjL);
-                                                            col0_Y = currY + textObjL.height + 4;
-                                                        } else {
-                                                            col0_Y = currY;
-                                                        }
-
-                                                        currCol = 1;
-                                                        currY = col1_Y;
-
-                                                        if (rightParsed.cleanText) {
-                                                            let textObjR = new fabric.Textbox(rightParsed.cleanText, { left: leftVals[1], top: currY, width: colWidth, fontSize: b.fontSize * ptToPx, fontWeight: 'normal', fill: '#000000', fontFamily: b.fontFamily, textAlign: b.align, lineHeight: 1.1, styles: rightParsed.styles });
-                                                            if (typeof textObjR.initDimensions === 'function') textObjR.initDimensions(); else if (typeof textObjR._initDimensions === 'function') textObjR._initDimensions();
-                                                            textObjects.push(textObjR);
-                                                            currY += textObjR.height + 8;
-                                                        }
-                                                    }
-                                                } else {
-                                                    let cIdx = isTwoColumn ? 1 : 0;
-                                                    let textObj = new fabric.Textbox(b.cleanText, { left: leftVals[cIdx], top: currY, width: colWidth, fontSize: b.fontSize * ptToPx, fontWeight: 'normal', fill: '#000000', fontFamily: b.fontFamily, textAlign: b.align, lineHeight: 1.1, styles: b.styles });
-                                                    if (typeof textObj.initDimensions === 'function') textObj.initDimensions(); else if (typeof textObj._initDimensions === 'function') textObj._initDimensions();
-                                                    textObjects.push(textObj);
-                                                    currY += textObj.height + 8;
-                                                }
-                                            });
-
-                                            if (isTwoColumn) {
-                                                if (currCol === 0) col0_Y = currY;
-                                                else col1_Y = currY;
-                                            } else {
-                                                col0_Y = currY;
-                                            }
-
-                                            // 3. Add to canvas
-                                            textObjects.forEach(textObj => {
-                                                fabricCanvas.add(textObj);
-                                            });
-
-
-                                        }
-                                        } else {
-                                            throw new Error("Parsed JSON is not an array");
-                                        }
-                                    } catch (e) {
-                                        alert("CANVAS ERROR: " + e.message + "\n\n" + e.stack);
-                                        console.error("Canvas rendering fallback:", e);
-                                        const text = new fabric.Textbox("ERROR: " + e.message + "\n\n" + e.stack, {
-                                            left: 20,
-                                            top: 20,
-                                            width: (img.width * scale) - 40,
-                                            fontSize: 14,
-                                            fill: 'red',
-                                            fontFamily: 'monospace',
-                                            textAlign: 'left'
-                                        });
-                                        fabricCanvas.add(text);
-                                    }
-                                    
-                                fabricCanvas.renderAll();
-                                updateHtmlPreview(); // Update HTML DOM view
-
-                                    // Apply zoom after re-render (reset stored logical size so applyCanvasZoom recalculates)
-                                    fabricCanvas._logW = null; fabricCanvas._logH = null;
-                                    setTimeout(() => applyCanvasZoom(), 50);
-                                }
-                        });
-                    }, 100);
-                } else {
-                    imageContainer.style.display = 'none';
-                    document.getElementById('editModal').style.display = "block";
-                }
-            }
+            window.location.href = `/advt/editor/${id}`;
         }
 
         async function downloadCanvas(format) {
@@ -1485,8 +977,6 @@
             fabricCanvas.discardActiveObject();
             
                                 fabricCanvas.renderAll();
-                                updateHtmlPreview(); // Update HTML DOM view
-
 
             // Calculate EXACT multiplier to guarantee 300 DPI output width
             let targetPixels = (8 / 2.54) * 300; // default to 8cm
@@ -1496,16 +986,16 @@
                 if (advt.unit === 'cm') targetPixels = (advt.width / 2.54) * 300;
                 else if (advt.unit === 'inch') targetPixels = advt.width * 300;
             }
+            let baseWidth = fabricCanvas._logW || fabricCanvas.width;
             let exactMultiplier = 1;
-            if (fabricCanvas.width > 0) {
-                exactMultiplier = targetPixels / fabricCanvas.width;
+            if (baseWidth > 0) {
+                exactMultiplier = targetPixels / baseWidth;
             }
 
             let exportOptions = { format: 'png', quality: 1, multiplier: exactMultiplier };
             let mainBorder = fabricCanvas.getObjects().find(o => o.id === 'mainBorder');
 
-            let exportWidth = fabricCanvas.width;
-            let exportHeight = fabricCanvas.height;
+            let exportHeight = fabricCanvas._logH || fabricCanvas.height;
 
             if (mainBorder) {
                 exportHeight = mainBorder.top + (mainBorder.height * mainBorder.scaleY) + 4;
@@ -1655,13 +1145,12 @@
                     }
                     if (border.scaleX !== 1) {
                         const newBorderWidth = border.width * border.scaleX;
-                        const newWidthCm = Math.max(3.0, Math.min(20.0, Math.round(((newBorderWidth + 8) / 96 * 2.54) * 10) / 10));
+                        const newWidthCm = Math.max(3.0, Math.min(20.0, Math.round(((newBorderWidth + 8) / 300 * 2.54) * 10) / 10));
                         const widthInput = document.getElementById('adWidthInput');
                         if (widthInput) widthInput.value = newWidthCm.toFixed(1);
                     }
                     
-                                fabricCanvas.renderAll();
-                                updateHtmlPreview(); // Update HTML DOM view
+                    fabricCanvas.renderAll();
 
                 } else if (e.target && e.target.id === 'headingBg') {
                     const bg = e.target;
@@ -1686,7 +1175,7 @@
                     }
                     if (border.scaleX !== 1) {
                         const newBorderWidth = border.width * border.scaleX;
-                        window.customAdWidth = Math.max(3.0, Math.min(20.0, Math.round(((newBorderWidth + 8) / 96 * 2.54) * 10) / 10));
+                        window.customAdWidth = Math.max(3.0, Math.min(20.0, Math.round(((newBorderWidth + 8) / 300 * 2.54) * 10) / 10));
                         const widthInput = document.getElementById('adWidthInput');
                         if (widthInput) widthInput.value = window.customAdWidth.toFixed(1);
                         border.set({ scaleX: 1 });
@@ -2060,6 +1549,14 @@
             if (event.target == document.getElementById('editModal')) closeEditModal();
         }
 
+        function updateHtmlPreview() {
+            // Keep Fabric Canvas visible for interactive editing
+            const fabricContainer = document.querySelector('.canvas-container');
+            if (fabricContainer) fabricContainer.style.display = 'inline-block';
+            const htmlPreview = document.getElementById('htmlAdPreview');
+            if (htmlPreview) htmlPreview.style.display = 'none';
+        }
+
         // Init
         document.addEventListener('DOMContentLoaded', () => {
             loadAdvts();
@@ -2070,94 +1567,3 @@
 </body>
 
 </html>
-
-        function updateHtmlPreview() {
-            const preview = document.getElementById('htmlAdPreview');
-            const body = document.getElementById('htmlAdBody');
-            if (!preview || !body) return;
-            
-            preview.style.display = 'block';
-            
-            // Set Width
-            const wCm = (window.customAdWidth && window.customAdWidth > 0) ? window.customAdWidth : 8.0;
-            preview.style.width = wCm + 'cm';
-            
-            // Set Columns
-            const isTwoColumn = parseInt(document.querySelector('input[name="colLayout"]:checked')?.value || '2') === 2;
-            if (isTwoColumn) {
-                body.style.columnCount = '2';
-                body.style.columnGap = '0.3cm';
-                body.style.columnRule = '1px solid black';
-            } else {
-                body.style.columnCount = '1';
-                body.style.columnRule = 'none';
-            }
-            
-            // Clear body
-            body.innerHTML = '';
-            
-            // Add Blocks
-            const blocks = window.currentBlocks || [];
-            blocks.forEach(b => {
-                let div = document.createElement('div');
-                div.style.textAlign = b.align || 'justify';
-                div.style.fontSize = (b.fontSize || 11) + 'pt';
-                div.style.fontFamily = (b.fontWeight === 'bold' || b.fontWeight === '900') ? 'BGOTB' : 'BGOT';
-                div.style.marginBottom = '6px';
-                div.style.lineHeight = '1.2';
-                
-                let rawText = (b.text || '').trim();
-                let converted = (typeof unicodeToGopika === 'function') ? unicodeToGopika(rawText) : rawText;
-                
-                // Handle inline bold (*text*)
-                converted = converted.replace(/\*([^*]+)\*/g, '<strong style="font-family:BGOTB;">$1</strong>');
-                
-                div.innerHTML = converted.replace(/\n/g, '<br>');
-                body.appendChild(div);
-            });
-            
-            // Add Place/Date and Advocate at the end (so they naturally flow to bottom right in 2-col)
-            const pdText = document.getElementById('placeDateText')?.value || '';
-            const advocateContainer = document.getElementById('advocateBlocksContainer');
-            
-            if (pdText) {
-                let div = document.createElement('div');
-                div.style.marginTop = '15px';
-                div.style.textAlign = 'left';
-                div.style.fontSize = (document.getElementById('fontSizePD')?.value || 11) + 'pt';
-                div.style.fontFamily = 'BGOT';
-                let converted = (typeof unicodeToGopika === 'function') ? unicodeToGopika(pdText) : pdText;
-                converted = converted.replace(/\*([^*]+)\*/g, '<strong style="font-family:BGOTB;">$1</strong>');
-                div.innerHTML = converted.replace(/\n/g, '<br>');
-                body.appendChild(div);
-            }
-            
-            if (advocateContainer) {
-                let advRows = advocateContainer.querySelectorAll('.adv-row');
-                advRows.forEach((row, idx) => {
-                    let text = row.querySelector('textarea').value || '';
-                    if (!text) return;
-                    let div = document.createElement('div');
-                    div.style.marginTop = idx === 0 ? '10px' : '4px';
-                    
-                    let alignBtn = row.querySelector('.align-btn.bg-brand-100');
-                    let align = alignBtn ? alignBtn.dataset.align : 'right';
-                    div.style.textAlign = align;
-                    
-                    let fs = row.querySelector('input[type="number"]').value || 12;
-                    div.style.fontSize = fs + 'pt';
-                    
-                    let isName = idx === 0 || text.toLowerCase().includes('advocate') || text.toLowerCase().includes('એડવોકેટ');
-                    div.style.fontFamily = isName ? 'BGOTB' : 'BGOT';
-                    
-                    let converted = (typeof unicodeToGopika === 'function') ? unicodeToGopika(text) : text;
-                    converted = converted.replace(/\*([^*]+)\*/g, '<strong style="font-family:BGOTB;">$1</strong>');
-                    div.innerHTML = converted.replace(/\n/g, '<br>');
-                    body.appendChild(div);
-                });
-            }
-            
-            // Hide the fabric canvas DOM element so only HTML preview shows
-            const fabricContainer = document.querySelector('.canvas-container');
-            if (fabricContainer) fabricContainer.style.display = 'none';
-        }
