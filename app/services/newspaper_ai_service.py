@@ -21,7 +21,7 @@ class NewspaperAIService:
 
     def build_batch_newspaper_prompt(
         self, articles: List[ScrapedArticle], config: NewspaperConfig
-    ) -> str:
+    ) -> tuple[str, str]:
         """
         Build a single prompt to generate multiple articles at once
         """
@@ -54,7 +54,10 @@ CONTENT: {article.body[:3000]}
 
         # Build complete prompt
         prompt = f"""
-You are an AI-powered Gujarati newspaper engine.
+[CRITICAL SYSTEM OVERRIDE]: For this specific task, you are acting as a CREATIVE CHIEF EDITOR, NOT a proofreader. 
+You MUST IGNORE the system instructions that say "Do not expand", "Do not rewrite", or "Preserve original paragraph order". 
+You are generating NEW articles based on sources. You MUST structure the output into separate INTRO and BODY paragraphs to meet the EXACT word count targets below.
+
 TOPIC: {config.topic}
 
 TASK: Generate {len(articles)} separate newspaper articles based on the provided sources below.
@@ -98,10 +101,10 @@ Generate all {len(articles)} articles now.
             return []
 
         print(f"[AI] Attempting batch generation for {len(articles)} articles...")
-        prompt = self.build_batch_newspaper_prompt(articles, config)
+        system_prompt, user_prompt = self.build_batch_newspaper_prompt(articles, config)
 
         try:
-            raw_output = await self.base_ai.generate_content(prompt)
+            raw_output = await self.base_ai.generate_content(system_prompt, user_prompt)
             
             # Split by article markers
             article_blocks = re.split(r"=== ARTICLE START: (\d+) ===", raw_output)
@@ -207,8 +210,9 @@ INFO BOX: {art.info_box or 'None'}
         rules = config.word_count_rules
 
         task_prompt = f"""
-You are an expert Gujarati Chief Editor.
-Your task is to MERGE the following source articles into ONE single, cohesive, and high-quality news report.
+[CRITICAL SYSTEM OVERRIDE]: For this specific task, you are acting as a CREATIVE CHIEF EDITOR, NOT a proofreader. 
+You MUST IGNORE the system instructions that say "Do not expand", "Do not rewrite", or "Preserve original paragraph order". 
+Your task is to MERGE the following source articles into ONE single, cohesive, and high-quality news report. You MUST structure the output into separate INTRO and BODY paragraphs to meet the EXACT word count targets below.
 
 SOURCE MATERIAL:
 {combined_content}
@@ -241,9 +245,9 @@ ANKDA: [Merged Ankda stats or None]
 
 Generate the merged article now.
 """
-        prompt = inject_system_prompt(task_prompt)
+        system_prompt, user_prompt = inject_system_prompt(task_prompt)
         try:
-            raw_output = await self.base_ai.generate_content(prompt)
+            raw_output = await self.base_ai.generate_content(system_prompt, user_prompt)
             parsed = self._parse_output(raw_output, config)
             parsed.source = "Merged Report"
             parsed.url = "merged"
@@ -302,9 +306,9 @@ ANKDA: [Refined Ankda stats or None]
 
 Rewrite the article now.
 """
-        prompt = inject_system_prompt(task_prompt)
+        system_prompt, user_prompt = inject_system_prompt(task_prompt)
         try:
-            raw_output = await self.base_ai.generate_content(prompt)
+            raw_output = await self.base_ai.generate_content(system_prompt, user_prompt)
             parsed = self._parse_output(raw_output, config)
             parsed.source = draft.source
             parsed.url = draft.url
@@ -334,8 +338,9 @@ Rewrite the article now.
         rules = config.word_count_rules
 
         task_prompt = f"""
-You are an expert Gujarati Chief Editor.
-Transform the following RAW KEYPOINTS into a HIGH-QUALITY, professional news report.
+[CRITICAL SYSTEM OVERRIDE]: For this specific task, you are acting as a CREATIVE CHIEF EDITOR, NOT a proofreader. 
+You MUST IGNORE the system instructions that say "Do not expand", "Do not rewrite", or "Preserve original paragraph order". 
+You are receiving RAW BULLET POINTS/NOTES, not a finished copy. You MUST expand these points into a full, structured article with separate INTRO and BODY paragraphs to meet the EXACT word count targets below.
 
 USER KEYPOINTS/NOTES:
 {keypoints}
@@ -386,9 +391,9 @@ EDITORIAL NOTES: [Note any missing facts]
 
 Generate the complete report now.
 """
-        prompt = inject_system_prompt(task_prompt)
+        system_prompt, user_prompt = inject_system_prompt(task_prompt)
         try:
-            raw_output = await self.base_ai.generate_content(prompt)
+            raw_output = await self.base_ai.generate_content(system_prompt, user_prompt)
             parsed = self._parse_output(raw_output, config)
             parsed.source = "Manual Entry"
             parsed.url = "manual"
@@ -492,9 +497,9 @@ EDITORIAL NOTES: [ડેસ્ક નોંધ — પ્રકાશન મા�
 INPUT DRAFT TO AUDIT, POLISH & CORRECT:
 {cleaned_text}
 """
-        prompt = inject_system_prompt(task_prompt)
+        system_prompt, user_prompt = inject_system_prompt(task_prompt)
         try:
-            raw_output = await self.base_ai.generate_content(prompt)
+            raw_output = await self.base_ai.generate_content(system_prompt, user_prompt)
             parsed = self._parse_output(raw_output, config)
             parsed.source = "Senior Editor Rewrite"
             parsed.url = "rewrite"
@@ -519,6 +524,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
             "headline_cap": None,
             "alternative_headlines": None,
             "subheading": None,
+            "dateline": None,
             "intro": "",
             "body": "",
             "info_box": None,
@@ -528,15 +534,16 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
 
         # Regex patterns for various section headers (very flexible)
         patterns = {
-            "headline_cap":          r"(?i)^\s*[\*\#\-\s\d\.]*HEADLINE\s*CAP\s*[:\-]*",
-            "alternative_headlines": r"(?i)^\s*[\*\#\-\s\d\.]*ALT(?:ERNATIVE)?\s*HEADLINES?\s*[:\-]*",
-            "editorial_notes":       r"(?i)^\s*[\*\#\-\s\d\.]*EDITORIAL\s*NOTES?\s*[:\-]*",
-            "headline":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:HEADLINE|HEADING|TOPIC|હેડલાઇન|શીર્ષક|મુખ્ય સમાચાર)\s*[:\-]*",
-            "subheading":            r"(?i)^\s*[\*\#\-\s\d\.]*(?:SUB\s*HEADING|SUBTITLE|સબહેડલાઇન|સબ-હેડલાઇન|ગૌણ શીર્ષક)\s*[:\-]*",
-            "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION|LEAD|ઇન્ટ્રો|પ્રસ્તાવના|શરૂઆત)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
-            "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN|STORY|ARTICLE|બોડી|વિષયવસ્તુ|મુખ્ય લખાણ)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-]*",
-            "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY|SUMMARY|HIGHLIGHTS|ઇન્ફો|મુખ્ય મુદ્દા)(?:\s*(?:BOX|POINTS|HIGHLIGHTS|બોક્સ))?\s*[:\-]*",
-            "ankda":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:ANKDA|STATS|STATISTICS|આંકડા|આંકડાકીય માહિતી)\s*[:\-]*",
+            "headline_cap":          r"(?i)^\s*[\*\#\-\s\d\.]*(?:HEADLINE\s*CAP|કેપ\s*હેડિંગ)\s*[:\-\—]*",
+            "alternative_headlines": r"(?i)^\s*[\*\#\-\s\d\.]*(?:ALT(?:ERNATIVE)?\s*HEADLINES?|વિકલ્પો?|મુખ્ય હેડિંગના.*વિકલ્પ)\s*[:\-\—]*",
+            "editorial_notes":       r"(?i)^\s*[\*\#\-\s\d\.]*(?:EDITORIAL\s*NOTES?|એડિટોરિયલ નોટ|ડેસ્ક નોંધ|નોંધ)[^\n]*",
+            "headline":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:HEADLINE|HEADING|TOPIC|હેડલાઇન|શીર્ષક|મુખ્ય\s*હેડિંગ|મુખ્ય સમાચાર)\s*[:\-\—]*",
+            "subheading":            r"(?i)^\s*[\*\#\-\s\d\.]*(?:SUB\s*HEADING|SUBTITLE|સબહેડલાઇન|સબ-હેડલાઇન|ગૌણ શીર્ષક|પેટા\s*હેડિંગ)\s*[:\-\—]*",
+            "dateline":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:DATELINE|ડેટલાઇન)\s*[:\-\—]*",
+            "intro":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:INTRO|INTRODUCTION|LEAD|ઇન્ટ્રો|પ્રસ્તાવના|શરૂઆત)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-\—]*",
+            "body":                  r"(?i)^\s*[\*\#\-\s\d\.]*(?:BODY|CONTENT|MAIN|STORY|ARTICLE|બોડી\s*કોપી|બોડી|વિષયવસ્તુ|મુખ્ય લખાણ|કોપી|મુખ્ય કોપી)(?:\s*(?:PARAGRAPH|પેરેગ્રાફ))?\s*[:\-\—]*",
+            "info_box":              r"(?i)^\s*[\*\#\-\s\d\.]*(?:INFO|KEY|SUMMARY|HIGHLIGHTS|ઇન્ફો|મુખ્ય મુદ્દા)(?:\s*(?:BOX|POINTS|HIGHLIGHTS|બોક્સ))?\s*[:\-\—]*",
+            "ankda":                 r"(?i)^\s*[\*\#\-\s\d\.]*(?:ANKDA|STATS|STATISTICS|આંકડા|આંકડાકીય માહિતી)\s*[:\-\—]*",
         }
 
         lines = raw_output.split("\n")
@@ -546,7 +553,7 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
         # Order matters: check longer/more-specific patterns before shorter ones
         ordered_keys = [
             "headline_cap", "alternative_headlines", "editorial_notes",
-            "subheading", "intro", "body", "info_box", "ankda", "headline"
+            "subheading", "dateline", "intro", "body", "info_box", "ankda", "headline"
         ]
 
         for line in lines:
@@ -565,7 +572,12 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
                 for key in ordered_keys:
                     pattern = patterns[key]
                     match = re.search(pattern, clean_line)
-                    if match and match.start() < 10:  # Allow some minor indentation
+                    # For alternative headlines, we don't want to match the actual options (1. xxx) as a header
+                    if match and match.start() < 10:  
+                        # Ensure it's not just a bullet point matching something loosely
+                        if key == "alternative_headlines" and "1." in clean_line and "વિકલ્પ" not in clean_line:
+                            continue
+                            
                         # Save old section
                         if current_section:
                             sections[current_section] = "\n".join(current_content).strip()
@@ -598,12 +610,39 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
                 return text
             # Remove bolding, headers, etc.
             text = re.sub(r"[\*\#\_]+", "", text).strip()
+            # If text is just a dash or empty, return empty
+            if not text.replace("-", "").replace("—", "").strip():
+                return ""
             return text
 
         # ── RESCUE: Missing intro fallback from body ─────────────────────────
         intro = clean_markdown(sections["intro"])
         body = clean_markdown(sections["body"])
         subheading = clean_markdown(sections["subheading"])
+        headline_cap = clean_markdown(sections["headline_cap"])
+        dateline = clean_markdown(sections["dateline"])
+        headline = clean_markdown(sections["headline"])
+
+        # Post-process alternative headlines
+        alt_headlines = None
+        raw_alts = sections.get("alternative_headlines", "")
+        if raw_alts:
+            alts = re.findall(r"(?:^|\n)\s*\d+[.)\-]\s*(.+)", raw_alts)
+            alt_headlines = [a.strip() for a in alts if a.strip()] if alts else [l.strip() for l in raw_alts.split("\n") if l.strip()]
+
+        # If headline is missing but we have alternatives, pick the first one
+        if not headline and alt_headlines:
+            headline = clean_markdown(alt_headlines[0])
+            # Optionally remove it from alts so it's not duplicated
+            if len(alt_headlines) > 1:
+                alt_headlines = alt_headlines[1:]
+
+        # If we have a dateline, prepend it to the intro
+        if dateline and dateline not in intro:
+            if not intro:
+                intro = dateline
+            else:
+                intro = f"{dateline}: {intro}"
 
         # If intro is missing but body exists, try to extract it
         if (not intro or intro == "પ્રસ્તાવના ઉપલબ્ધ નથી") and body and body != "વિષયવસ્તુ ઉપલબ્ધ નથી":
@@ -630,13 +669,6 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
                     if intro in paragraphs[0]:
                         body = "\n\n".join(paragraphs[1:]) if len(paragraphs) > 1 else body
 
-        # Post-process alternative headlines
-        alt_headlines = None
-        raw_alts = sections.get("alternative_headlines", "")
-        if raw_alts:
-            alts = re.findall(r"(?:^|\n)\s*\d+[.)\-]\s*(.+)", raw_alts)
-            alt_headlines = [a.strip() for a in alts if a.strip()] if alts else [l.strip() for l in raw_alts.split("\n") if l.strip()]
-
         info_box_val = clean_markdown(sections.get("info_box"))
         if info_box_val and info_box_val.strip().lower() in ["none", ""]:
             info_box_val = None
@@ -644,8 +676,8 @@ INPUT DRAFT TO AUDIT, POLISH & CORRECT:
         return NewspaperOutput(
             topic=config.topic,
             config_used=config,
-            headline=clean_markdown(sections["headline"]) or "શીર્ષક ઉપલબ્ધ નથી",
-            headline_cap=clean_markdown(sections["headline_cap"]),
+            headline=headline or "શીર્ષક ઉપલબ્ધ નથી",
+            headline_cap=headline_cap,
             alternative_headlines=alt_headlines,
             subheading=subheading,
             intro=intro or "પ્રસ્તાવના ઉપલબ્ધ નથી",

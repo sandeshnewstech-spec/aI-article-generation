@@ -109,16 +109,17 @@
             width: 100%;
             column-count: 2;
             column-gap: 10px;
-            word-break: keep-all;
+            word-break: normal;
             overflow-wrap: normal;
         }
 
         .ad-paragraph {
             text-align: justify;
             text-align-last: left;
+            text-indent: 1.5em;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: keep-all;
+            word-break: normal;
             overflow-wrap: normal;
             margin-bottom: 0;
             line-height: 1.15;
@@ -133,7 +134,7 @@
             break-inside: avoid;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: keep-all;
+            word-break: normal;
             overflow-wrap: normal;
             margin-bottom: 0;
         }
@@ -144,7 +145,7 @@
             break-inside: avoid;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: keep-all;
+            word-break: normal;
             overflow-wrap: normal;
             margin-bottom: 0;
         }
@@ -200,6 +201,17 @@
         <div class="flex items-center gap-4">
             <!-- Downloads -->
             <div class="flex items-center bg-slate-50/80 p-1.5 rounded-xl border border-slate-200/80 gap-1.5 shadow-sm">
+                <button type="button" onclick="viewOriginalFile()" id="viewOriginalBtn"
+                    class="hidden px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                        </path>
+                    </svg>
+                    Original
+                </button>
                 <button type="button" onclick="downloadCanvas('png')"
                     class="px-3.5 py-1.5 bg-white hover:bg-brand-50 text-brand-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-brand-200 flex items-center gap-1.5 active:scale-95 group">
                     <svg class="w-3.5 h-3.5 text-brand-500 group-hover:text-brand-600" fill="none" stroke="currentColor"
@@ -208,6 +220,15 @@
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
                     PNG
+                </button>
+                <button type="button" onclick="downloadCanvas('jpg')"
+                    class="px-3.5 py-1.5 bg-white hover:bg-amber-50 text-amber-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-amber-200 flex items-center gap-1.5 active:scale-95 group">
+                    <svg class="w-3.5 h-3.5 text-amber-500 group-hover:text-amber-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    JPG
                 </button>
                 <button type="button" onclick="downloadCanvas('pdf')"
                     class="px-3.5 py-1.5 bg-white hover:bg-purple-50 text-purple-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-purple-200 flex items-center gap-1.5 active:scale-95 group">
@@ -218,6 +239,16 @@
                         </path>
                     </svg>
                     PDF
+                </button>
+                <button type="button" onclick="downloadCanvas('doc')"
+                    class="px-3.5 py-1.5 bg-white hover:bg-blue-50 text-blue-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-blue-200 flex items-center gap-1.5 active:scale-95 group">
+                    <svg class="w-3.5 h-3.5 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    DOC
                 </button>
                 <button type="button" onclick="downloadCanvas('tif')"
                     class="px-3.5 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold transition-all shadow-sm border border-emerald-200 flex items-center gap-1.5 active:scale-95 group">
@@ -728,7 +759,7 @@
 
         const BASE_DPI = 300;
         const DPI_SCALE = BASE_DPI / 96; // 3.125
-        const PT_TO_PX = (BASE_DPI / 72) * 0.85; // ~3.5416 px per pt
+        const PT_TO_PX = (BASE_DPI / 72); // ~4.1666 px per pt
 
         // Ensure custom fonts are loaded before drawing canvas
         async function ensureFontsLoaded() {
@@ -836,7 +867,9 @@
                 // Check if this token is purely English (letters, digits, common punctuation)
                 if (/^[A-Za-z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=]+$/.test(token)) {
                     // English word — wrap in Arial span, no Gopika conversion
-                    result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: 11pt; white-space: nowrap;">${token}</span>`;
+                    let engFontSize = 9 * PT_TO_PX;
+                    let safeToken = token.replace(/-/g, '&#8288;-&#8288;').replace(/\//g, '&#8288;/&#8288;');
+                    result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${safeToken}</span>`;
                 } else {
                     // Could be Gujarati, or mixed Gujarati+punctuation
                     // Extract English sub-tokens, convert rest through Gopika
@@ -849,15 +882,16 @@
                     let converted = unicodeToGopika(placeholderText);
 
                     // Put the English text back
+                    let engFontSize = 9 * PT_TO_PX;
                     for (let j = 0; j < englishMatches.length; j++) {
                         let placeholder = String.fromCharCode(0xE000 + j);
-                        let engSpan = `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: 11pt;">${englishMatches[j]}</span>`;
+                        let engSpan = `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${englishMatches[j]}</span>`;
                         converted = converted.replace(placeholder, engSpan);
                     }
 
-                    // Wrap the entire Gopika word in a nowrap span so the browser
-                    // cannot break it mid-character (Gopika uses ASCII codes for Gujarati)
-                    result += `<span style="white-space:nowrap">${converted}</span>`;
+                    // Wrap the entire Gopika word in a span. Use Word Joiner (&#8288;) around hyphens/slashes to prevent breaks without messing up justification.
+                    converted = converted.replace(/-/g, '&#8288;-&#8288;').replace(/\//g, '&#8288;/&#8288;');
+                    result += `<span>${converted}</span>`;
                 }
             }
 
@@ -919,6 +953,11 @@
                 // Update Header Metadata
                 document.getElementById('advtMetaBadge').innerText = `${advtData.advt_type || 'Legal Notice'} (${advtData.width || 0}x${advtData.height || 0} ${advtData.unit || 'cm'})`;
                 document.getElementById('editTranslationText').value = advtData.translated_text || '';
+
+                if (advtData.original_file_url) {
+                    const btn = document.getElementById('viewOriginalBtn');
+                    if (btn) btn.classList.remove('hidden');
+                }
 
                 // Parse Json Configs
                 let parsedData = null;
@@ -1361,9 +1400,11 @@
                             let convertedH = convertWithEnglishPreserved(rawHText);
                             let hFontSize = (headingBlock.font_size || 20) * PT_TO_PX;
                             let hBgHeight = (headingBlock.bg_height ? parseFloat(headingBlock.bg_height) : 25) * DPI_SCALE;
+                            let hIndex = blocks.indexOf(headingBlock);
 
                             let hDiv = document.createElement('div');
                             hDiv.className = 'ad-heading-box';
+                            hDiv.setAttribute('data-block-index', hIndex);
                             hDiv.style.display = 'block';
                             hDiv.style.height = hBgHeight + 'px';
                             hDiv.style.minHeight = hBgHeight + 'px';
@@ -1395,10 +1436,9 @@
                         }
 
                         // Setup Content Blocks
-                        contentBlocks.forEach((b, idx) => {
+                        contentBlocks.forEach((b) => {
                             if (!b.text || !b.text.trim()) return;
-                            // Adding 1 to idx because index 0 is reserved for the heading in the sidebar UI
-                            let realIndex = idx + (headingBlock ? 1 : 0);
+                            let realIndex = blocks.indexOf(b);
 
                             let tText = b.text.trim();
                             let convertedText = convertWithEnglishPreserved(tText);
@@ -1408,7 +1448,7 @@
                             let baseFontFamily = (bFontWeight === 'bold' || bFontWeight === '900') ? 'BGOTB' : 'BGOT';
                             let baseAlign = b.text_align || 'justify';
 
-                            let paragraphs = convertedText.split(/\r?\n/);
+                            let paragraphs = convertedText.split(/(?:\r?\n){2,}/);
                             paragraphs.forEach(pText => {
                                 if (!pText.trim()) return;
                                 let p = document.createElement('p');
@@ -1420,9 +1460,15 @@
                                 p.style.lineHeight = window.customLineHeight || 1.15;
                                 if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
                                 if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
-                                p.style.textAlign = baseAlign;
                                 if (baseAlign === 'force-justify') {
+                                    p.style.textAlign = 'justify';
                                     p.style.textAlignLast = 'justify';
+                                } else {
+                                    p.style.textAlign = baseAlign;
+                                    // Auto-justify lines before a soft break if paragraph contains one
+                                    if (baseAlign === 'justify' && pText.includes('\n')) {
+                                        p.style.textAlignLast = 'justify';
+                                    }
                                 }
 
                                 // Date Line check
@@ -1430,7 +1476,7 @@
                                     p.className = 'notice-date';
                                 }
 
-                                p.innerHTML = pText;
+                                p.innerHTML = pText.replace(/(?:\r?\n)/g, '<br>');
                                 colsContainer.appendChild(p);
                             });
                         });
@@ -1439,15 +1485,15 @@
                         if (advocateBlocks.length > 0) {
                             let advWrapper = document.createElement('div');
                             advWrapper.className = 'advocate-block';
-                            advocateBlocks.forEach((b, idx) => {
-                                let realIndex = idx + (headingBlock ? 1 : 0) + contentBlocks.length;
+                            advocateBlocks.forEach((b) => {
+                                let realIndex = blocks.indexOf(b);
                                 let rawAdvText = (b.text || '').trim();
                                 let convertedAdv = convertWithEnglishPreserved(rawAdvText);
                                 let baseFontSize = (b.font_size || 12) * PT_TO_PX;
                                 let defaultW = b.font_weight || 'normal';
                                 let advBaseFont = (defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
 
-                                let paragraphs = convertedAdv.split(/\r?\n/);
+                                let paragraphs = convertedAdv.split(/(?:\r?\n){2,}/);
                                 paragraphs.forEach(pText => {
                                     if (!pText.trim()) return;
                                     let p = document.createElement('p');
@@ -1457,14 +1503,93 @@
                                     p.style.lineHeight = window.customLineHeight || 1.15;
                                     if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
                                     if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
-                                    p.innerHTML = pText;
+                                    p.innerHTML = pText.replace(/(?:\r?\n)/g, '<br>');
                                     advWrapper.appendChild(p);
                                 });
                             });
                             colsContainer.appendChild(advWrapper);
                         }
 
+                        // Intercept Enter key in contenteditable to insert <br> instead of new <p>
+                        colsContainer.addEventListener('keydown', function (e) {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                document.execCommand('insertLineBreak');
 
+                                // Auto-justify the paragraph when they press Enter
+                                let sel = window.getSelection();
+                                if (sel && sel.anchorNode) {
+                                    let node = sel.anchorNode;
+                                    let p = node.nodeType === 3 ? node.parentNode.closest('p') : node.closest('p');
+                                    if (p && p.style.textAlign === 'justify') {
+                                        p.style.textAlignLast = 'justify';
+                                    }
+                                }
+                            }
+                        });
+
+                        // Sync canvas text edits back to JSON and Left Sidebar
+                        colsContainer.addEventListener('input', function () {
+                            const blockTexts = {};
+
+                            // 1. Heading block
+                            const hDiv = colsContainer.querySelector('.ad-heading-box');
+                            if (hDiv) {
+                                const hIdx = hDiv.getAttribute('data-block-index');
+                                const hSpan = hDiv.querySelector('span');
+                                if (hIdx !== null && hSpan) {
+                                    blockTexts[hIdx] = [hSpan.innerText || hSpan.textContent];
+                                }
+                            }
+
+                            // 2. Content and Advocate blocks (paragraphs)
+                            const paragraphs = colsContainer.querySelectorAll('p[data-block-index]');
+                            paragraphs.forEach(p => {
+                                const idx = p.getAttribute('data-block-index');
+                                if (!blockTexts[idx]) blockTexts[idx] = [];
+                                let text = p.innerText || p.textContent;
+                                // strip trailing newlines that contentEditable might add
+                                blockTexts[idx].push(text.replace(/\\n+$/, ''));
+                            });
+
+                            // Reconstruct the text for each block and update the left sidebar textareas
+                            for (const idx in blockTexts) {
+                                const ta = document.querySelector(`textarea[data-index="${idx}"]`);
+                                if (ta) ta.value = blockTexts[idx].join('\n\n');
+                            }
+
+                            // Silently update the hidden JSON text
+                            const containerEl = document.getElementById('editBlocksContainer');
+                            const inputs = containerEl.querySelectorAll('.block-editor-input');
+                            if (!advtData) return;
+                            try {
+                                let parsedData = JSON.parse(advtData.translated_text || '[]');
+                                let currentBlocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
+                                if (inputs.length === currentBlocks.length) {
+                                    inputs.forEach((ta, idx) => {
+                                        currentBlocks[idx].text = ta.value;
+                                    });
+                                    let newJson = {
+                                        gujarati_text: currentBlocks,
+                                        layout_offset: window.currentLayoutOffset || 0,
+                                        border_height: window.customBorderHeight || null,
+                                        ad_width: window.customAdWidth || (window.customColumnCount * 4.0),
+                                        ad_height: window.customAdHeight || 25.0,
+                                        column_count: window.customColumnCount || 2,
+                                        col_widths: window.customColWidths,
+                                        column_rule_width: window.columnRuleWidth,
+                                        line_height: window.customLineHeight || 1.15,
+                                        char_spacing: window.customCharSpacing || 0,
+                                        word_spacing: window.customWordSpacing || 0
+                                    };
+                                    const newJsonStr = JSON.stringify(newJson);
+                                    document.getElementById('editTranslationText').value = newJsonStr;
+                                    advtData.translated_text = newJsonStr;
+                                }
+                            } catch (e) {
+                                console.error('Canvas sync error:', e);
+                            }
+                        });
 
                         container.appendChild(colsContainer);
 
@@ -1756,6 +1881,7 @@
             });
 
             let dataURL = '';
+            let jpgDataURL = '';
             try {
                 await loadImg();                       // warm-up so embedded fonts get decoded
                 await new Promise(r => setTimeout(r, 300));
@@ -1767,17 +1893,60 @@
                 ctx.fillRect(0, 0, W, H);
                 ctx.drawImage(img, 0, 0);
                 dataURL = canvas.toDataURL('image/png', 1.0);
+                if (format === 'jpg' || format === 'jpeg' || format === 'doc') {
+                    jpgDataURL = canvas.toDataURL('image/jpeg', 1.0);
+                }
             } catch (err) {
                 console.error('Export failed', err);
                 alert('Image download failed. Please check console.');
                 return;
             }
 
-            if (format === 'png') {
+            // Helper to save blob with FilePicker or fallback
+            async function saveFileHelper(blob, filename, description, acceptObj) {
+                if (window.showSaveFilePicker) {
+                    try {
+                        const handle = await window.showSaveFilePicker({
+                            suggestedName: filename,
+                            types: [{ description, accept: acceptObj }]
+                        });
+                        const writable = await handle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        return;
+                    } catch (err) {
+                        if (err.name === 'AbortError') return; // User cancelled
+                        console.error('FilePicker failed, using fallback', err);
+                    }
+                }
+                // Fallback
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = dataURL;
-                a.download = `ADVT_${CURRENT_ADVT_ID}.png`;
+                a.href = url;
+                a.download = filename;
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            if (format === 'png') {
+                const res = await fetch(dataURL);
+                const blob = await res.blob();
+                await saveFileHelper(blob, `ADVT_${CURRENT_ADVT_ID}.png`, 'PNG Image', { 'image/png': ['.png'] });
+            } else if (format === 'jpg' || format === 'jpeg') {
+                const res = await fetch(jpgDataURL);
+                const blob = await res.blob();
+                await saveFileHelper(blob, `ADVT_${CURRENT_ADVT_ID}.jpg`, 'JPEG Image', { 'image/jpeg': ['.jpg', '.jpeg'] });
+            } else if (format === 'doc') {
+                const html = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><title>Advertisement</title></head>
+                    <body>
+                        <img src="${jpgDataURL}" width="${W}" height="${H}" />
+                    </body>
+                    </html>
+                `;
+                const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+                await saveFileHelper(blob, `ADVT_${CURRENT_ADVT_ID}.doc`, 'Word Document', { 'application/msword': ['.doc'] });
             } else if (format === 'pdf') {
                 const { jsPDF } = window.jspdf;
 
@@ -1793,12 +1962,12 @@
                 });
 
                 pdf.addImage(dataURL, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
-                pdf.save(`ADVT_${CURRENT_ADVT_ID}.pdf`);
+                const blob = pdf.output('blob');
+                await saveFileHelper(blob, `ADVT_${CURRENT_ADVT_ID}.pdf`, 'PDF Document', { 'application/pdf': ['.pdf'] });
             } else if (format === 'tif') {
-                const a = document.createElement('a');
-                a.href = dataURL;
-                a.download = `ADVT_${CURRENT_ADVT_ID}.tif`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                const res = await fetch(dataURL);
+                const blob = await res.blob();
+                await saveFileHelper(blob, `ADVT_${CURRENT_ADVT_ID}.tif`, 'TIFF Image', { 'image/tiff': ['.tif', '.tiff'] });
             }
         }
         // --- CANVAS WYSIWYG TOOLBAR LOGIC ---
@@ -1968,6 +2137,72 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadAdData();
         });
+    </script>
+
+    <!-- Original File Viewer Modal -->
+    <div id="originalFileModal"
+        class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 lg:p-8 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+                <h3 class="text-lg font-bold text-slate-800">Original Advertisement</h3>
+                <div class="flex items-center gap-2">
+                    <a id="downloadOriginalFileLink" href="#" download
+                        class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium shadow-sm flex items-center gap-1.5 text-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download
+                    </a>
+                    <button onclick="closeOriginalModal()"
+                        class="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 bg-slate-100 p-4 overflow-auto flex items-center justify-center relative"
+                id="originalFileContainer">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewOriginalFile() {
+            if (!advtData || !advtData.original_file_url) return;
+            const modal = document.getElementById('originalFileModal');
+            const container = document.getElementById('originalFileContainer');
+
+            const url = advtData.original_file_url;
+            const ext = url.split('.').pop().toLowerCase();
+
+            const dlLink = document.getElementById('downloadOriginalFileLink');
+            if (dlLink) {
+                dlLink.href = url;
+            }
+
+            container.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-slate-400 font-medium">Loading preview...</div>';
+            modal.classList.remove('hidden');
+
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) {
+                container.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain rounded shadow-sm border border-slate-300" style="z-index: 1;">`;
+            } else if (ext === 'pdf') {
+                container.innerHTML = `<iframe src="${url}#toolbar=0" class="w-full h-full rounded shadow-sm border border-slate-300" style="z-index: 1;"></iframe>`;
+            } else {
+                container.innerHTML = `<div class="text-center z-10"><p class="text-slate-600 mb-4">File format (.${ext}) cannot be previewed natively in the browser.</p><a href="${url}" download class="px-4 py-2 bg-brand-600 text-white rounded font-medium shadow hover:bg-brand-700">Download File</a></div>`;
+            }
+        }
+
+        function closeOriginalModal() {
+            const modal = document.getElementById('originalFileModal');
+            const container = document.getElementById('originalFileContainer');
+            modal.classList.add('hidden');
+            container.innerHTML = '';
+        }
     </script>
 </body>
 

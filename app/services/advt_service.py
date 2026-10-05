@@ -157,9 +157,9 @@ class AdvtService:
                 "You are an expert advertisement copywriter, translator, and graphic designer.\n"
                 "Advertisement Type: Legal Notice\n"
                 f"Step 1: Visually analyze the original image and {'translate' if eng_to_guj else 'extract'} the text.\n"
-                "Step 2: CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely. DO NOT extract the text from any rubber stamp (e.g. English advocate stamps with license numbers). Only extract the actual printed article text.\n"
+                "Step 2: CRITICAL: Ignore any ink rubber stamps, seals, or handwritten signatures completely. DO NOT extract English advocate names, degrees, or addresses at the bottom of the page if they appear to be part of a stamp.\n"
                 "Step 3: CRITICAL: IGNORE THE LETTERHEAD AT THE TOP. DO NOT extract advocate names, office addresses, or phone numbers printed at the very top of the page (above the 'જાહેર નોટિસ' or Public Notice heading). START extracting ONLY from the 'જાહેર નોટિસ' heading downwards.\n"
-                "Step 4: Ensure proper Gujarati legal notice formatting: heading MUST be 'જાહેર નોટિસ', content paragraphs must be clear and complete, and advocate signature details at the bottom.\n"
+                "Step 4: Ensure proper Gujarati legal notice formatting: heading MUST be 'જાહેર નોટિસ', content paragraphs must be clear and complete, and you MUST include the advocate signature details at the bottom as type 'advocate' (ONLY IF they are cleanly printed text, NOT a rubber stamp).\n"
                 "Format your output strictly as a pure JSON ARRAY of objects. Do NOT include a 'thought_process' key or any surrounding object.\n"
                 "The output MUST be a pure JSON array where each object has ONLY the following keys:\n"
                 f"  - 'text': the {'translated Gujarati text' if eng_to_guj else 'extracted text'}\n"
@@ -292,7 +292,7 @@ class AdvtService:
                 f"Advertisement Type: Legal Notice\n"
                 f"Step 1: Visually analyze the original advertisement. Group the text into logical paragraphs.\n"
                 f"Step 2: {'Translate the text to Gujarati accurately.' if eng_to_guj else 'Extract the text exactly as written.'}\n"
-                "Step 3: CRITICAL: DO NOT extract or include any stamps, seals, or handwritten signatures. Ignore them completely.\n"
+                "Step 3: CRITICAL: Ignore any ink rubber stamps, seals, or handwritten signatures completely. DO NOT extract English advocate names, degrees, or addresses at the bottom of the page if they appear to be part of a stamp.\n"
                 "Step 4: CRITICAL: IGNORE THE LETTERHEAD AT THE TOP. DO NOT extract advocate names, office addresses, or phone numbers printed at the very top of the page (above the 'જાહેર નોટિસ' or Public Notice heading). START extracting ONLY from the 'જાહેર નોટિસ' heading downwards.\n"
                 "Format your output strictly as a pure JSON ARRAY of objects. Do NOT include a 'thought_process' key or any surrounding object.\n"
                 "The output MUST be a pure JSON array where each object has ONLY the following keys:\n"
@@ -491,7 +491,7 @@ class AdvtService:
                         continue
                         
                 # Explicit check for common advocate rubber stamps
-                if re.search(r'(?i)(ankit v\. thakor|rohan b\. solanki|advocate|g/1918)', text) and eng_chars > 5:
+                if re.search(r'(?i)(ankit v\. thakor|rohan b\. solanki|g/1918|vinubhai|advocate\s*&\s*notary)', text) and eng_chars > 5:
                     print(f"[FILTER] Dropped rubber stamp block: {text}")
                     continue
                     
@@ -524,23 +524,10 @@ class AdvtService:
         if blank_url:
             return gujarati_text, blank_url
 
-        # If width and height are provided, we should generate an exact blank image instead of relying on AI
+        # Since the frontend uses a purely HTML/CSS canvas for the layout,
+        # we don't need to generate a physical blank white image here anymore.
         if float(width) > 0:
-            import time
-            from PIL import Image
-            dpi = 300 # standard print DPI
-            cm_to_inch = 0.393701
-            px_width = int(float(width) * cm_to_inch * dpi)
-            h = float(height) if float(height) > 0 else (float(width) * 1.5) # fallback aspect ratio
-            px_height = int(h * cm_to_inch * dpi)
-            
-            img = Image.new('RGB', (px_width, px_height), color='white')
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            static_dir = os.path.join(base_dir, "static", "advt_images")
-            os.makedirs(static_dir, exist_ok=True)
-            image_filename = f"advt_exact_{int(time.time())}.png"
-            img.save(os.path.join(static_dir, image_filename))
-            return gujarati_text, f"/static/advt_images/{image_filename}"
+            return gujarati_text, ""
 
         # Fallback for when no dimensions are provided (legacy behavior)
         combined_prompt = (

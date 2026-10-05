@@ -46,6 +46,15 @@ class ImageService:
     # FREE: Auto-Generate image using Pollinations.ai (no API key)
     # ─────────────────────────────────────────────────────────────────
 
+    def __init__(self):
+        from openai import OpenAI
+        self._openrouter_client = None
+        if settings.OPENROUTER_API_KEY:
+            self._openrouter_client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=settings.OPENROUTER_API_KEY,
+            )
+
     async def auto_generate_for_article(
         self, headline: str, topic: str, intro: str = ""
     ) -> dict:
@@ -119,21 +128,14 @@ Output ONLY the prompt text. No explanation, no quotes, just the raw prompt."""
         prompt_text = ""
         
         # 1. Try OpenRouter if key is available
-        if settings.OPENROUTER_API_KEY:
+        if self._openrouter_client:
             try:
-                import requests
-                url = "https://openrouter.ai/api/v1/chat/completions"
-                headers = {
-                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                    "Content-Type": "application/json"
-                }
-                payload = {
-                    "model": settings.OPENROUTER_MODEL,
-                    "messages": [{"role": "user", "content": system_prompt}]
-                }
-                resp = requests.post(url, headers=headers, json=payload, timeout=30)
-                resp.raise_for_status()
-                prompt_text = resp.json()["choices"][0]["message"]["content"].strip()
+                response = self._openrouter_client.chat.completions.create(
+                    model="google/gemini-3.8-flash",
+                    messages=[{"role": "user", "content": system_prompt}],
+                    temperature=0.2,
+                )
+                prompt_text = response.choices[0].message.content.strip()
             except Exception as e:
                 print(f"[IMAGE-PROMPT] OpenRouter Error: {e}")
 

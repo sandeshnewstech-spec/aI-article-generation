@@ -1,5 +1,5 @@
 import requests
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from app.core.config import settings
 from app.models.data import ScrapedArticle
 from app.services.ai_rules_loader import inject_system_prompt
@@ -9,10 +9,17 @@ class AIService:
 
     def __init__(self):
         self.provider = settings.AI_PROVIDER
+        from openai import AsyncOpenAI
+        self._async_client = None
+        if settings.OPENROUTER_API_KEY:
+            self._async_client = AsyncOpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=settings.OPENROUTER_API_KEY,
+            )
 
     def build_style_prompt(
         self, articles: List[ScrapedArticle], topic: str, style: str
-    ) -> str:
+    ) -> Tuple[str, str]:
         combined_text = "\n\n".join(
             [
                 f"SOURCE: {a.source}\nTITLE: {a.title}\nCONTENT: {a.body}"
@@ -69,74 +76,22 @@ SOURCES AND CONTENT:
         # Inject the SANDESH editorial framework as system context
         return inject_system_prompt(task_prompt)
 
-    async def generate_content(self, prompt: str) -> str:
-        import asyncio
-
-        result = ""
-        if self.provider == "gemini":
-            result = await asyncio.to_thread(self._generate_gemini, prompt)
-        elif self.provider == "openrouter":
-            result = await asyncio.to_thread(self._generate_openrouter, prompt)
-        else:
-            result = await asyncio.to_thread(self._generate_ollama, prompt)
-        
-        print(f"--- AI RESPONSE ({self.provider}) ---\n{result[:1000]}{'...' if len(result) > 1000 else ''}\n--- END RESPONSE ---")
-        return result
-
-    def _generate_ollama(self, prompt: str) -> str:
-        payload = {
-            "model": settings.OLLAMA_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": False,
-            "temperature": 0.7,
-        }
+    async def generate_content(self, system_prompt: str, user_prompt: str) -> str:
         try:
-            resp = requests.post(
-                "http://localhost:11434/api/chat", json=payload, timeout=120
+            if not self._async_client:
+                return "Error: OpenRouter API key not configured."
+                
+            response = await self._async_client.chat.completions.create(
+                model="google/gemini-3.8-flash",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.2, # Based on the user configuration
             )
-            resp.raise_for_status()
-            data = resp.json()
-            return data.get("message", {}).get("content", "")
-        except Exception as e:
-            print(f"Ollama Error: {e}")
-            return "Error generating content with Ollama."
-
-    def _generate_gemini(self, prompt: str) -> str:
-        try:
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            response = client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.7,
-                ),
-            )
-            return response.text.strip()
-        except Exception as e:
-            print(f"Gemini Error: {e}")
-            return f"Error generating content with Gemini: {str(e)}"
-
-    def _generate_openrouter(self, prompt: str) -> str:
-        url = "https://openrouter.ai/api/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:8000", # Optional but good practice
-            "X-Title": "AI Newsroom Pro" # Optional
-        }
-        payload = {
-            "model": settings.OPENROUTER_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
-        }
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=120)
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
+            result = response.choices[0].message.content.strip()
+            print(f"--- AI RESPONSE (openrouter) ---\n{result[:1000]}{'...' if len(result) > 1000 else ''}\n--- END RESPONSE ---")
+            return result
         except Exception as e:
             print(f"OpenRouter Error: {e}")
             return f"Error generating content with OpenRouter: {str(e)}"

@@ -35,13 +35,19 @@ async def upload_advt_file(
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
 
+        import time
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        static_dir = os.path.join(base_dir, "static", "advt_images")
+        os.makedirs(static_dir, exist_ok=True)
+        
+        orig_filename = f"orig_{int(time.time())}{suffix}"
+        orig_path = os.path.join(static_dir, orig_filename)
+        shutil.copy2(tmp_path, orig_path)
+        original_file_url = f"/static/advt_images/{orig_filename}"
+
         blank_url = ""
         if blank_file and blank_file.filename:
-            import time
             blank_ext = os.path.splitext(blank_file.filename)[1].lower()
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            static_dir = os.path.join(base_dir, "static", "advt_images")
-            os.makedirs(static_dir, exist_ok=True)
             
             if blank_ext == ".pdf":
                 # Convert PDF first page to Image using PyMuPDF
@@ -95,6 +101,7 @@ async def upload_advt_file(
             "unit": unit,
             "translated_text": translated_text,
             "generated_image_url": generated_image_url,
+            "original_file_url": original_file_url,
             "status": "Completed",
             "created_at": datetime.utcnow()
         }
