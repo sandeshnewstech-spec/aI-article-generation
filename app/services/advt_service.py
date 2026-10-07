@@ -140,6 +140,7 @@ class AdvtService:
         formatting_instructions = []
         if eng_to_guj:
             formatting_instructions.append("- Translate the text accurately into Gujarati.")
+            formatting_instructions.append("- CRITICAL: DO NOT translate English proper nouns, society names, or English phrases (e.g. 'GARDEN CITY PHASE-3'). Keep them exactly in English so they render correctly.")
         if add_keypoints:
             formatting_instructions.append("- Format the text using bullet points for key information.")
         if legal_notice or advt_type.lower() == "legal notice" or advt_type.lower() == "central government":
@@ -274,6 +275,7 @@ class AdvtService:
         formatting_instructions = []
         if eng_to_guj:
             formatting_instructions.append("- Rewrite and translate the text accurately into Gujarati.")
+            formatting_instructions.append("- CRITICAL: DO NOT translate English proper nouns, society names, or English phrases (e.g. 'GARDEN CITY PHASE-3'). Keep them exactly in English so they render correctly.")
         if add_keypoints:
             formatting_instructions.append("- Format the text using bullet points for key information.")
         if legal_notice or advt_type.lower() == "legal notice":

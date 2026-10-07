@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="h-full">
 
 <head>
@@ -752,9 +752,9 @@
         window.columnRuleWidth = 1;
 
         // Typography & Spacing State
-        window.customLineHeight = 1.15;
+        window.customLineHeight = 1.02;
         window.customCharSpacing = 0;
-        window.customWordSpacing = 0;
+        window.customWordSpacing = -4;
         window.previewReady = true; // Flag to track if canvas preview is up-to-date
 
         const BASE_DPI = 300;
@@ -848,6 +848,12 @@
             if (typeof unicodeToGopika !== 'function') return text;
             if (!text) return '';
 
+            // If in Bhasha Bharati mode, the text is ALREADY in Gopika layout.
+            // Do NOT try to preserve English words because English letters represent Gujarati glyphs.
+            if (window.bhashaBharatiMode) {
+                return text;
+            }
+
             // Split by spaces but keep the spaces as separate tokens
             let tokens = text.split(/(\s+)/);
             let result = '';
@@ -864,11 +870,16 @@
                 // If it's empty, skip
                 if (!token) continue;
 
-                // Check if this token is purely English (letters, digits, common punctuation)
-                if (/^[A-Za-z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=]+$/.test(token)) {
+                if (window.bhashaBharatiMode) {
+                    result += `<span>${token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',')}</span>`;
+                    continue;
+                }
+
+                // Check if this token is purely English (letters, digits, common punctuation and quotes)
+                if (/^[A-Za-z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=\'\"\[\]\{\}\“\”\‘\’]+$/.test(token)) {
                     // English word — wrap in Arial span, no Gopika conversion
                     let engFontSize = 9 * PT_TO_PX;
-                    let safeToken = token.replace(/-/g, '&#8288;-&#8288;').replace(/\//g, '&#8288;/&#8288;');
+                    let safeToken = token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-');
                     result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${safeToken}</span>`;
                 } else {
                     // Could be Gujarati, or mixed Gujarati+punctuation
@@ -881,6 +892,10 @@
 
                     let converted = unicodeToGopika(placeholderText);
 
+                    // Fix: Wrap the entire Gopika word (and placeholders) hyphens/slashes in Word Joiner (&#8288;)
+                    // Do this BEFORE inserting the HTML spans, to prevent breaking 'sans-serif' or '</span>'.
+                    converted = converted.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',');
+
                     // Put the English text back
                     let engFontSize = 9 * PT_TO_PX;
                     for (let j = 0; j < englishMatches.length; j++) {
@@ -889,8 +904,6 @@
                         converted = converted.replace(placeholder, engSpan);
                     }
 
-                    // Wrap the entire Gopika word in a span. Use Word Joiner (&#8288;) around hyphens/slashes to prevent breaks without messing up justification.
-                    converted = converted.replace(/-/g, '&#8288;-&#8288;').replace(/\//g, '&#8288;/&#8288;');
                     result += `<span>${converted}</span>`;
                 }
             }
@@ -969,12 +982,28 @@
                     window.currentLayoutOffset = parsedData.layout_offset || 0;
                     window.customBorderHeight = parsedData.border_height || null;
                     window.columnRuleWidth = parsedData.column_rule_width !== undefined ? parsedData.column_rule_width : 1;
-                    window.customLineHeight = parsedData.line_height !== undefined ? parsedData.line_height : 1.15;
+                    window.customLineHeight = parsedData.line_height !== undefined ? parsedData.line_height : 1.02;
                     window.customCharSpacing = parsedData.char_spacing !== undefined ? parsedData.char_spacing : 0;
-                    window.customWordSpacing = parsedData.word_spacing !== undefined ? parsedData.word_spacing : 0;
+                    window.customWordSpacing = parsedData.word_spacing !== undefined ? parsedData.word_spacing : -4;
                     if (parsedData.col_widths && Array.isArray(parsedData.col_widths)) {
                         window.customColWidths = parsedData.col_widths;
                         window.equalColWidths = false;
+                    }
+                }
+
+                if (parsedData) {
+                    if (parsedData.is_bhasha_bharati !== undefined) {
+                        window.bhashaBharatiMode = parsedData.is_bhasha_bharati;
+                        document.getElementById('bhashaBharatiToggle').checked = window.bhashaBharatiMode;
+                    } else if (parsedData.gujarati_text && parsedData.gujarati_text.length > 0) {
+                        let textStr = JSON.stringify(parsedData.gujarati_text);
+                        let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(textStr);
+                        // Bhasha Bharati text heavily uses extended ASCII (128-255) for Gujarati matras
+                        let hasExtendedAscii = /[\x80-\xFF]/.test(textStr);
+                        if (!hasGujaratiUnicode && hasExtendedAscii) {
+                            window.bhashaBharatiMode = true;
+                            document.getElementById('bhashaBharatiToggle').checked = true;
+                        }
                     }
                 }
 
@@ -1030,11 +1059,11 @@
 
             // Sync Typography inputs
             const lhIn = document.getElementById('lineHeightInput');
-            if (lhIn) lhIn.value = (window.customLineHeight || 1.15).toFixed(2);
+            if (lhIn) lhIn.value = (window.customLineHeight || 1.02).toFixed(2);
             const csIn = document.getElementById('charSpacingInput');
             if (csIn) csIn.value = window.customCharSpacing || 0;
             const wsIn = document.getElementById('wordSpacingInput');
-            if (wsIn) wsIn.value = window.customWordSpacing || 0;
+            if (wsIn) wsIn.value = window.customWordSpacing !== undefined ? window.customWordSpacing : -4;
 
             // Render Custom Column Width Controls
             const container = document.getElementById('customColWidthsContainer');
@@ -1058,7 +1087,7 @@
 
         // Typography & Spacing Functions
         function adjustLineHeight(delta) {
-            let current = parseFloat(document.getElementById('lineHeightInput').value) || window.customLineHeight || 1.15;
+            let current = parseFloat(document.getElementById('lineHeightInput').value) || window.customLineHeight || 1.02;
             current = Math.max(0.8, Math.min(3.0, Math.round((current + delta) * 100) / 100));
             setLineHeight(current);
         }
@@ -1086,7 +1115,8 @@
         }
 
         function adjustWordSpacing(delta) {
-            let current = parseInt(document.getElementById('wordSpacingInput').value) || window.customWordSpacing || 0;
+            let current = parseInt(document.getElementById('wordSpacingInput').value);
+            if (isNaN(current)) current = window.customWordSpacing !== undefined ? window.customWordSpacing : -4;
             current = Math.max(-20, Math.min(100, current + delta));
             setWordSpacing(current);
         }
@@ -1155,7 +1185,7 @@
 
             let minLH = 0.8;
             let maxLH = 4.0;
-            let bestLH = window.customLineHeight || 1.15;
+            let bestLH = window.customLineHeight || 1.02;
 
             let paragraphs = container.querySelectorAll('.ad-paragraph, .notice-date, .advocate-block, .advocate-block p');
 
@@ -1198,7 +1228,6 @@
                 inputs.forEach(ta => {
                     ta.value = bhashaBharatiRemingtonToGopika(ta.value);
                 });
-                updateCanvasFromText();
             }
         }
 
@@ -1264,7 +1293,7 @@
                                 div.querySelectorAll('.block-format-align').forEach(b => b.classList.remove('bg-slate-50', 'bg-brand-600', 'text-slate-900'));
                                 this.classList.add(this.dataset.align === 'force-justify' ? 'bg-brand-600' : 'bg-slate-50', 'text-slate-900');
                                 div.querySelector('.block-format-align-val').value = this.dataset.align;
-                                updateCanvasFromText();
+
                             });
                         });
 
@@ -1278,7 +1307,7 @@
                                 valInput.value = 'bold';
                                 this.classList.add('bg-slate-50', 'text-slate-900');
                             }
-                            updateCanvasFromText();
+
                         });
 
                         // Typing event (Bhasha Bharati support)
@@ -1288,7 +1317,7 @@
                                 this.value = bhashaBharatiRemingtonToGopika(this.value);
                                 this.selectionStart = this.selectionEnd = curPos;
                             }
-                            updateCanvasFromText();
+
                         });
 
                         container.appendChild(div);
@@ -1457,9 +1486,9 @@
                                 p.style.fontSize = baseFontSize + 'px';
                                 p.style.fontFamily = baseFontFamily;
                                 p.style.fontWeight = 'normal';
-                                p.style.lineHeight = window.customLineHeight || 1.15;
+                                p.style.lineHeight = window.customLineHeight || 1.02;
                                 if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
-                                if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
+                                if (window.customWordSpacing !== undefined && window.customWordSpacing !== 0) p.style.wordSpacing = window.customWordSpacing + 'px';
                                 if (baseAlign === 'force-justify') {
                                     p.style.textAlign = 'justify';
                                     p.style.textAlignLast = 'justify';
@@ -1500,9 +1529,9 @@
                                     p.setAttribute('data-block-index', realIndex);
                                     p.style.fontSize = baseFontSize + 'px';
                                     p.style.fontFamily = advBaseFont;
-                                    p.style.lineHeight = window.customLineHeight || 1.15;
+                                    p.style.lineHeight = window.customLineHeight || 1.02;
                                     if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
-                                    if (window.customWordSpacing) p.style.wordSpacing = window.customWordSpacing + 'px';
+                                    if (window.customWordSpacing !== undefined && window.customWordSpacing !== 0) p.style.wordSpacing = window.customWordSpacing + 'px';
                                     p.innerHTML = pText.replace(/(?:\r?\n)/g, '<br>');
                                     advWrapper.appendChild(p);
                                 });
@@ -1538,7 +1567,7 @@
                                 const hIdx = hDiv.getAttribute('data-block-index');
                                 const hSpan = hDiv.querySelector('span');
                                 if (hIdx !== null && hSpan) {
-                                    blockTexts[hIdx] = [hSpan.innerText || hSpan.textContent];
+                                    blockTexts[hIdx] = [(hSpan.innerText || hSpan.textContent).replace(/\u2060/g, "")];
                                 }
                             }
 
@@ -1547,7 +1576,7 @@
                             paragraphs.forEach(p => {
                                 const idx = p.getAttribute('data-block-index');
                                 if (!blockTexts[idx]) blockTexts[idx] = [];
-                                let text = p.innerText || p.textContent;
+                                let text = (p.innerText || p.textContent).replace(/\u2060/g, "");
                                 // strip trailing newlines that contentEditable might add
                                 blockTexts[idx].push(text.replace(/\\n+$/, ''));
                             });
@@ -1578,9 +1607,10 @@
                                         column_count: window.customColumnCount || 2,
                                         col_widths: window.customColWidths,
                                         column_rule_width: window.columnRuleWidth,
-                                        line_height: window.customLineHeight || 1.15,
+                                        line_height: window.customLineHeight || 1.02,
                                         char_spacing: window.customCharSpacing || 0,
-                                        word_spacing: window.customWordSpacing || 0
+                                        word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
+                                        is_bhasha_bharati: window.bhashaBharatiMode || false
                                     };
                                     const newJsonStr = JSON.stringify(newJson);
                                     document.getElementById('editTranslationText').value = newJsonStr;
@@ -1696,9 +1726,10 @@
                         column_count: window.customColumnCount || 2,
                         col_widths: window.customColWidths,
                         column_rule_width: window.columnRuleWidth,
-                        line_height: window.customLineHeight || 1.15,
+                        line_height: window.customLineHeight || 1.02,
                         char_spacing: window.customCharSpacing || 0,
-                        word_spacing: window.customWordSpacing || 0
+                        word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
+                        is_bhasha_bharati: window.bhashaBharatiMode || false
                     };
 
                     const newJsonStr = JSON.stringify(newJson);
