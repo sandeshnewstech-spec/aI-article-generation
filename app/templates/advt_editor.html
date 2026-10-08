@@ -830,10 +830,30 @@
             if (typeof unicodeToGopika !== 'function') return text;
             if (!text) return '';
 
-            // If in Bhasha Bharati mode, the text is ALREADY in Gopika layout.
-            // Do NOT try to preserve English words because English letters represent Gujarati glyphs.
             if (window.bhashaBharatiMode) {
-                return text;
+                // In Bhasha Bharati mode, English characters represent Gujarati glyphs.
+                // However, users often type ALL CAPS English words (like GARDEN CITY) expecting them to show in English.
+                // Pure ALL CAPS words (length > 1) are extremely rare in valid Gopika ASCII, so we can safely wrap them in Arial.
+                let tokens = text.split(/(\s+)/);
+                let result = '';
+                for (let i = 0; i < tokens.length; i++) {
+                    let token = tokens[i];
+                    if (/^\s+$/.test(token) || !token) {
+                        result += token;
+                        continue;
+                    }
+                    
+                    // Match purely UPPERCASE English words (plus numbers/punctuation) and must contain at least one letter
+                    if (/^[A-Z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=\'\"\[\]\{\}\“\”\‘\’]+$/.test(token) && /[A-Z]/.test(token)) {
+                        let engFontSize = 9 * PT_TO_PX;
+                        let safeToken = token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-');
+                        result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${safeToken}</span>`;
+                    } else {
+                        // Standard Bhasha Bharati token - wrap in nowrap
+                        result += `<span>${token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',')}</span>`;
+                    }
+                }
+                return result;
             }
 
             // Split by spaces but keep the spaces as separate tokens
@@ -974,18 +994,17 @@
                 }
 
                 if (parsedData) {
-                    if (parsedData.is_bhasha_bharati !== undefined) {
-                        window.bhashaBharatiMode = parsedData.is_bhasha_bharati;
-                        document.getElementById('bhashaBharatiToggle').checked = window.bhashaBharatiMode;
-                    } else if (parsedData.gujarati_text && parsedData.gujarati_text.length > 0) {
-                        let textStr = JSON.stringify(parsedData.gujarati_text);
-                        let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(textStr);
-                        // Bhasha Bharati text heavily uses extended ASCII (128-255) for Gujarati matras
-                        let hasExtendedAscii = /[\x80-\xFF]/.test(textStr);
-                        if (!hasGujaratiUnicode && hasExtendedAscii) {
-                            window.bhashaBharatiMode = true;
-                            document.getElementById('bhashaBharatiToggle').checked = true;
-                        }
+                    let textStr = JSON.stringify(parsedData.gujarati_text || []);
+                    let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(textStr);
+                    
+                    if (hasGujaratiUnicode) {
+                        // If it has Unicode, it is definitively NOT legacy Bhasha Bharati
+                        window.bhashaBharatiMode = false;
+                    } else if (textStr.length > 5) {
+                        // If there's no Gujarati Unicode, it's legacy Bhasha Bharati ASCII
+                        window.bhashaBharatiMode = true;
+                    } else {
+                        window.bhashaBharatiMode = false;
                     }
                 }
 
@@ -2121,31 +2140,39 @@
         }
 
         function applyCanvasFormat(type, val) {
+            let blockIdx = activeCanvasElement ? activeCanvasElement.getAttribute('data-block-index') : null;
+            if (blockIdx === null) return;
+
+            let parentDiv = document.querySelector(`.block-editor-input[data-index="${blockIdx}"]`).closest('.bg-slate-100');
+            if (!parentDiv) return;
+
             if (type === 'bold') {
-                document.execCommand('bold', false, null);
+                let btn = parentDiv.querySelector('.block-format-bold');
+                if (btn) btn.click(); // This clicks the left panel button and calls updateCanvasFromText
                 return;
             }
 
             if (type === 'align') {
-                // Try smart split first!
-                if (splitAndAlignSelection(val)) {
-                    return;
-                }
-
-                if (activeCanvasElement) {
-                    if (val === 'force-justify') {
-                        activeCanvasElement.style.textAlign = 'justify';
-                        activeCanvasElement.style.textAlignLast = 'justify';
-                    } else {
-                        activeCanvasElement.style.textAlign = val;
-                        activeCanvasElement.style.textAlignLast = (val === 'justify') ? 'left' : val;
+                let btns = parentDiv.querySelectorAll('.block-format-align');
+                btns.forEach(btn => {
+                    if (btn.dataset.align === val) {
+                        // Deselect all
+                        btns.forEach(b => b.classList.remove('bg-slate-50', 'bg-brand-600', 'text-slate-900'));
+                        // Select this
+                        btn.classList.add(val === 'force-justify' ? 'bg-brand-600' : 'bg-slate-50', 'text-slate-900');
+                        // Update hidden input
+                        parentDiv.querySelector('.block-format-align-val').value = val;
                     }
-                }
+                });
+                updateCanvasFromText();
+                return;
             }
 
             if (type === 'fontSize') {
-                if (activeCanvasElement) {
-                    activeCanvasElement.style.fontSize = (parseFloat(val) * PT_TO_PX) + 'px';
+                let sizeInput = parentDiv.querySelector('.block-format-size');
+                if (sizeInput) {
+                    sizeInput.value = val;
+                    updateCanvasFromText();
                 }
             }
         }
