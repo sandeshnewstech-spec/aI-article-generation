@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="h-full">
 
 <head>
@@ -1280,7 +1280,7 @@
                                     <button type="button" data-align="force-justify" class="block-format-align px-1.5 py-0.5 rounded text-[9px] font-bold ${fAlign === 'force-justify' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:text-slate-900'}" title="FORCE JUSTIFY">FJ</button>
                                 </div>
                             </div>
-                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-xs font-sans leading-relaxed resize-y focus:border-brand-500 outline-none" rows="4" data-index="${index}"></textarea>
+                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-[16px] leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-family: '${typeLabel === 'HEADING' ? 'BMA' : (fWeight === 'bold' || fWeight === '900' ? 'BGOTB' : 'BGOT')}', sans-serif; font-weight: ${fWeight};" rows="4" data-index="${index}"></textarea>
                             <input type="hidden" class="block-format-bold-val" value="${fWeight}">
                             <input type="hidden" class="block-format-align-val" value="${fAlign}">
                             <input type="hidden" class="block-format-layout-val" value="${fLayout}">
@@ -1300,14 +1300,19 @@
                         // Bold button event
                         div.querySelector('.block-format-bold').addEventListener('click', function () {
                             const valInput = div.querySelector('.block-format-bold-val');
+                            const ta = div.querySelector('.block-editor-input');
                             if (valInput.value === 'bold' || valInput.value === '900') {
                                 valInput.value = 'normal';
                                 this.classList.remove('bg-slate-50', 'text-slate-900');
+                                if(typeLabel !== 'HEADING') ta.style.fontFamily = "'BGOT', sans-serif";
+                                ta.style.fontWeight = "normal";
                             } else {
                                 valInput.value = 'bold';
                                 this.classList.add('bg-slate-50', 'text-slate-900');
+                                if(typeLabel !== 'HEADING') ta.style.fontFamily = "'BGOTB', sans-serif";
+                                ta.style.fontWeight = "bold";
                             }
-
+                            updateCanvasFromText();
                         });
 
                         // Typing event (Bhasha Bharati support)
