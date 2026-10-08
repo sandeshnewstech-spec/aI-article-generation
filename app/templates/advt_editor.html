@@ -1281,7 +1281,7 @@
                                     <button type="button" data-align="force-justify" class="block-format-align px-1.5 py-0.5 rounded text-[9px] font-bold ${fAlign === 'force-justify' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:text-slate-900'}" title="FORCE JUSTIFY">FJ</button>
                                 </div>
                             </div>
-                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-[16px] leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-family: '${typeLabel === 'HEADING' ? 'BMA' : (fWeight === 'bold' || fWeight === '900' ? 'BGOTB' : 'BGOT')}', sans-serif; font-weight: ${fWeight};" rows="4" data-index="${index}"></textarea>
+                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-[16px] leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-family: '${window.bhashaBharatiMode ? (typeLabel === 'HEADING' ? 'BMA' : (fWeight === 'bold' || fWeight === '900' ? 'BGOTB' : 'BGOT')) : 'Arial, sans-serif'}'; font-weight: ${fWeight};" rows="4" data-index="${index}"></textarea>
                             <input type="hidden" class="block-format-bold-val" value="${fWeight}">
                             <input type="hidden" class="block-format-align-val" value="${fAlign}">
                             <input type="hidden" class="block-format-layout-val" value="${fLayout}">
@@ -1504,14 +1504,29 @@
                                     if (baseAlign === 'justify' && pText.includes('\n')) {
                                         p.style.textAlignLast = 'justify';
                                     }
+                                    if (baseAlign !== 'justify') {
+                                        p.style.textIndent = '0';
+                                    }
                                 }
 
-                                // Date Line check
-                                if (pText.includes('તા:') || pText.includes('તારીખ')) {
-                                    p.className = 'notice-date';
+                                // Date Line check and line-by-line formatting
+                                let finalHtml = '';
+                                let lines = pText.split(/(?:\r?\n)/);
+                                for (let l = 0; l < lines.length; l++) {
+                                    let line = lines[l];
+                                    let rawLine = line.replace(/<[^>]*>?/gm, '').replace(/&#8288;/g, '').trim();
+                                    
+                                    if (rawLine.match(/^(તા:|તારીખ|તા\.|સ્થળ|Date|Place)/i)) {
+                                        finalHtml += `<span class="notice-date" style="display: block; text-align: left; text-indent: 0;">${line}</span>`;
+                                        if (l === 0) {
+                                            p.style.textIndent = '0';
+                                        }
+                                    } else {
+                                        finalHtml += line + (l < lines.length - 1 ? '<br>' : '');
+                                    }
                                 }
-
-                                p.innerHTML = pText.replace(/(?:\r?\n)/g, '<br>');
+                                
+                                p.innerHTML = finalHtml;
                                 colsContainer.appendChild(p);
                             });
                         });
