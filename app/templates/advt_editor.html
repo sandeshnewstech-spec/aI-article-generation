@@ -41,6 +41,10 @@
         }
     </script>
     <style>
+        :root {
+            --ad-font: 'Gopika', sans-serif;
+        }
+
         @font-face {
             font-family: 'BMA';
             src: url('/static/fonts/BMA_____.TTF') format('truetype');
@@ -67,6 +71,14 @@
             src: url('/static/fonts/BGOT____.TTF') format('truetype');
             font-weight: normal;
             font-style: normal;
+            font-display: block;
+        }
+
+        .gopika-text {
+            font-family: var(--ad-font) !important;
+            line-height: 1.4;
+            letter-spacing: normal;
+            font-feature-settings: normal;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -91,7 +103,7 @@
         .ad-preview-html {
             background-color: #fff;
             color: #000;
-            font-family: 'BGOT', sans-serif;
+            font-family: var(--ad-font);
             position: relative;
             box-sizing: border-box;
             border: 4px solid #000;
@@ -646,7 +658,7 @@
                     <div class="w-6 h-px bg-slate-50 my-1"></div>
 
                     <!-- Break Line -->
-                    <button type="button" id="ctBreak" onclick="document.execCommand('insertParagraph')"
+                    <button type="button" id="ctBreak" onclick="splitLineAtCursor()"
                         class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors border border-transparent"
                         title="Split Line Here">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -747,7 +759,7 @@
         async function ensureFontsLoaded() {
             try {
                 await document.fonts.ready;
-                const fonts = ['BMA', 'BGOT', 'BGOTB'];
+                const fonts = ['BMA', 'BGOT', 'BGOTB', 'Gopika'];
                 for (const font of fonts) {
                     await document.fonts.load(`16px "${font}"`);
                 }
@@ -842,7 +854,7 @@
                         result += token;
                         continue;
                     }
-                    
+
                     // Match purely UPPERCASE English words (plus numbers/punctuation) and must contain at least one letter
                     if (/^[A-Z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=\'\"\[\]\{\}\“\”\‘\’]+$/.test(token) && /[A-Z]/.test(token)) {
                         let engFontSize = 9 * PT_TO_PX;
@@ -996,7 +1008,7 @@
                 if (parsedData) {
                     let textStr = JSON.stringify(parsedData.gujarati_text || []);
                     let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(textStr);
-                    
+
                     if (hasGujaratiUnicode) {
                         // If it has Unicode, it is definitively NOT legacy Bhasha Bharati
                         window.bhashaBharatiMode = false;
@@ -1281,12 +1293,17 @@
                                     <button type="button" data-align="force-justify" class="block-format-align px-1.5 py-0.5 rounded text-[9px] font-bold ${fAlign === 'force-justify' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:text-slate-900'}" title="FORCE JUSTIFY">FJ</button>
                                 </div>
                             </div>
-                            <textarea class="block-editor-input w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-[16px] leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-family: '${window.bhashaBharatiMode ? (typeLabel === 'HEADING' ? 'BMA' : (fWeight === 'bold' || fWeight === '900' ? 'BGOTB' : 'BGOT')) : 'Arial, sans-serif'}'; font-weight: ${fWeight};" rows="4" data-index="${index}"></textarea>
+                            <textarea class="block-editor-input gopika-text w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-size: ${fSize}px; text-align: ${fAlign === 'force-justify' ? 'justify' : fAlign}; font-weight: ${fWeight === 'bold' || fWeight === '900' ? 'bold' : 'normal'};" rows="4" data-index="${index}"></textarea>
                             <input type="hidden" class="block-format-bold-val" value="${fWeight}">
                             <input type="hidden" class="block-format-align-val" value="${fAlign}">
                             <input type="hidden" class="block-format-layout-val" value="${fLayout}">
                         `;
                         div.querySelector('textarea').value = textContent;
+
+                        // Size event
+                        div.querySelector('.block-format-size').addEventListener('input', function () {
+                            div.querySelector('.block-editor-input').style.fontSize = this.value + 'px';
+                        });
 
                         // Align buttons event
                         div.querySelectorAll('.block-format-align').forEach(btn => {
@@ -1294,7 +1311,8 @@
                                 div.querySelectorAll('.block-format-align').forEach(b => b.classList.remove('bg-slate-50', 'bg-brand-600', 'text-slate-900'));
                                 this.classList.add(this.dataset.align === 'force-justify' ? 'bg-brand-600' : 'bg-slate-50', 'text-slate-900');
                                 div.querySelector('.block-format-align-val').value = this.dataset.align;
-
+                                div.querySelector('.block-editor-input').style.textAlign = this.dataset.align === 'force-justify' ? 'justify' : this.dataset.align;
+                                updateCanvasFromText();
                             });
                         });
 
@@ -1305,12 +1323,10 @@
                             if (valInput.value === 'bold' || valInput.value === '900') {
                                 valInput.value = 'normal';
                                 this.classList.remove('bg-slate-50', 'text-slate-900');
-                                if(typeLabel !== 'HEADING') ta.style.fontFamily = "'BGOT', sans-serif";
                                 ta.style.fontWeight = "normal";
                             } else {
                                 valInput.value = 'bold';
                                 this.classList.add('bg-slate-50', 'text-slate-900');
-                                if(typeLabel !== 'HEADING') ta.style.fontFamily = "'BGOTB', sans-serif";
                                 ta.style.fontWeight = "bold";
                             }
                             updateCanvasFromText();
@@ -1323,7 +1339,7 @@
                                 this.value = bhashaBharatiRemingtonToGopika(this.value);
                                 this.selectionStart = this.selectionEnd = curPos;
                             }
-
+                            updateCanvasFromText();
                         });
 
                         container.appendChild(div);
@@ -1483,7 +1499,8 @@
                             let baseFontFamily = (bFontWeight === 'bold' || bFontWeight === '900') ? 'BGOTB' : 'BGOT';
                             let baseAlign = b.text_align || 'justify';
 
-                            let paragraphs = convertedText.split(/(?:\r?\n){2,}/);
+                            let paragraphs = convertedText.split(/(?:\r?\n)/);
+                            let styleIndex = 0;
                             paragraphs.forEach(pText => {
                                 if (!pText.trim()) return;
                                 let p = document.createElement('p');
@@ -1495,19 +1512,59 @@
                                 p.style.lineHeight = window.customLineHeight || 1.02;
                                 if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
                                 if (window.customWordSpacing !== undefined && window.customWordSpacing !== 0) p.style.wordSpacing = window.customWordSpacing + 'px';
-                                if (baseAlign === 'force-justify') {
-                                    p.style.textAlign = 'justify';
-                                    p.style.textAlignLast = 'justify';
-                                } else {
-                                    p.style.textAlign = baseAlign;
-                                    // Auto-justify lines before a soft break if paragraph contains one
-                                    if (baseAlign === 'justify' && pText.includes('\n')) {
-                                        p.style.textAlignLast = 'justify';
+
+                                let lStyles = parsedData.line_styles && parsedData.line_styles[realIndex] ? parsedData.line_styles[realIndex][styleIndex] : null;
+
+                                if (lStyles) {
+                                    if (lStyles.size) {
+                                        p.style.fontSize = (parseFloat(lStyles.size) * PT_TO_PX) + 'px';
+                                        p.dataset.lineSize = lStyles.size;
                                     }
-                                    if (baseAlign !== 'justify') {
-                                        p.style.textIndent = '0';
+                                    if (lStyles.bold) {
+                                        p.style.fontFamily = 'BGOTB';
+                                        p.dataset.lineBold = '1';
+                                    }
+                                    if (lStyles.align) {
+                                        let bAlign = lStyles.align;
+                                        if (bAlign === 'force-justify') {
+                                            p.style.textAlign = 'justify';
+                                            p.style.textAlignLast = 'justify';
+                                        } else {
+                                            p.style.textAlign = bAlign;
+                                            p.style.textAlignLast = (bAlign === 'justify') ? 'left' : bAlign;
+                                        }
+                                        if (bAlign !== 'justify' && bAlign !== 'force-justify') p.style.textIndent = '0';
+                                        p.dataset.lineAlign = bAlign;
+                                    } else {
+                                        if (baseAlign === 'force-justify') {
+                                            p.style.textAlign = 'justify';
+                                            p.style.textAlignLast = 'justify';
+                                        } else {
+                                            p.style.textAlign = baseAlign;
+                                            if (baseAlign === 'justify' && pText.includes('\n')) {
+                                                p.style.textAlignLast = 'justify';
+                                            }
+                                            if (baseAlign !== 'justify') {
+                                                p.style.textIndent = '0';
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (baseAlign === 'force-justify') {
+                                        p.style.textAlign = 'justify';
+                                        p.style.textAlignLast = 'justify';
+                                    } else {
+                                        p.style.textAlign = baseAlign;
+                                        // Auto-justify lines before a soft break if paragraph contains one
+                                        if (baseAlign === 'justify' && pText.includes('\n')) {
+                                            p.style.textAlignLast = 'justify';
+                                        }
+                                        if (baseAlign !== 'justify') {
+                                            p.style.textIndent = '0';
+                                        }
                                     }
                                 }
+                                styleIndex++;
 
                                 // Date Line check and line-by-line formatting
                                 let finalHtml = '';
@@ -1515,17 +1572,21 @@
                                 for (let l = 0; l < lines.length; l++) {
                                     let line = lines[l];
                                     let rawLine = line.replace(/<[^>]*>?/gm, '').replace(/&#8288;/g, '').trim();
-                                    
+
                                     if (rawLine.match(/^(તા:|તારીખ|તા\.|સ્થળ|Date|Place)/i)) {
-                                        finalHtml += `<span class="notice-date" style="display: block; text-align: left; text-indent: 0;">${line}</span>`;
+                                        finalHtml += `<span class="notice-date" style="display: block; text-indent: 0;">${line}</span>`;
                                         if (l === 0) {
                                             p.style.textIndent = '0';
+                                        }
+                                        // If no custom alignment is set, default to left
+                                        if (!p.dataset.lineAlign && baseAlign !== 'justify' && baseAlign !== 'force-justify') {
+                                            p.style.textAlign = 'left';
                                         }
                                     } else {
                                         finalHtml += line + (l < lines.length - 1 ? '<br>' : '');
                                     }
                                 }
-                                
+
                                 p.innerHTML = finalHtml;
                                 colsContainer.appendChild(p);
                             });
@@ -1543,7 +1604,8 @@
                                 let defaultW = b.font_weight || 'normal';
                                 let advBaseFont = (defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
 
-                                let paragraphs = convertedAdv.split(/(?:\r?\n){2,}/);
+                                let paragraphs = convertedAdv.split(/(?:\r?\n)/);
+                                let styleIndex = 0;
                                 paragraphs.forEach(pText => {
                                     if (!pText.trim()) return;
                                     let p = document.createElement('p');
@@ -1553,6 +1615,31 @@
                                     p.style.lineHeight = window.customLineHeight || 1.02;
                                     if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
                                     if (window.customWordSpacing !== undefined && window.customWordSpacing !== 0) p.style.wordSpacing = window.customWordSpacing + 'px';
+
+                                    let lStyles = parsedData.line_styles && parsedData.line_styles[realIndex] ? parsedData.line_styles[realIndex][styleIndex] : null;
+                                    if (lStyles) {
+                                        if (lStyles.size) {
+                                            p.style.fontSize = (parseFloat(lStyles.size) * PT_TO_PX) + 'px';
+                                            p.dataset.lineSize = lStyles.size;
+                                        }
+                                        if (lStyles.bold) {
+                                            p.style.fontFamily = 'BGOTB';
+                                            p.dataset.lineBold = '1';
+                                        }
+                                        if (lStyles.align) {
+                                            let bAlign = lStyles.align;
+                                            if (bAlign === 'force-justify') {
+                                                p.style.textAlign = 'justify';
+                                                p.style.textAlignLast = 'justify';
+                                            } else {
+                                                p.style.textAlign = bAlign;
+                                                p.style.textAlignLast = (bAlign === 'justify') ? 'left' : bAlign;
+                                            }
+                                            if (bAlign !== 'justify' && bAlign !== 'force-justify') p.style.textIndent = '0';
+                                            p.dataset.lineAlign = bAlign;
+                                        }
+                                    }
+                                    styleIndex++;
                                     p.innerHTML = pText.replace(/(?:\r?\n)/g, '<br>');
                                     advWrapper.appendChild(p);
                                 });
@@ -1560,21 +1647,47 @@
                             colsContainer.appendChild(advWrapper);
                         }
 
-                        // Intercept Enter key in contenteditable to insert <br> instead of new <p>
+                        // Intercept Enter key in contenteditable — create a new <p> with DOM manipulation
                         colsContainer.addEventListener('keydown', function (e) {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                document.execCommand('insertLineBreak');
 
-                                // Auto-justify the paragraph when they press Enter
-                                let sel = window.getSelection();
-                                if (sel && sel.anchorNode) {
-                                    let node = sel.anchorNode;
-                                    let p = node.nodeType === 3 ? node.parentNode.closest('p') : node.closest('p');
-                                    if (p && p.style.textAlign === 'justify') {
-                                        p.style.textAlignLast = 'justify';
-                                    }
-                                }
+                                const sel = window.getSelection();
+                                if (!sel.rangeCount) return;
+                                const range = sel.getRangeAt(0);
+                                let n = range.commonAncestorContainer;
+                                if (n.nodeType === 3) n = n.parentNode;
+                                let parentP = n.closest('p');
+                                if (!parentP) return;
+
+                                // Extract everything after the cursor into a new fragment
+                                let afterRange = document.createRange();
+                                afterRange.setStart(range.endContainer, range.endOffset);
+                                afterRange.setEndAfter(parentP.lastChild || parentP);
+                                let afterFrag = afterRange.extractContents();
+
+                                // Create a new <p> and inherit all styles
+                                let newP = document.createElement('p');
+                                newP.className = 'ad-paragraph';
+                                newP.style.cssText = parentP.style.cssText;
+                                newP.setAttribute('data-block-index', parentP.getAttribute('data-block-index'));
+                                newP.dataset.lineAlign = parentP.dataset.lineAlign || '';
+                                newP.dataset.lineBold = parentP.dataset.lineBold || '';
+                                newP.dataset.lineSize = parentP.dataset.lineSize || '';
+                                newP.appendChild(afterFrag);
+
+                                // If new P is empty, add a zero-width space so cursor can land
+                                if (!newP.textContent.trim()) newP.innerHTML = '&#8203;';
+
+                                parentP.parentNode.insertBefore(newP, parentP.nextSibling);
+
+                                // Move cursor to start of new P
+                                let newRange = document.createRange();
+                                newRange.setStart(newP, 0);
+                                newRange.collapse(true);
+                                sel.removeAllRanges();
+                                sel.addRange(newRange);
+                                _lastActiveLine = newP;
                             }
                         });
 
@@ -1593,6 +1706,7 @@
                             }
 
                             // 2. Content and Advocate blocks (paragraphs)
+                            window.lineStyles = {};
                             const paragraphs = colsContainer.querySelectorAll('p[data-block-index]');
                             paragraphs.forEach(p => {
                                 const idx = p.getAttribute('data-block-index');
@@ -1600,12 +1714,20 @@
                                 let text = (p.innerText || p.textContent).replace(/\u2060/g, "");
                                 // strip trailing newlines that contentEditable might add
                                 blockTexts[idx].push(text.replace(/\\n+$/, ''));
+
+                                // Save per-line styles
+                                window.lineStyles[idx] = window.lineStyles[idx] || [];
+                                window.lineStyles[idx].push({
+                                    align: p.dataset.lineAlign || null,
+                                    bold: p.dataset.lineBold === '1',
+                                    size: p.dataset.lineSize || null
+                                });
                             });
 
                             // Reconstruct the text for each block and update the left sidebar textareas
                             for (const idx in blockTexts) {
                                 const ta = document.querySelector(`textarea[data-index="${idx}"]`);
-                                if (ta) ta.value = blockTexts[idx].join('\n\n');
+                                if (ta) ta.value = blockTexts[idx].join('\n');
                             }
 
                             // Silently update the hidden JSON text
@@ -1631,7 +1753,8 @@
                                         line_height: window.customLineHeight || 1.02,
                                         char_spacing: window.customCharSpacing || 0,
                                         word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
-                                        is_bhasha_bharati: window.bhashaBharatiMode || false
+                                        is_bhasha_bharati: window.bhashaBharatiMode || false,
+                                        line_styles: window.lineStyles
                                     };
                                     const newJsonStr = JSON.stringify(newJson);
                                     document.getElementById('editTranslationText').value = newJsonStr;
@@ -1698,7 +1821,24 @@
             }
         }
 
-        function setupCanvasEvents() { }
+        function setupCanvasEvents() {
+            // Track active line on focusin/click inside the canvas
+            const canvasEl = document.getElementById('advtHtmlContainer');
+            if (canvasEl) {
+                canvasEl.addEventListener('focusin', function (e) {
+                    let t = e.target;
+                    if (t.nodeType === 3) t = t.parentNode;
+                    let p = t.closest && t.closest('p, .ad-heading-box');
+                    if (p) _lastActiveLine = p;
+                });
+                canvasEl.addEventListener('click', function (e) {
+                    let t = e.target;
+                    if (t.nodeType === 3) t = t.parentNode;
+                    let p = t.closest && t.closest('p, .ad-heading-box');
+                    if (p) _lastActiveLine = p;
+                });
+            }
+        }
         function showFloatingLineToolbar(e) { }
         function hideFloatingLineToolbar() { }
         function setFloatingLineAlign(alignMode) { }
@@ -1750,7 +1890,8 @@
                         line_height: window.customLineHeight || 1.02,
                         char_spacing: window.customCharSpacing || 0,
                         word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
-                        is_bhasha_bharati: window.bhashaBharatiMode || false
+                        is_bhasha_bharati: window.bhashaBharatiMode || false,
+                        line_styles: window.lineStyles || parsedData.line_styles
                     };
 
                     const newJsonStr = JSON.stringify(newJson);
@@ -2023,11 +2164,14 @@
             }
         }
         // --- CANVAS WYSIWYG TOOLBAR LOGIC ---
-        // --- CANVAS WYSIWYG TOOLBAR LOGIC ---
         let activeCanvasElement = null;
+        // Track last active <p> so toolbar buttons can use it even after focus moves
+        let _lastActiveLine = null;
 
         // Prevent toolbar clicks from clearing canvas text selection
         document.getElementById('canvasToolbar').addEventListener('mousedown', (e) => {
+            // Allow inputs (size field) to receive focus
+            if (e.target.tagName === 'INPUT') return;
             e.preventDefault();
         });
 
@@ -2050,6 +2194,7 @@
 
                     if (activeP) {
                         activeCanvasElement = activeP;
+                        _lastActiveLine = activeP;
                         activeCanvasElement.style.outline = "2px dashed #0ea5e9";
 
                         const currentSize = parseFloat(window.getComputedStyle(activeP).fontSize) / PT_TO_PX;
@@ -2154,47 +2299,134 @@
             return false;
         }
 
-        function applyCanvasFormat(type, val) {
-            let blockIdx = activeCanvasElement ? activeCanvasElement.getAttribute('data-block-index') : null;
-            if (blockIdx === null) return;
+        function getActiveLineElement() {
+            const sel = window.getSelection();
+            if (sel.rangeCount) {
+                let n = sel.getRangeAt(0).commonAncestorContainer;
+                if (n.nodeType === 3) n = n.parentNode;
+                let found = n.closest('p, .ad-heading-box');
+                if (found) {
+                    _lastActiveLine = found;
+                    return found;
+                }
+            }
+            // Fallback: use last known active element
+            return _lastActiveLine || null;
+        }
 
-            let parentDiv = document.querySelector(`.block-editor-input[data-index="${blockIdx}"]`).closest('.bg-slate-100');
-            if (!parentDiv) return;
+        function syncCanvasToJson() {
+            const cols = document.querySelector('.ad-columns-container');
+            if (!cols) return;
+            cols.dispatchEvent(new Event('input'));
+        }
 
-            if (type === 'bold') {
-                let btn = parentDiv.querySelector('.block-format-bold');
-                if (btn) btn.click(); // This clicks the left panel button and calls updateCanvasFromText
-                return;
+        function splitLineAtCursor() {
+            // Direct DOM manipulation instead of synthetic events
+            const sel = window.getSelection();
+            let parentP = null;
+
+            if (sel.rangeCount) {
+                let range = sel.getRangeAt(0);
+                let n = range.commonAncestorContainer;
+                if (n.nodeType === 3) n = n.parentNode;
+                parentP = n.closest('p');
+            }
+            // Fallback to last active
+            if (!parentP) parentP = _lastActiveLine;
+            if (!parentP || parentP.tagName !== 'P') return;
+
+            const sel2 = window.getSelection();
+            let range;
+            if (sel2.rangeCount) {
+                range = sel2.getRangeAt(0);
+                // Ensure the range is inside this P
+                if (!parentP.contains(range.commonAncestorContainer)) {
+                    range = null;
+                }
             }
 
+            if (range) {
+                // Split at cursor position
+                let afterRange = document.createRange();
+                afterRange.setStart(range.endContainer, range.endOffset);
+                afterRange.setEndAfter(parentP.lastChild || parentP);
+                let afterFrag = afterRange.extractContents();
+
+                let newP = document.createElement('p');
+                newP.className = 'ad-paragraph';
+                newP.style.cssText = parentP.style.cssText;
+                newP.setAttribute('data-block-index', parentP.getAttribute('data-block-index'));
+                newP.dataset.lineAlign = parentP.dataset.lineAlign || '';
+                newP.dataset.lineBold = parentP.dataset.lineBold || '';
+                newP.dataset.lineSize = parentP.dataset.lineSize || '';
+                newP.appendChild(afterFrag);
+
+                parentP.parentNode.insertBefore(newP, parentP.nextSibling);
+
+                // Move cursor to start of new P
+                let newRange = document.createRange();
+                newRange.setStart(newP, 0);
+                newRange.collapse(true);
+                sel2.removeAllRanges();
+                sel2.addRange(newRange);
+                _lastActiveLine = newP;
+            } else {
+                // No cursor in this P, insert empty P after it
+                let newP = document.createElement('p');
+                newP.className = 'ad-paragraph';
+                newP.style.cssText = parentP.style.cssText;
+                newP.setAttribute('data-block-index', parentP.getAttribute('data-block-index'));
+                newP.dataset.lineAlign = parentP.dataset.lineAlign || '';
+                newP.dataset.lineBold = parentP.dataset.lineBold || '';
+                newP.dataset.lineSize = parentP.dataset.lineSize || '';
+                newP.innerHTML = '&#8203;'; // zero-width space so it's focusable
+                parentP.parentNode.insertBefore(newP, parentP.nextSibling);
+                _lastActiveLine = newP;
+            }
+
+            syncCanvasToJson();
+        }
+
+        function applyCanvasFormat(type, val) {
+            const el = getActiveLineElement();
+            if (!el) return;
+
             if (type === 'align') {
-                let btns = parentDiv.querySelectorAll('.block-format-align');
-                btns.forEach(btn => {
-                    if (btn.dataset.align === val) {
-                        // Deselect all
-                        btns.forEach(b => b.classList.remove('bg-slate-50', 'bg-brand-600', 'text-slate-900'));
-                        // Select this
-                        btn.classList.add(val === 'force-justify' ? 'bg-brand-600' : 'bg-slate-50', 'text-slate-900');
-                        // Update hidden input
-                        parentDiv.querySelector('.block-format-align-val').value = val;
-                    }
-                });
-                updateCanvasFromText();
-                return;
+                if (val === 'force-justify') {
+                    el.style.textAlign = 'justify';
+                    el.style.textAlignLast = 'justify';
+                } else {
+                    el.style.textAlign = val;
+                    el.style.textAlignLast = (val === 'justify') ? 'left' : val;
+                }
+                if (val !== 'justify' && val !== 'force-justify') el.style.textIndent = '0';
+                el.dataset.lineAlign = val;
+
+                // Also clear inline text-align on any inner notice-date spans so they inherit
+                let innerDate = el.querySelector('.notice-date');
+                if (innerDate) {
+                    innerDate.style.textAlign = '';
+                }
+            }
+
+            if (type === 'bold') {
+                const isBold = el.dataset.lineBold === '1';
+                el.dataset.lineBold = isBold ? '0' : '1';
+                el.style.fontFamily = isBold ? 'BGOT' : 'BGOTB';
             }
 
             if (type === 'fontSize') {
-                let sizeInput = parentDiv.querySelector('.block-format-size');
-                if (sizeInput) {
-                    sizeInput.value = val;
-                    updateCanvasFromText();
-                }
+                el.style.fontSize = (parseFloat(val) * PT_TO_PX) + 'px';
+                el.dataset.lineSize = val;
             }
+
+            syncCanvasToJson();
         }
         // ------------------------------------
 
         // DOM Ready Load
         document.addEventListener('DOMContentLoaded', () => {
+            setupCanvasEvents();
             loadAdData();
         });
     </script>
