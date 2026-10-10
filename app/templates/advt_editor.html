@@ -838,11 +838,11 @@
         // Helper to convert text to Gopika while preserving English characters
         // Splits by Unicode word boundaries FIRST, converts each word to Gopika,
         // then wraps each converted word in a nowrap span so the browser never breaks mid-word.
-        function convertWithEnglishPreserved(text) {
+        function convertWithEnglishPreserved(text, forceBhashaBharati = false) {
             if (typeof unicodeToGopika !== 'function') return text;
             if (!text) return '';
 
-            if (window.bhashaBharatiMode) {
+            if (forceBhashaBharati || window.bhashaBharatiMode) {
                 // In Bhasha Bharati mode, English characters represent Gujarati glyphs.
                 // However, users often type ALL CAPS English words (like GARDEN CITY) expecting them to show in English.
                 // Pure ALL CAPS words (length > 1) are extremely rare in valid Gopika ASCII, so we can safely wrap them in Arial.
@@ -1435,6 +1435,7 @@
                         colsContainer.style.outline = "none";
                         colsContainer.style.columnCount = colCount;
                         colsContainer.style.columnGap = (8 * DPI_SCALE) + 'px';
+                        colsContainer.addEventListener('input', syncCanvasToJson);
                         // column-rule handled by manual HTML divs below (html2canvas can't render CSS column-rule)
 
                         if (window.customBorderHeight) {
@@ -1448,7 +1449,8 @@
 
                         if (headingBlock) {
                             let rawHText = headingBlock.text || 'જાહેર નોટિસ';
-                            let convertedH = convertWithEnglishPreserved(rawHText);
+                            let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(rawHText);
+                            let convertedH = convertWithEnglishPreserved(rawHText, !hasGujaratiUnicode);
                             let hFontSize = (headingBlock.font_size || 20) * PT_TO_PX;
                             let hBgHeight = (headingBlock.bg_height ? parseFloat(headingBlock.bg_height) : 25) * DPI_SCALE;
                             let hIndex = blocks.indexOf(headingBlock);
@@ -1492,7 +1494,8 @@
                             let realIndex = blocks.indexOf(b);
 
                             let tText = b.text.trim();
-                            let convertedText = convertWithEnglishPreserved(tText);
+                            let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(tText);
+                            let convertedText = convertWithEnglishPreserved(tText, !hasGujaratiUnicode);
 
                             let baseFontSize = (b.font_size || 11) * PT_TO_PX;
                             let bFontWeight = b.font_weight || 'normal';
@@ -1598,7 +1601,8 @@
                             advocateBlocks.forEach((b) => {
                                 let realIndex = blocks.indexOf(b);
                                 let rawAdvText = (b.text || '').trim();
-                                let convertedAdv = convertWithEnglishPreserved(rawAdvText);
+                                let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(rawAdvText);
+                                let convertedAdv = convertWithEnglishPreserved(rawAdvText, !hasGujaratiUnicode);
                                 let baseFontSize = (b.font_size || 12) * PT_TO_PX;
                                 let defaultW = b.font_weight || 'normal';
                                 let advBaseFont = (defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
@@ -1650,8 +1654,8 @@
 
                                     let lStyles = parsedData.line_styles && parsedData.line_styles[realIndex] ? parsedData.line_styles[realIndex][styleIndex] : null;
                                     
-                                    // Force automatic alignment (ignoring manual saved styles to ensure strict formatting)
-                                    let bAlign = autoAlign;
+                                    // Default to block-level alignment if provided, otherwise autoAlign
+                                    let bAlign = b.text_align || autoAlign;
                                     
                                     if (lStyles) {
                                         if (lStyles.size) {
@@ -1662,6 +1666,7 @@
                                             isBold = true; // Respect manual bold if set
                                         }
                                         if (lStyles.align) {
+                                            bAlign = lStyles.align; // Respect manual alignment
                                             p.dataset.lineAlign = lStyles.align;
                                         }
                                     }
@@ -2372,7 +2377,62 @@
         function syncCanvasToJson() {
             const cols = document.querySelector('.ad-columns-container');
             if (!cols) return;
-            cols.dispatchEvent(new Event('input'));
+            
+            let newLineStyles = {};
+            let newTexts = {};
+            let paragraphs = cols.querySelectorAll('p.ad-paragraph, div.ad-heading-box');
+            
+            // Build formatting objects by reading dataset properties and text
+            paragraphs.forEach(p => {
+                let bIdx = p.getAttribute('data-block-index');
+                if (bIdx !== null) {
+                    if (!newLineStyles[bIdx]) newLineStyles[bIdx] = [];
+                    if (!newTexts[bIdx]) newTexts[bIdx] = [];
+                    
+                    let styleObj = {};
+                    if (p.dataset.lineAlign) styleObj.align = p.dataset.lineAlign;
+                    if (p.dataset.lineBold === '1') styleObj.bold = true;
+                    if (p.dataset.lineSize) styleObj.size = p.dataset.lineSize;
+                    
+                    newLineStyles[bIdx].push(styleObj);
+                    
+                    // Extract text (remove Zero Width No-Break Space \u2060 / &#8288;)
+                    let text = p.innerText.replace(/\u2060/g, '').trim();
+                    newTexts[bIdx].push(text);
+                }
+            });
+            window.lineStyles = newLineStyles;
+
+            // Sync texts back to textareas for all modes, 
+            // since convertWithEnglishPreserved now dynamically handles non-Unicode legacy fallback per-block.
+            for (let bIdx in newTexts) {
+                let ta = document.querySelector(`.block-editor-input[data-index="${bIdx}"]`);
+                if (ta) {
+                    let joinedText = newTexts[bIdx].join('\n');
+                    if (ta.value !== joinedText) {
+                        ta.value = joinedText;
+                    }
+                }
+            }
+
+            // Immediately flush styles and text to the hidden JSON string so Save Changes works
+            if (advtData && advtData.translated_text) {
+                try {
+                    let parsedData = JSON.parse(advtData.translated_text);
+                    let blocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
+                    
+                    for (let bIdx in newTexts) {
+                        if (blocks[bIdx]) {
+                            blocks[bIdx].text = newTexts[bIdx].join('\n');
+                        }
+                    }
+                    
+                    parsedData.line_styles = window.lineStyles;
+                    const newJsonStr = JSON.stringify(parsedData);
+                    document.getElementById('editTranslationText').value = newJsonStr;
+                    advtData.translated_text = newJsonStr;
+                } catch(e) {}
+            }
         }
 
         function splitLineAtCursor() {
