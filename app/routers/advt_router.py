@@ -1,13 +1,16 @@
 import os
 import shutil
 import tempfile
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+import re
+import jwt
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
 from app.models.advt import AdvtModel
 from app.core.database import get_db
+from app.core.security import SECRET_KEY, ALGORITHM
 from app.services.advt_service import AdvtService
 
 router = APIRouter(prefix="/advt", tags=["advt"])
@@ -15,6 +18,7 @@ advt_service = AdvtService()
 
 @router.post("/upload", response_model=dict)
 async def upload_advt_file(
+    request: Request,
     file: UploadFile = File(...),
     advt_type: str = Form(""),
     height: float = Form(0.0),
@@ -23,7 +27,8 @@ async def upload_advt_file(
     blank_file: Optional[UploadFile] = File(None),
     eng_to_guj: bool = Form(False),
     add_keypoints: bool = Form(False),
-    legal_notice: bool = Form(False)
+    legal_notice: bool = Form(False),
+    username: Optional[str] = Form(None)
 ):
     """Upload an advertisement file (PDF, Image, Word), extract and translate text"""
     try:
@@ -91,6 +96,22 @@ async def upload_advt_file(
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+        # Extract uploader username
+        uploader = username
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                sub = payload.get("sub")
+                if sub:
+                    uploader = sub
+            except Exception:
+                pass
+
+        if not uploader:
+            uploader = request.headers.get("x-username") or username or "Admin"
+
         # Create record in MongoDB
         advt_record = {
             "filename": file.filename,
@@ -103,7 +124,9 @@ async def upload_advt_file(
             "generated_image_url": generated_image_url,
             "original_file_url": original_file_url,
             "status": "Completed",
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "username": uploader,
+            "created_by": uploader
         }
         
         res = await db["advt"].insert_one(advt_record)
@@ -118,11 +141,75 @@ async def upload_advt_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/", response_model=List[dict])
-async def get_all_advts():
-    """Retrieve all advertisement translations"""
+@router.get("", response_model=List[dict])
+async def get_all_advts(
+    request: Request,
+    username: Optional[str] = None,
+    role: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """Retrieve all advertisement translations with role-based and search filtering:
+       - super_admin and advt_admin see all advertisements
+       - advt_editor and other users only see their own advertisements
+       - search filters by filename, username, and created_by
+    """
     try:
         db = get_db()
-        cursor = db["advt"].find().sort("created_at", -1)
+        current_username = username
+        current_role = role
+
+        # Try resolving user & role from Authorization Bearer token first
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                sub = payload.get("sub")
+                if sub:
+                    current_username = sub
+                    user_doc = await db["users"].find_one({"username": sub})
+                    if user_doc:
+                        current_role = user_doc.get("role")
+            except Exception:
+                pass
+
+        if not current_role:
+            current_role = request.headers.get("x-user-role") or role
+        if not current_username:
+            current_username = request.headers.get("x-username") or username
+
+        # Determine filter query
+        query = {}
+        # If user is NOT an admin (e.g. advt_editor or standard user)
+        if current_role not in ["super_admin", "advt_admin"]:
+            if current_username:
+                safe_name = re.escape(current_username)
+                query = {
+                    "$or": [
+                        {"username": {"$regex": f"^{safe_name}$", "$options": "i"}},
+                        {"created_by": {"$regex": f"^{safe_name}$", "$options": "i"}}
+                    ]
+                }
+            else:
+                # If role is advt_editor but no username passed, don't leak other ads
+                query = {"_id": None}
+
+        # Apply search filter by filename, username, created_by
+        if search and search.strip():
+            safe_search = re.escape(search.strip())
+            search_cond = {
+                "$or": [
+                    {"filename": {"$regex": safe_search, "$options": "i"}},
+                    {"username": {"$regex": safe_search, "$options": "i"}},
+                    {"created_by": {"$regex": safe_search, "$options": "i"}}
+                ]
+            }
+            if query:
+                query = {"$and": [query, search_cond]}
+            else:
+                query = search_cond
+
+        cursor = db["advt"].find(query).sort("created_at", -1)
         advts = []
         async for doc in cursor:
             doc["_id"] = str(doc["_id"])
@@ -130,6 +217,22 @@ async def get_all_advts():
         return advts
     except Exception as e:
         print(f"[ERROR] Failed to fetch advts: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{id}", response_model=dict)
+async def get_advt_by_id(id: str, request: Request):
+    """Retrieve single advertisement by ID"""
+    try:
+        db = get_db()
+        doc = await db["advt"].find_one({"_id": ObjectId(id)})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Advertisement not found")
+        doc["_id"] = str(doc["_id"])
+        return doc
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch advt {id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{id}", response_model=dict)
@@ -155,16 +258,48 @@ async def update_advt(id: str, payload: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{id}", response_model=dict)
-async def delete_advt(id: str):
-    """Delete an advertisement record"""
+async def delete_advt(id: str, request: Request):
+    """Delete an advertisement record (admin can delete any, editor only their own)"""
     try:
         db = get_db()
-        res = await db["advt"].delete_one({"_id": ObjectId(id)})
+        current_username = None
+        current_role = None
+
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                sub = payload.get("sub")
+                if sub:
+                    current_username = sub
+                    user_doc = await db["users"].find_one({"username": sub})
+                    if user_doc:
+                        current_role = user_doc.get("role")
+            except Exception:
+                pass
+
+        if not current_role:
+            current_role = request.headers.get("x-user-role")
+        if not current_username:
+            current_username = request.headers.get("x-username")
+
+        delete_filter = {"_id": ObjectId(id)}
+        if current_role and current_role not in ["super_admin", "advt_admin"] and current_username:
+            safe_name = re.escape(current_username)
+            delete_filter["$or"] = [
+                {"username": {"$regex": f"^{safe_name}$", "$options": "i"}},
+                {"created_by": {"$regex": f"^{safe_name}$", "$options": "i"}}
+            ]
+
+        res = await db["advt"].delete_one(delete_filter)
         
         if res.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Advertisement not found")
+            raise HTTPException(status_code=404, detail="Advertisement not found or unauthorized")
             
         return {"message": "Advertisement deleted successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[ERROR] Failed to delete advt: {e}")
         raise HTTPException(status_code=500, detail=str(e))

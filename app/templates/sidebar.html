@@ -185,7 +185,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
 <aside class="sb" id="appSidebar">
 
   <!-- Brand -->
-  <a href="/generator" class="sb-brand">
+  <a href="/generator" id="sbBrandLink" class="sb-brand">
     <img src="/static/favicon.jpeg" alt="Sandesh" class="sb-brand-img">
     <div>
       <div class="sb-brand-name">Sandesh AI</div>
@@ -196,7 +196,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
   <!-- Navigation -->
   <nav class="sb-nav">
 
-    <div class="sb-section">Generate</div>
+    <div id="generateSectionHeader" class="sb-section">Generate</div>
     <a href="/generator" data-module="generator" class="sb-link {% if current_page == 'generator' %}active{% endif %}" style="display:none">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -225,7 +225,7 @@ Context var: current_page = "generator" | "categories" | "slots" #}
       <span class="sb-link-label">Advertisement</span>
     </a>
 
-    <div class="sb-section" style="margin-top:8px">Admin</div>
+    <div id="adminSectionHeader" class="sb-section" style="margin-top:8px">Admin</div>
     <a href="/admin/categories" data-module="categories" class="sb-link {% if current_page == 'categories' %}active{% endif %}" style="display:none">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2
@@ -282,6 +282,29 @@ Context var: current_page = "generator" | "categories" | "slots" #}
   </div>
 
   <script>
+    function getFirstAllowedRoute(modules, role) {
+      if (role === 'super_admin') return '/generator';
+      const moduleRoutes = {
+        'generator': '/generator',
+        'editor': '/editor',
+        'full_newspaper': '/full-newspaper',
+        'advt': '/advt',
+        'categories': '/admin/categories',
+        'advt_categories': '/admin/advt-categories/list',
+        'slots': '/admin/slots',
+        'users': '/admin/users',
+        'roles': '/admin/roles'
+      };
+      if (Array.isArray(modules)) {
+        for (const mod of modules) {
+          if (moduleRoutes[mod]) {
+            return moduleRoutes[mod];
+          }
+        }
+      }
+      return '/generator';
+    }
+
     function checkAuth() {
       const token = localStorage.getItem('access_token');
       const role = localStorage.getItem('user_role');
@@ -292,21 +315,36 @@ Context var: current_page = "generator" | "categories" | "slots" #}
         return;
       }
 
-      // If logged in and on root or login page, go to generator
-      if (token && (path === '/' || path === '/login')) {
-        window.location.href = '/generator';
-        return;
-      }
-
       // Get modules from localStorage
       let allowedModules = [];
       try {
         allowedModules = JSON.parse(localStorage.getItem('modules')) || [];
       } catch(e) {}
       
-      // If super_admin, we could also hardcode all modules, but let's trust the DB modules.
+      // If super_admin, we trust all modules
       if (role === 'super_admin' && allowedModules.length === 0) {
         allowedModules = ["generator", "editor", "full_newspaper", "advt", "categories", "advt_categories", "slots", "users", "roles"];
+      }
+
+      const defaultRoute = getFirstAllowedRoute(allowedModules, role);
+
+      // Point logo link to user's first accessible module
+      const brand = document.getElementById('sbBrandLink');
+      if (brand) brand.href = defaultRoute;
+
+      // If logged in and on root or login page, redirect to first allowed module
+      if (token && (path === '/' || path === '/login')) {
+        window.location.href = defaultRoute;
+        return;
+      }
+
+      // If user is currently on an unauthorized page, redirect to their first allowed module
+      const currentPage = "{{ current_page | default('') }}";
+      if (token && role !== 'super_admin' && currentPage && allowedModules.length > 0) {
+        if (!allowedModules.includes(currentPage)) {
+          window.location.href = defaultRoute;
+          return;
+        }
       }
       
       // Show/Hide Links based on allowed modules
@@ -318,6 +356,21 @@ Context var: current_page = "generator" | "categories" | "slots" #}
             link.style.display = 'none';
         }
       });
+
+      // Show/Hide Section Headers based on whether any child module is allowed
+      const adminModules = ['categories', 'advt_categories', 'slots', 'users', 'roles'];
+      const hasAdminModule = adminModules.some(m => allowedModules.includes(m));
+      const adminHeader = document.getElementById('adminSectionHeader');
+      if (adminHeader) {
+        adminHeader.style.display = hasAdminModule ? 'block' : 'none';
+      }
+
+      const generateModules = ['generator', 'editor', 'full_newspaper', 'advt'];
+      const hasGenerateModule = generateModules.some(m => allowedModules.includes(m));
+      const generateHeader = document.getElementById('generateSectionHeader');
+      if (generateHeader) {
+        generateHeader.style.display = hasGenerateModule ? 'block' : 'none';
+      }
 
       // Update brand sub with username if available
       const username = localStorage.getItem('username');

@@ -966,10 +966,24 @@
         // Initialize Page Data
         async function loadAdData() {
             try {
-                const response = await fetch(`/api/advt`);
-                if (!response.ok) throw new Error("Failed to fetch ads list");
-                const advts = await response.json();
-                advtData = advts.find(a => a._id === CURRENT_ADVT_ID);
+                const token = localStorage.getItem('access_token');
+                const username = localStorage.getItem('username') || '';
+                const role = localStorage.getItem('user_role') || '';
+
+                const headers = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                if (role) headers['X-User-Role'] = role;
+                if (username) headers['X-Username'] = username;
+
+                let response = await fetch(`/api/advt/${CURRENT_ADVT_ID}`, { headers });
+                if (response.ok) {
+                    advtData = await response.json();
+                } else {
+                    const listRes = await fetch(`/api/advt/?username=${encodeURIComponent(username)}&role=${encodeURIComponent(role)}`, { headers });
+                    if (!listRes.ok) throw new Error("Failed to fetch ads list");
+                    const advts = await listRes.json();
+                    advtData = advts.find(a => a._id === CURRENT_ADVT_ID);
+                }
 
                 if (!advtData) {
                     alert("Ad not found!");
@@ -1609,14 +1623,14 @@
 
                                 let paragraphs = convertedAdv.split(/(?:\r?\n)/);
                                 let rawParagraphs = rawAdvText.split(/(?:\r?\n)/);
-                                
+
                                 let styleIndex = 0;
                                 let currentAutoSection = 'unknown'; // Tracks if we hit the address part
 
                                 paragraphs.forEach((pText, pIdx) => {
                                     if (!pText.trim()) return;
                                     let rawText = (rawParagraphs[pIdx] || '').trim();
-                                    
+
                                     let p = document.createElement('p');
                                     p.setAttribute('data-block-index', realIndex);
                                     p.style.fontSize = baseFontSize + 'px';
@@ -1653,10 +1667,10 @@
                                     }
 
                                     let lStyles = parsedData.line_styles && parsedData.line_styles[realIndex] ? parsedData.line_styles[realIndex][styleIndex] : null;
-                                    
+
                                     // Default to block-level alignment if provided, otherwise autoAlign
                                     let bAlign = b.text_align || autoAlign;
-                                    
+
                                     if (lStyles) {
                                         if (lStyles.size) {
                                             p.style.fontSize = (parseFloat(lStyles.size) * PT_TO_PX) + 'px';
@@ -1679,7 +1693,7 @@
                                         p.style.fontFamily = advBaseFont;
                                         p.dataset.lineBold = '0';
                                     }
-                                    
+
                                     // Apply Alignment (Explicit or Auto)
                                     if (bAlign === 'force-justify') {
                                         p.style.textAlign = 'justify';
@@ -1750,7 +1764,7 @@
                             const paragraphs = colsContainer.querySelectorAll('p[data-block-index]');
                             paragraphs.forEach(p => {
                                 const idx = p.getAttribute('data-block-index');
-                                
+
                                 // Save per-line styles
                                 window.lineStyles[idx] = window.lineStyles[idx] || [];
                                 window.lineStyles[idx].push({
@@ -1765,7 +1779,7 @@
                             try {
                                 let parsedData = JSON.parse(advtData.translated_text || '[]');
                                 let currentBlocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
-                                
+
                                 let newJson = {
                                     gujarati_text: currentBlocks,
                                     layout_offset: window.currentLayoutOffset || 0,
@@ -1935,9 +1949,13 @@
         async function saveEditorChanges() {
             const newJsonStr = document.getElementById('editTranslationText').value;
             try {
+                const token = localStorage.getItem('access_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
                 const res = await fetch(`/api/advt/${CURRENT_ADVT_ID}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify({ translated_text: newJsonStr })
                 });
                 if (!res.ok) throw new Error("Failed to save changes");
@@ -2329,7 +2347,7 @@
                 return _lastActiveLine ? [_lastActiveLine] : [];
             }
             const range = sel.getRangeAt(0);
-            
+
             if (range.collapsed) {
                 let n = range.commonAncestorContainer;
                 if (n.nodeType === 3) n = n.parentNode;
@@ -2343,7 +2361,7 @@
 
             let container = range.commonAncestorContainer;
             if (container.nodeType === 3) container = container.parentNode;
-            
+
             if (container.matches && container.matches('p, .ad-heading-box')) {
                 _lastActiveLine = container;
                 return [container];
@@ -2351,14 +2369,14 @@
 
             const allBlocks = container.querySelectorAll ? container.querySelectorAll('p, .ad-heading-box') : [];
             const selectedBlocks = [];
-            
+
             for (let i = 0; i < allBlocks.length; i++) {
                 const block = allBlocks[i];
                 if (sel.containsNode(block, true)) {
                     selectedBlocks.push(block);
                 }
             }
-            
+
             if (selectedBlocks.length > 0) {
                 _lastActiveLine = selectedBlocks[selectedBlocks.length - 1];
                 return selectedBlocks;
@@ -2377,25 +2395,25 @@
         function syncCanvasToJson() {
             const cols = document.querySelector('.ad-columns-container');
             if (!cols) return;
-            
+
             let newLineStyles = {};
             let newTexts = {};
             let paragraphs = cols.querySelectorAll('p.ad-paragraph, div.ad-heading-box');
-            
+
             // Build formatting objects by reading dataset properties and text
             paragraphs.forEach(p => {
                 let bIdx = p.getAttribute('data-block-index');
                 if (bIdx !== null) {
                     if (!newLineStyles[bIdx]) newLineStyles[bIdx] = [];
                     if (!newTexts[bIdx]) newTexts[bIdx] = [];
-                    
+
                     let styleObj = {};
                     if (p.dataset.lineAlign) styleObj.align = p.dataset.lineAlign;
                     if (p.dataset.lineBold === '1') styleObj.bold = true;
                     if (p.dataset.lineSize) styleObj.size = p.dataset.lineSize;
-                    
+
                     newLineStyles[bIdx].push(styleObj);
-                    
+
                     // Extract text (remove Zero Width No-Break Space \u2060 / &#8288;)
                     let text = p.innerText.replace(/\u2060/g, '').trim();
                     newTexts[bIdx].push(text);
@@ -2420,18 +2438,18 @@
                 try {
                     let parsedData = JSON.parse(advtData.translated_text);
                     let blocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
-                    
+
                     for (let bIdx in newTexts) {
                         if (blocks[bIdx]) {
                             blocks[bIdx].text = newTexts[bIdx].join('\n');
                         }
                     }
-                    
+
                     parsedData.line_styles = window.lineStyles;
                     const newJsonStr = JSON.stringify(parsedData);
                     document.getElementById('editTranslationText').value = newJsonStr;
                     advtData.translated_text = newJsonStr;
-                } catch(e) {}
+                } catch (e) { }
             }
         }
 

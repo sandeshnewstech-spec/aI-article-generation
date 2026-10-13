@@ -395,7 +395,29 @@
                     localStorage.setItem('user_role', data.role);
                     localStorage.setItem('username', document.getElementById('username').value);
                     localStorage.setItem('modules', JSON.stringify(data.modules || []));
-                    window.location.href = '/generator';
+
+                    // Redirect user to their first accessible module
+                    const moduleRoutes = {
+                        'generator': '/generator',
+                        'editor': '/editor',
+                        'full_newspaper': '/full-newspaper',
+                        'advt': '/advt',
+                        'categories': '/admin/categories',
+                        'advt_categories': '/admin/advt-categories/list',
+                        'slots': '/admin/slots',
+                        'users': '/admin/users',
+                        'roles': '/admin/roles'
+                    };
+                    let targetUrl = '/generator';
+                    if (data.role !== 'super_admin' && Array.isArray(data.modules) && data.modules.length > 0) {
+                        for (const m of data.modules) {
+                            if (moduleRoutes[m]) {
+                                targetUrl = moduleRoutes[m];
+                                break;
+                            }
+                        }
+                    }
+                    window.location.href = targetUrl;
                 } else {
                     error.classList.remove('hidden');
                 }

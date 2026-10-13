@@ -17,6 +17,7 @@ class AdvtModel(BaseModel):
     status: str = Field(default="Processing") # Processing, Completed, Error
     created_at: datetime = Field(default_factory=datetime.utcnow)
     username: Optional[str] = None
+    created_by: Optional[str] = None
 
 class AdvtCategoryModel(BaseModel):
     """Structured advertisement category and description"""
