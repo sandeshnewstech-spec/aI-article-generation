@@ -17,7 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
-    <script src="/static/js/unicode_to_gopika.js"></script>
+    <script src="/static/js/unicode_to_gopika.js?v=20261014_99"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -1538,13 +1538,14 @@
                             if (textYInput && textYInput.value !== '') blocks[idx].text_offset_y = parseFloat(textYInput.value);
                         });
                         let newJson = blocks;
-                        if (isWrapped || window.currentLayoutOffset !== 0 || window.customBorderHeight || window.customAdWidth) {
+                        if (isWrapped || window.currentLayoutOffset !== 0 || window.customBorderHeight || window.customAdWidth || parsedData.line_styles) {
                             newJson = {
+                                ...parsedData,
                                 gujarati_text: blocks,
-                                layout_offset: window.currentLayoutOffset || 0,
-                                border_height: window.customBorderHeight || null,
-                                ad_width: window.customAdWidth || null,
-                                column_count: window.customColumnCount || 2
+                                layout_offset: window.currentLayoutOffset || parsedData.layout_offset || 0,
+                                border_height: window.customBorderHeight || parsedData.border_height || null,
+                                ad_width: window.customAdWidth || parsedData.ad_width || null,
+                                column_count: window.customColumnCount || parsedData.column_count || 2
                             };
                         }
                         newJsonStr = JSON.stringify(newJson);
@@ -1562,10 +1563,19 @@
                 advts[advtIndex].translated_text = newJsonStr;
 
                 // Auto-save to database instantly
+                const saveToken = localStorage.getItem('access_token');
+                const saveHeaders = { 'Content-Type': 'application/json' };
+                if (saveToken) saveHeaders['Authorization'] = `Bearer ${saveToken}`;
+                saveHeaders['X-Username'] = localStorage.getItem('username') || '';
+                saveHeaders['X-User-Role'] = localStorage.getItem('user_role') || '';
                 fetch(`/api/advt/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ translated_text: newJsonStr })
+                    headers: saveHeaders,
+                    body: JSON.stringify({
+                        translated_text: newJsonStr,
+                        width: window.customAdWidth || null,
+                        height: window.customAdHeight || null
+                    })
                 }).catch(e => console.error("Auto-save failed", e));
 
                 // Preserve scroll position of the modal
@@ -1640,13 +1650,14 @@
                         if (textYInput && textYInput.value !== '') blocks[idx].text_offset_y = parseFloat(textYInput.value);
                     });
                     let newJson = blocks;
-                    if (isWrapped || window.currentLayoutOffset !== 0 || window.customBorderHeight || window.customAdWidth) {
+                    if (isWrapped || window.currentLayoutOffset !== 0 || window.customBorderHeight || window.customAdWidth || parsedData.line_styles) {
                         newJson = {
+                            ...parsedData,
                             gujarati_text: blocks,
-                            layout_offset: window.currentLayoutOffset || 0,
-                            border_height: window.customBorderHeight || null,
-                            ad_width: window.customAdWidth || null,
-                            column_count: window.customColumnCount || 2
+                            layout_offset: window.currentLayoutOffset || parsedData.layout_offset || 0,
+                            border_height: window.customBorderHeight || parsedData.border_height || null,
+                            ad_width: window.customAdWidth || parsedData.ad_width || null,
+                            column_count: window.customColumnCount || parsedData.column_count || 2
                         };
                     }
                     textToSave = JSON.stringify(newJson);
@@ -1660,10 +1671,20 @@
             }
 
             try {
+                const saveToken = localStorage.getItem('access_token');
+                const saveHeaders = { 'Content-Type': 'application/json' };
+                if (saveToken) saveHeaders['Authorization'] = `Bearer ${saveToken}`;
+                saveHeaders['X-Username'] = localStorage.getItem('username') || '';
+                saveHeaders['X-User-Role'] = localStorage.getItem('user_role') || '';
+
                 const response = await fetch(`/api/advt/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ translated_text: textToSave })
+                    headers: saveHeaders,
+                    body: JSON.stringify({
+                        translated_text: textToSave,
+                        width: window.customAdWidth || null,
+                        height: window.customAdHeight || null
+                    })
                 });
 
                 if (response.ok) {

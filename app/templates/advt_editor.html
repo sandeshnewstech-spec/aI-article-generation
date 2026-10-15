@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
-    <script src="/static/js/unicode_to_gopika.js"></script>
+    <script src="/static/js/unicode_to_gopika.js?v=20261015_01"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -81,6 +81,20 @@
             font-feature-settings: normal;
         }
 
+        .english-text {
+            font-family: Arial, Helvetica, sans-serif !important;
+            display: inline;
+            white-space: nowrap;
+            letter-spacing: normal !important;
+            word-spacing: normal !important;
+            font-weight: inherit;
+        }
+
+        .block-editor-input {
+            font-family: 'Inter', 'Noto Sans Gujarati', 'Nirmala UI', 'Shruti', system-ui, -apple-system, sans-serif !important;
+            letter-spacing: normal !important;
+        }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -131,8 +145,8 @@
             text-indent: 1.5em;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: break-word;
-            overflow-wrap: break-word;
+            word-break: normal;
+            overflow-wrap: normal;
             margin-bottom: 0;
             line-height: 1.15;
             margin-top: 0;
@@ -146,8 +160,8 @@
             break-inside: avoid;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: break-word;
-            overflow-wrap: break-word;
+            word-break: normal;
+            overflow-wrap: normal;
             margin-bottom: 0;
         }
 
@@ -157,22 +171,67 @@
             break-inside: avoid;
             hyphens: none;
             -webkit-hyphens: none;
-            word-break: break-word;
-            overflow-wrap: break-word;
+            word-break: normal;
+            overflow-wrap: normal;
             margin-bottom: 0;
+            line-height: 0.90;
         }
 
         .advocate-block p {
             margin: 0;
-            text-align: right;
-            text-align-last: right;
-            word-break: break-word;
-            overflow-wrap: break-word;
+            line-height: inherit;
+            word-break: normal;
+            overflow-wrap: normal;
+        }
+
+        .ad-word {
+            display: inline;
+            white-space: nowrap;
         }
 
         /* Prevent any span inside paragraphs from breaking mid-word */
         .ad-heading-box span {
             display: inline;
+        }
+
+        /* Interactive Border Drag & Fix Handle */
+        .border-resize-handle {
+            position: absolute;
+            bottom: -13px;
+            left: 0;
+            width: 100%;
+            height: 24px;
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .resize-handle-pill {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgba(0, 0, 0, 0.15);
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            opacity: 0.85;
+            transition: opacity 0.15s, transform 0.15s, background-color 0.15s;
+            pointer-events: none;
+        }
+
+        .border-resize-handle:hover .resize-handle-pill,
+        .border-resize-handle.is-dragging .resize-handle-pill {
+            opacity: 1;
+            transform: scale(1.08);
+            background-color: #0284c7;
         }
     </style>
 </head>
@@ -358,13 +417,31 @@
                         <div class="flex items-center justify-between pt-0.5">
                             <span class="text-slate-600">Total Ad Height (cm):</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="adjustAdHeight(-0.5)"
-                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <button type="button" onclick="adjustAdHeight(-0.2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center"
+                                    title="Decrease height by 0.2 cm">-</button>
                                 <input type="number" id="adHeightInput" step="0.1" min="4.0" max="50.0"
                                     onchange="setAdHeight(this.value)"
                                     class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
+                                <button type="button" onclick="adjustAdHeight(0.2)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center"
+                                    title="Increase height by 0.2 cm">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Manual Border Adjust -->
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                            <span>Adjust Border:</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustAdHeight(-0.5)"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700"
+                                    title="Shrink border by 0.5 cm">-0.5 cm</button>
                                 <button type="button" onclick="adjustAdHeight(0.5)"
-                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700"
+                                    title="Expand border by 0.5 cm">+0.5 cm</button>
+                                <button type="button" onclick="adjustAdHeight(1.0)"
+                                    class="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700"
+                                    title="Expand border by 1.0 cm">+1.0 cm</button>
                             </div>
                         </div>
 
@@ -508,14 +585,29 @@
 
                         <!-- Line Height / Line Spacing Control -->
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-600 text-xs">Line Height (Spacing):</span>
+                            <span class="text-slate-600 text-xs">Body Line Height:</span>
                             <div class="flex items-center gap-1">
                                 <button type="button" onclick="adjustLineHeight(-0.05)"
                                     class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
-                                <input type="number" id="lineHeightInput" step="0.05" min="0.80" max="3.00" value="1.15"
+                                <input type="number" id="lineHeightInput" step="0.05" min="0.80" max="3.00" value="1.02"
                                     onchange="setLineHeight(this.value)"
                                     class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
                                 <button type="button" onclick="adjustLineHeight(0.05)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Advocate Line Height Control (Dusre wale ka line height - thoda kam) -->
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+                            <span class="text-slate-600 text-xs" title="Advocate / 2nd Part Line Height">Advocate Line H:</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="adjustAdvLineHeight(-0.05)"
+                                    class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="advLineHeightInput" step="0.05" min="0.70" max="2.00" value="0.90"
+                                    onchange="setAdvLineHeight(this.value)"
+                                    class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500"
+                                    title="Tighter line-height for Advocate / address section">
+                                <button type="button" onclick="adjustAdvLineHeight(0.05)"
                                     class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
                             </div>
                         </div>
@@ -835,94 +927,94 @@
             return out;
         }
 
-        // Helper to convert text to Gopika while preserving English characters
-        // Splits by Unicode word boundaries FIRST, converts each word to Gopika,
-        // then wraps each converted word in a nowrap span so the browser never breaks mid-word.
-        function convertWithEnglishPreserved(text, forceBhashaBharati = false) {
-            if (typeof unicodeToGopika !== 'function') return text;
+        // Helper to convert Gujarati Unicode to Gopika ASCII while 100% preserving English words and numbers
+        function convertWithEnglishPreserved(text) {
             if (!text) return '';
 
-            if (forceBhashaBharati || window.bhashaBharatiMode) {
-                // In Bhasha Bharati mode, English characters represent Gujarati glyphs.
-                // However, users often type ALL CAPS English words (like GARDEN CITY) expecting them to show in English.
-                // Pure ALL CAPS words (length > 1) are extremely rare in valid Gopika ASCII, so we can safely wrap them in Arial.
-                let tokens = text.split(/(\s+)/);
-                let result = '';
+            function escapeHtml(str) {
+                return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            // If the text has NO Gujarati Unicode characters ([\u0A80-\u0AFF]),
+            // it is ALREADY in Gopika ASCII format (e.g. "ònuh ™kurx," or "ykÚke ònuh").
+            const hasUnicodeGujarati = /[\u0A80-\u0AFF]/.test(text);
+            if (!hasUnicodeGujarati) {
+                let lines = text.split(/(?:\r?\n)/);
+                let processedLines = lines.map(line => {
+                    if (!line) return '';
+                    let tokens = line.split(/(\s+)/);
+                    let lineHtml = '';
+                    for (let token of tokens) {
+                        if (!token) continue;
+                        if (/^\s+$/.test(token)) {
+                            lineHtml += token;
+                        } else {
+                            lineHtml += `<span class="ad-word" style="white-space: nowrap;">${escapeHtml(token)}</span>`;
+                        }
+                    }
+                    return lineHtml;
+                });
+                return processedLines.join('\n');
+            }
+
+            if (typeof unicodeToGopika !== 'function') return text;
+
+            // Process text line-by-line so explicit linebreaks are preserved
+            let lines = text.split(/(?:\r?\n)/);
+            let processedLines = lines.map(line => {
+                if (!line) return '';
+
+                // Split line into tokens by whitespace while keeping whitespace tokens
+                let tokens = line.split(/(\s+)/);
+                let lineHtml = '';
+
                 for (let i = 0; i < tokens.length; i++) {
                     let token = tokens[i];
-                    if (/^\s+$/.test(token) || !token) {
-                        result += token;
+                    if (!token) continue;
+
+                    // Pass whitespace straight through
+                    if (/^\s+$/.test(token)) {
+                        lineHtml += token;
                         continue;
                     }
 
-                    // Match purely UPPERCASE English words (plus numbers/punctuation) and must contain at least one letter
-                    if (/^[A-Z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=\'\"\[\]\{\}\“\”\‘\’]+$/.test(token) && /[A-Z]/.test(token)) {
-                        let engFontSize = 9 * PT_TO_PX;
-                        let safeToken = token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-');
-                        result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${safeToken}</span>`;
+                    const hasGujarati = /[\u0A80-\u0AFF]/.test(token);
+                    const hasEnglishLetters = /[A-Za-z]/.test(token);
+
+                    if (!hasGujarati) {
+                        // In Gujarati Unicode text, words with English letters (like "Waive", "MCA", "LL.M.")
+                        // must be in Arial so they don't turn into random Gujarati font characters
+                        if (hasEnglishLetters) {
+                            let escaped = escapeHtml(token);
+                            lineHtml += `<span class="english-text ad-word" style="font-family: Arial, Helvetica, sans-serif; font-size: inherit; white-space: nowrap;">${escaped}</span>`;
+                        } else {
+                            lineHtml += `<span class="ad-word" style="white-space: nowrap;">${escapeHtml(token)}</span>`;
+                        }
+                    } else if (!hasEnglishLetters) {
+                        // Purely Gujarati Unicode (no English letters)
+                        let converted = unicodeToGopika(token);
+                        lineHtml += `<span class="ad-word" style="white-space: nowrap;">${converted}</span>`;
                     } else {
-                        // Standard Bhasha Bharati token - wrap in nowrap
-                        result += `<span>${token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',')}</span>`;
+                        // MIXED token containing both Gujarati and English (e.g. "(એડવોકેટ/Advocate)", "Block-એ", "નં.12A")
+                        let parts = token.split(/([A-Za-z0-9\.\,\-\/\@\:\#\$\%\&\*\+\=\'\"\[\]\(\)]*[A-Za-z][A-Za-z0-9\.\,\-\/\@\:\#\$\%\&\*\+\=\'\"\[\]\(\)]*)/g);
+                        let tokenHtml = '';
+                        for (let p of parts) {
+                            if (!p) continue;
+                            if (/[A-Za-z]/.test(p) && !/[\u0A80-\u0AFF]/.test(p)) {
+                                let escapedP = escapeHtml(p);
+                                tokenHtml += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: inherit; white-space: nowrap;">${escapedP}</span>`;
+                            } else {
+                                let convP = unicodeToGopika(p);
+                                tokenHtml += `<span>${convP}</span>`;
+                            }
+                        }
+                        lineHtml += `<span class="ad-word" style="white-space: nowrap;">${tokenHtml}</span>`;
                     }
                 }
-                return result;
-            }
+                return lineHtml;
+            });
 
-            // Split by spaces but keep the spaces as separate tokens
-            let tokens = text.split(/(\s+)/);
-            let result = '';
-
-            for (let i = 0; i < tokens.length; i++) {
-                let token = tokens[i];
-
-                // If it's whitespace, pass through as-is
-                if (/^\s+$/.test(token)) {
-                    result += token;
-                    continue;
-                }
-
-                // If it's empty, skip
-                if (!token) continue;
-
-                if (window.bhashaBharatiMode) {
-                    result += `<span>${token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',')}</span>`;
-                    continue;
-                }
-
-                // Check if this token is purely English (letters, digits, common punctuation and quotes)
-                if (/^[A-Za-z0-9\.\,\-\/\(\)\:\;\!\?\@\#\$\%\&\*\+\=\'\"\[\]\{\}\“\”\‘\’]+$/.test(token)) {
-                    // English word — wrap in Arial span, no Gopika conversion
-                    let engFontSize = 9 * PT_TO_PX;
-                    let safeToken = token.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-');
-                    result += `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${safeToken}</span>`;
-                } else {
-                    // Could be Gujarati, or mixed Gujarati+punctuation
-                    // Extract English sub-tokens, convert rest through Gopika
-                    let englishMatches = [];
-                    let placeholderText = token.replace(/[A-Za-z0-9]+/g, function (match) {
-                        englishMatches.push(match);
-                        return String.fromCharCode(0xE000 + englishMatches.length - 1);
-                    });
-
-                    let converted = unicodeToGopika(placeholderText);
-
-                    // Fix: Wrap the entire Gopika word (and placeholders) hyphens/slashes in Word Joiner (&#8288;)
-                    // Do this BEFORE inserting the HTML spans, to prevent breaking 'sans-serif' or '</span>'.
-                    converted = converted.split('').join('&#8288;').replace(/&#8288;\/&#8288;/g, '/').replace(/&#8288;-&#8288;/g, '-').replace(/&#8288;,&#8288;/g, ',');
-
-                    // Put the English text back
-                    let engFontSize = 9 * PT_TO_PX;
-                    for (let j = 0; j < englishMatches.length; j++) {
-                        let placeholder = String.fromCharCode(0xE000 + j);
-                        let engSpan = `<span class="english-text" style="font-family: Arial, Helvetica, sans-serif; font-size: ${engFontSize}px;">${englishMatches[j]}</span>`;
-                        converted = converted.replace(placeholder, engSpan);
-                    }
-
-                    result += `<span>${converted}</span>`;
-                }
-            }
-
-            return result;
+            return processedLines.join('\n');
         }
 
         // Font & Character Parser (BMA for Heading, BGOT for Paragraph, BGOTB for Bold)
@@ -961,6 +1053,125 @@
                 }
             }
             return { cleanText, styles, finalIsBold: isBold };
+        }
+
+        // Convert legacy Gopika ASCII text (e.g. "ònuh ™kurx," or "ykÚke ònuh") to clean Gujarati Unicode
+        function gopikaToUnicode(text) {
+            if (!text) return "";
+
+            // Check if text has any characters characteristic of Gopika ASCII
+            const hasGopikaChars = /[ònuhykÚkes™íkkýðç¾½þË¤«¿»\u00f2\u2122\u00fd\u00f0\u00da\u00ed\u00e7\u00be\u201e\u00bd\u00fe\u00cb\u00a4\u00ab\u00bf\u00bb\u0152\u0192\u201a\u2026\u00c0-\u00ff]/.test(text)
+                || /\b(onuh|ykUke|sntkk|sykk|Au|fu)\b/.test(text)
+                || /(?:ònuh|kurx|ðuo|kuf|s™|ykÚke|sýkð|zeMxÙ|Xkfkuh|{nuMkk)/.test(text);
+            if (!hasGopikaChars) {
+                return text;
+            }
+
+            // Step 1: Invert BGOT / BMA mapping adjustment (t <-> k, \u0152 <-> \u201a, \xcb <-> \u0152, \u201a <-> \xcb)
+            let str = '';
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                const prev = i > 0 ? text[i - 1] : '';
+                const next = i < text.length - 1 ? text[i + 1] : '';
+
+                if (ch === '\u0152') str += '\u201a';
+                else if (ch === '\xcb') str += '\u0152';
+                else if (ch === '\u201a') str += '\xcb';
+                else if (ch === 't') str += 'k';
+                else if (ch === 'k') str += 't';
+                else if (ch === '"' || ch === '\u201c' || ch === '\u201d') {
+                    if (next === 'k' || next === 't' || next === 'u' || next === 'e' || /[a-zA-Z\u00c0-\u00ff]/.test(next)) {
+                        str += '\u2122';
+                    } else {
+                        str += ch;
+                    }
+                }
+                else if (ch === ',') {
+                    if (/[a-zA-Z\u00c0-\u00ff™\u2122]/.test(next) || /[a-zA-Z\u00c0-\u00ff™\u2122]/.test(prev)) {
+                        str += '\xcb';
+                    } else {
+                        str += ch;
+                    }
+                }
+                else if (ch === '+') {
+                    str += 'T';
+                }
+                else str += ch;
+            }
+
+            // Step 2: Replace Gopika tokens with Unicode equivalents.
+            const sortedPairs = [
+                ["\"kurx,", "નોટિસ"], ["™kurx,", "નોટિસ"], ["\"kurx", "નોટિસ"], ["™kurx", "નોટિસ"], ["ònuh", "જાહેર"],
+                ["[kuh {kuh", "ચોરસમીટર"], ["[kuh{kuh", "ચોરસમીટર"], ["[kuh {exh", "ચોરસમીટર"],
+                ["\"tfh-", "નંબર-"], ["™tfh-", "નંબર-"], ["\"tfh", "નંબર"], ["™tfh", "નંબર"],
+                ["(he-,ðuo", "(રી-સર્વે"], [",ðuo/ç+kuf", "સર્વે/બ્લોક"], [",ðuo", "સર્વે"], ["ç+kuf", "બ્લોક"],
+                [",k{\"e", "ગામની"], [",k{™e", "ગામની"], ["økk{™e", "ગામની"], [",e{\"k", "સીમના"], [",e{™k", "સીમના"],
+                ["yøkkW™ku", "અગાઉનો"], ["sw™ku", "જુનો"], ["cfu\"", "ભીખાજી"], ["cfu™", "ભીખાજી"], ["Xkfkuh", "ઠાકોર"],
+                ["ceuhSyu", "બેચરજીએ"], ["ceuhsyu", "બેચરજીએ"], ["ifo", "પૈકી"], ["s{E", "જે"],
+                ["M\u00batT", "સ્ત્ર્"], ["M\u00bat", "સ્ત્ર"], ["\u00fbtT", "ક્ષ્"], ["\u00batT", "ત્ર્"], ["\u00bftT", "જ્ઞ્"],
+                ["\u00b2tT", "સ્ર્"], ["\u00b2t", "સ્ર"], ["\u00a9T\u00f0", "શ્ર્વ"], ["nT\u00fd", "હ્ણ"], ["\u00cctT", "હ્ય્"],
+                ["\u00d2tT", "ન્ન્"], ["\u00a5tT", "ત્ત્"], ["M\u2122T", "સ્ન્"], ["x\u203a", "ટ્રુ"], ["x\u2030", "ટ્રૂ"],
+                ["x\u00d9", "ટ્ર"], ["z\u203a", "ડ્રુ"], ["z\u2030", "ડ્રૂ"], ["z\u00d9", "ડ્ર"], ["@w", "જ્રુ"],
+                ["@q", "જ્રૂ"], ["@t", "જ્રા"], ["\u00eck", "ઍં"], ["t\u00ec", "ઑ"], ["y\u00ec", "ઍ"], ["yt\u00ec", "ઑ"],
+                ["\u00f5\u2122", "ક્ન"], ["\u00cct", "હ્ય"], ["\u00d2t", "ન્ન"], ["\u00a5t", "ત્ત"], ["M\u2122", "સ્ન"],
+                ["\u00cd|", "ઝ"], ["\u00cdT", "ઝ્"], ["\u00c5t", "ઞ"], ["\u00dat", "થ"], ["\u00bbt", "ષ"],
+                ["nT", "હ્"], ["\u00fdw", "ણુ"], ["\u00fdq", "ણૂ"], ["Vw", "ફુ"], ["Vq", "ફૂ"], ["V|", "ફ"],
+                ["\u00fbt", "ક્ષ"], ["\u00bat", "ત્ર"], ["\u00bft", "જ્ઞ"], ["ytu", "ઓ"], ["yti", "ઔ"],
+                ["yu", "એ"], ["yi", "ઐ"], ["yt", "આ"], ["tu", "ો"], ["ti", "ૌ"], ["\u00aa", "ીં"],
+                ["\u0ad0", "H"], ["#", "ઈં"], ["$", "ઇં"], ["\u00f4", "ઉં"], ["\u0178", "ઊં"],
+                ["\u00c9", "ઋ"], ["C", "ઝ્ર"], ["\u00dd", "ઍ"], ["@", "જ્ર"], ["\u00ab", "પ્ર"],
+                ["\u00ff", "દ્ર"], ["\u00a9", "શ્ર"], ["\u00a2", "ક્ર"], ["\u00a3", "ફ્ર"], ["\u00b4", "હ્ર"],
+                ["\u00fa", "્ર"], ["\u00e8", "ટ્ટ"], ["a", "ટ્ઠ"], ["\u0153", "ડ્ડ"], ["J", "ત્ન"],
+                ["\u00e1", "દૃ"], ["\u00eb", "દ્ધ"], ["\u0090", "\u0090"], ["D", "ડ્ઢ"], ["\u00f6", "હ્ન"],
+                ["\u00a7", "શ્ન"], ["\u00d1", "ઙ્ક"], ["\u00d6", "ઙ્ખ"], ["\u00dc", "ઙ્ગ"], ["d", "ઙ્ઘ"],
+                ["\u00f1", "હ્મ"], ["b", "હ્વ"], ["j", "દ્ઘ"], ["m", "દ્બ"], ["K", "દ્ભ"],
+                ["\u00c8", "દ્મ"], ["\u00ee", "દ્વ"], ["\u00ea", "ઠ્ઠ"], ["N", "દ્ગ"], ["\u00d8", "દ્ધ"],
+                ["\u00f3", "પ્ત"], ["\u00a1", "પ્ન"], ["S", "જી"], ["\u00f2", "જા"], ["\u00fc", "ષ્ટ"],
+                ["c", "ષ્ઠ"], ["\u00f9", "શ્ચ"], ["\u00ef", "શ્વ"], ["\u00c6", "દ્દ"], ["\u00d3", "હૃ"],
+                ["\u00ac", "ક્ક"], ["\u00e3", "દ્ય"], ["\u00f5", "ક્"], ["\u00cf", "ખ્"], ["\u00f8", "ગ્"],
+                ["\u00ce", "ઘ્"], ["\u00e5", "ચ્"], ["\u00df", "જ્"], ["\u00c5", "ઞ્"], ["\u00db", "ણ્"],
+                ["\u00ed", "ત્"], ["\u00da", "થ્"], ["\u00e6", "ધ્"], ["L", "ન્"], ["\u00c3", "પ્"],
+                ["^", "ફ્"], ["\u00e7", "બ્"], ["\u00c7", "ભ્"], ["B", "મ્"], ["G", "ય્"],
+                ["\u00d5", "લ્"], ["\u00d4", "વ્"], ["~", "શ્"], ["M", "સ્"], ["\u00bb", "ષ્"],
+                ["\u00e9", "ળ્"], ["\u00c1", "રુ"], ["Y", "રૂ"],
+                ["y", "અ"], ["R", "ઇ"], ["E", "ઈ"], ["W", "ઉ"], ["Q", "ઊ"],
+                ["f", "ક"], ["\u00be", "ખ"], ["\u201e", "ગ"], ["\u00bd", "ઘ"], ["\u00ca", "ઙ"],
+                ["[", "ચ"], ["A", "છ"], ["s", "જ"], ["\u00cd", "ઝ"], ["x", "ટ"],
+                ["X", "ઠ"], ["z", "ડ"], ["Z", "ઢ"], ["\u00fd", "ણ"], ["\u201a", "ત"],
+                ["\u0152", "દ"], ["\u00c4", "ધ"], ["\u2122", "ન"], ["\u2026", "પ"], ["V", "ફ"],
+                ["\u0192", "બ"], ["\u00bc", "ભ"], ["{", "મ"], ["\u00de", "ય"], ["h", "ર"],
+                ["\u00f7", "લ"], ["\u00f0", "વ"], ["\u00fe", "શ"], ["\u00cb", "સ"], ["n", "હ"],
+                ["\u00a4", "ળ"], ["t", "ા"], ["\u00ec", "ઍ"], ["e", "ી"], ["w", "ુ"],
+                ["q", "ૂ"], ["]", "ૃ"], ["u", "ે"], ["i", "ૈ"], ["P", "ઁ"],
+                ["k", "ં"], [":", "ઃ"], ["\u00e0", "ઽ"], ["T", "્"], [">", "।"],
+                ["|", "઼"]
+            ];
+
+            for (let i = 0; i < sortedPairs.length; i++) {
+                const g = sortedPairs[i][0];
+                const u = sortedPairs[i][1];
+                if (str.includes(g)) {
+                    str = str.split(g).join(u);
+                }
+            }
+
+            // Step 3: Handle conjuncts, Reph, and i-matra
+            const C = '[\u0a95-\u0ab9\u0ab3]';
+            const M = '[\\u0abe\\u0ac0\\u0ac1\\u0ac2\\u0ac3\\u0ac7\\u0ac8\\u0acb\\u0acc\\u0a82\\u0a81\\u0abc]*';
+
+            str = str.replace(/([\u0a95\u0a9b\u0a9f\u0aa2\u0aab])\xe2/g, '$1\u0acd\u0aaf');
+            str = str.replace(new RegExp('(' + C + '(?:\\u0acd' + C + ')*' + M + ')o', 'g'), '\u0ab0\u0acd$1');
+            str = str.replace(new RegExp('(' + C + '(?:\\u0acd' + C + ')*)`', 'g'), '\u0ab0\u0acd$1\u0ac0\u0a82');
+            str = str.replace(/`/g, '\u0ac0\u0a82\u0ab0\u0acd');
+            str = str.replace(new RegExp('r((' + C + '\\u0acd)*' + C + ')', 'g'), '$1\u0abf');
+            str = str.replace(new RegExp('\\xae((' + C + '\\u0acd)*' + C + ')', 'g'), '$1\u0abf\u0a82');
+            str = str.replace(/\u0160/g, '\u0ab0\u0abf');
+
+            str = str.replace(/\u0abe\u0abe+/g, '\u0abe');
+            str = str.replace(/\u0ac0\u0ac0+/g, '\u0ac0');
+            str = str.replace(/\u0ac7\u0ac7+/g, '\u0ac8');
+
+            return str;
         }
 
         // Initialize Page Data
@@ -1005,12 +1216,37 @@
                 try { parsedData = JSON.parse(advtData.translated_text); } catch (e) { }
 
                 if (parsedData) {
+                    // Convert any legacy Gopika ASCII text in blocks to clean readable Gujarati Unicode
+                    let rawBlocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
+                    if (Array.isArray(rawBlocks)) {
+                        let hasConverted = false;
+                        rawBlocks.forEach(b => {
+                            if (b && b.text) {
+                                let conv = gopikaToUnicode(b.text);
+                                if (conv && conv !== b.text) {
+                                    b.text = conv;
+                                    hasConverted = true;
+                                }
+                            }
+                        });
+                        if (hasConverted) {
+                            advtData.translated_text = JSON.stringify(parsedData);
+                            document.getElementById('editTranslationText').value = advtData.translated_text;
+                            triggerAutoSave();
+                        }
+                    }
+
                     window.customColumnCount = parsedData.column_count || 2;
                     window.customAdWidth = parsedData.ad_width || advtData.width || (window.customColumnCount * 4.0);
                     window.currentLayoutOffset = parsedData.layout_offset || 0;
                     window.customBorderHeight = parsedData.border_height || null;
                     window.columnRuleWidth = parsedData.column_rule_width !== undefined ? parsedData.column_rule_width : 1;
                     window.customLineHeight = parsedData.line_height !== undefined ? parsedData.line_height : 1.02;
+                    window.customAdvLineHeight = parsedData.adv_line_height !== undefined ? parsedData.adv_line_height : (parsedData.line_height ? Math.max(0.70, Math.round(parsedData.line_height * 0.88 * 100) / 100) : 0.90);
+                    const lhIn = document.getElementById('lineHeightInput');
+                    if (lhIn) lhIn.value = window.customLineHeight.toFixed(2);
+                    const advLhIn = document.getElementById('advLineHeightInput');
+                    if (advLhIn) advLhIn.value = window.customAdvLineHeight.toFixed(2);
                     window.customCharSpacing = parsedData.char_spacing !== undefined ? parsedData.char_spacing : 0;
                     window.customWordSpacing = parsedData.word_spacing !== undefined ? parsedData.word_spacing : -4;
                     if (parsedData.col_widths && Array.isArray(parsedData.col_widths)) {
@@ -1019,20 +1255,8 @@
                     }
                 }
 
-                if (parsedData) {
-                    let textStr = JSON.stringify(parsedData.gujarati_text || []);
-                    let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(textStr);
-
-                    if (hasGujaratiUnicode) {
-                        // If it has Unicode, it is definitively NOT legacy Bhasha Bharati
-                        window.bhashaBharatiMode = false;
-                    } else if (textStr.length > 5) {
-                        // If there's no Gujarati Unicode, it's legacy Bhasha Bharati ASCII
-                        window.bhashaBharatiMode = true;
-                    } else {
-                        window.bhashaBharatiMode = false;
-                    }
-                }
+                // Keep bhashaBharatiMode disabled so user typing and English text are never corrupted
+                window.bhashaBharatiMode = false;
 
                 renderLeftControlBlocks(advtData.translated_text);
                 updateZoomButtons();
@@ -1121,10 +1345,34 @@
 
         function setLineHeight(val) {
             let num = parseFloat(val);
-            if (isNaN(num) || num < 0.8) num = 1.15;
+            if (isNaN(num) || num < 0.8) num = 1.02;
             window.customLineHeight = Math.max(0.8, Math.min(3.0, Math.round(num * 100) / 100));
             document.getElementById('lineHeightInput').value = window.customLineHeight.toFixed(2);
+            // Proportionately set advocate line height if not explicitly adjusted
+            if (window.customAdvLineHeight === undefined) {
+                let advLh = Math.max(0.70, Math.round((window.customLineHeight * 0.88) * 100) / 100);
+                window.customAdvLineHeight = advLh;
+                const advIn = document.getElementById('advLineHeightInput');
+                if (advIn) advIn.value = advLh.toFixed(2);
+            }
             updateCanvasFromText();
+            triggerAutoSave();
+        }
+
+        function adjustAdvLineHeight(delta) {
+            let current = parseFloat(document.getElementById('advLineHeightInput')?.value) || window.customAdvLineHeight || 0.90;
+            current = Math.max(0.70, Math.min(2.5, Math.round((current + delta) * 100) / 100));
+            setAdvLineHeight(current);
+        }
+
+        function setAdvLineHeight(val) {
+            let num = parseFloat(val);
+            if (isNaN(num) || num < 0.70) num = 0.90;
+            window.customAdvLineHeight = Math.max(0.70, Math.min(2.5, Math.round(num * 100) / 100));
+            const advIn = document.getElementById('advLineHeightInput');
+            if (advIn) advIn.value = window.customAdvLineHeight.toFixed(2);
+            updateCanvasFromText();
+            triggerAutoSave();
         }
 
         function adjustCharSpacing(delta) {
@@ -1138,7 +1386,8 @@
             if (isNaN(num)) num = 0;
             window.customCharSpacing = Math.max(-50, Math.min(300, num));
             document.getElementById('charSpacingInput').value = window.customCharSpacing;
-            if (typeof buildCanvasPreview === 'function') buildCanvasPreview();
+            updateCanvasFromText();
+            triggerAutoSave();
         }
 
         function adjustWordSpacing(delta) {
@@ -1153,7 +1402,8 @@
             if (isNaN(num)) num = 0;
             window.customWordSpacing = Math.max(-20, Math.min(100, num));
             document.getElementById('wordSpacingInput').value = window.customWordSpacing;
-            if (typeof buildCanvasPreview === 'function') buildCanvasPreview();
+            updateCanvasFromText();
+            triggerAutoSave();
         }
 
         function toggleEqualColWidths(isEqual) {
@@ -1190,17 +1440,354 @@
 
         function setAdHeight(val) {
             let num = parseFloat(val);
-            if (isNaN(num) || num < 4.0) num = 8.0;
+            if (isNaN(num) || num < 4.0) num = 4.0;
             window.customAdHeight = Math.max(4.0, Math.min(50.0, Math.round(num * 10) / 10));
-            window.customBorderHeight = (window.customAdHeight / 2.54) * BASE_DPI;
+            window.customBorderHeight = Math.round((window.customAdHeight / 2.54) * BASE_DPI);
             document.getElementById('adHeightInput').value = window.customAdHeight.toFixed(1);
-            updateCanvasFromText();
+
+            const container = document.getElementById('advtHtmlContainer');
+            if (container) {
+                container.style.height = window.customBorderHeight + 'px';
+                container.style.minHeight = window.customBorderHeight + 'px';
+
+                const cols = container.querySelector('.ad-columns-container');
+                if (cols) {
+                    cols.style.minHeight = Math.max(0, window.customBorderHeight - (10 * DPI_SCALE)) + 'px';
+                }
+
+                container.querySelectorAll('.manual-column-rule').forEach(rule => {
+                    rule.style.height = window.customBorderHeight + 'px';
+                });
+
+                ensureBorderDragHandle(container);
+            }
+
+            const badge = document.getElementById('advtMetaBadge');
+            if (badge && advtData) {
+                let widthInCm = window.customAdWidth || (advtData.width > 0 ? advtData.width : 8.0);
+                badge.innerText = `${advtData.advt_type || 'Legal Notice'} (${widthInCm.toFixed(1)}x${window.customAdHeight.toFixed(1)} cm)`;
+            }
+
+            applyCanvasZoom();
+            collectEditorState();
+            triggerAutoSave();
         }
 
-        function autoFitAdHeight() {
+        function measureColumnMetrics(container) {
+            const cols = container.querySelector('.ad-columns-container');
+            if (!cols) return { colBottoms: [], maxBottom: 0, minBottom: 0, lastColBottom: 0, maxColBottom: 0 };
+
+            // CRITICAL: #advtHtmlWrapper has CSS transform scale(effectiveZoom).
+            // getBoundingClientRect() returns viewport pixels scaled by this zoom factor!
+            // We MUST divide by scale to obtain true unscaled CSS layout pixels.
+            const htmlWrapper = document.getElementById('advtHtmlWrapper');
+            let scale = 1.0;
+            if (htmlWrapper && htmlWrapper.offsetWidth > 0) {
+                const wrapperRect = htmlWrapper.getBoundingClientRect();
+                scale = wrapperRect.width / htmlWrapper.offsetWidth;
+            }
+            if (!scale || scale <= 0) {
+                scale = (window.canvasZoom || 1.0) * 0.45;
+            }
+
+            const containerRect = container.getBoundingClientRect();
+            const colsRect = cols.getBoundingClientRect();
+            const colCount = Math.max(1, Math.min(4, window.customColumnCount || 2));
+            const unscaledColsW = colsRect.width / scale;
+
+            const colBottoms = new Array(colCount).fill(0);
+            let absoluteMaxY = 0;
+
+            // 1. Measure visual bottom of every text line using TreeWalker and DOM Range
+            const walker = document.createTreeWalker(cols, NodeFilter.SHOW_TEXT, null, false);
+            let textNode;
+            const range = document.createRange();
+            while ((textNode = walker.nextNode())) {
+                if (!textNode.textContent.trim()) continue;
+                range.selectNodeContents(textNode);
+                const rects = range.getClientRects();
+                for (let i = 0; i < rects.length; i++) {
+                    const r = rects[i];
+                    if (r.width === 0 || r.height === 0) continue;
+                    const unscaledY = (r.bottom - containerRect.top) / scale;
+                    const unscaledColY = (r.bottom - colsRect.top) / scale;
+                    const unscaledX = (r.left - colsRect.left) / scale;
+                    let colIdx = Math.floor((unscaledX + 2) / (unscaledColsW / colCount));
+                    colIdx = Math.max(0, Math.min(colCount - 1, colIdx));
+                    if (unscaledColY > colBottoms[colIdx]) {
+                        colBottoms[colIdx] = unscaledColY;
+                    }
+                    if (unscaledY > absoluteMaxY) {
+                        absoluteMaxY = unscaledY;
+                    }
+                }
+            }
+
+            // 2. Also check block elements (heading box, advocate block, paragraphs, dates)
+            const boxes = cols.querySelectorAll('.ad-heading-box, .advocate-block, .ad-paragraph, .ad-advocate-p, .notice-date, p, div');
+            boxes.forEach(b => {
+                const rects = b.getClientRects();
+                for (let i = 0; i < rects.length; i++) {
+                    const r = rects[i];
+                    if (r.width === 0 || r.height === 0) continue;
+                    const unscaledY = (r.bottom - containerRect.top) / scale;
+                    const unscaledColY = (r.bottom - colsRect.top) / scale;
+                    const unscaledX = (r.left - colsRect.left) / scale;
+                    let colIdx = Math.floor((unscaledX + 2) / (unscaledColsW / colCount));
+                    colIdx = Math.max(0, Math.min(colCount - 1, colIdx));
+                    if (unscaledColY > colBottoms[colIdx]) {
+                        colBottoms[colIdx] = unscaledColY;
+                    }
+                    if (unscaledY > absoluteMaxY) {
+                        absoluteMaxY = unscaledY;
+                    }
+                }
+            });
+
+            // 3. Native DOM layout properties cross-check (already unscaled CSS pixels)
+            const domColsBottom = (cols.offsetTop || 0) + Math.max(cols.scrollHeight || 0, cols.offsetHeight || 0);
+            if (domColsBottom > absoluteMaxY) {
+                absoluteMaxY = domColsBottom;
+            }
+
+            let maxColBottom = Math.max(...colBottoms, 0);
+            let minColBottom = Math.min(...colBottoms);
+
+            return {
+                colBottoms: colBottoms,
+                lastColBottom: colBottoms[colCount - 1] || 0,
+                maxColBottom: maxColBottom,
+                minColBottom: minColBottom,
+                diff: maxColBottom - minColBottom,
+                maxBottom: absoluteMaxY
+            };
+        }
+
+        async function autoFitAdHeight() {
+            window.isAutoFitting = true;
+            const statusEl = document.getElementById('saveStatusIndicator');
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping"></span>Auto-fitting...`;
+                statusEl.className = "text-[10px] font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md border border-brand-200 flex items-center gap-1.5 shadow-sm";
+            }
+
+            // Dusre wale (advocate block) ka line height thoda kam kar dene ka (0.90)
+            window.customAdvLineHeight = 0.90;
+            const advLhInput = document.getElementById('advLineHeightInput');
+            if (advLhInput) advLhInput.value = window.customAdvLineHeight.toFixed(2);
+
+            // Clear manual height overrides so columns balance naturally at true content height
             window.customAdHeight = null;
             window.customBorderHeight = null;
-            updateCanvasFromText();
+            window.currentLayoutOffset = 0;
+
+            const hInput = document.getElementById('adHeightInput');
+            if (hInput) hInput.value = '';
+            const offsetDisplay = document.getElementById('layoutOffsetDisplay');
+            if (offsetDisplay) offsetDisplay.innerText = '0';
+
+            // Initial render in natural auto mode
+            await buildCanvasPreview();
+
+            // Run precision multi-column balancer
+            await balanceColumnsPerfect();
+            window.isAutoFitting = false;
+        }
+
+        async function balanceColumnsPerfect() {
+            const container = document.getElementById('advtHtmlContainer');
+            if (!container) return;
+            const cols = container.querySelector('.ad-columns-container');
+            if (!cols) return;
+
+            const colCount = Math.max(1, Math.min(4, window.customColumnCount || 2));
+
+            // Reset advocate block manual margin
+            const advEl = cols.querySelector('.advocate-block');
+            if (advEl) advEl.style.marginTop = '0px';
+
+            // Let browser lay out columns naturally in auto mode
+            cols.style.height = 'auto';
+            cols.style.minHeight = '0px';
+            cols.style.columnFill = 'balance';
+            container.style.height = 'auto';
+            container.style.minHeight = '0px';
+            void cols.offsetHeight;
+
+            // Wait for fonts and browser layout to settle
+            await new Promise(r => setTimeout(r, 80));
+
+            let metrics = measureColumnMetrics(container);
+
+            // If multi-column and the last column (advocate block) is slightly shorter than the longest column,
+            // push advocate block down with marginTop so the bottom baseline is flush across all columns
+            if (advEl && colCount > 1) {
+                let residualGap = Math.round(metrics.maxColBottom - metrics.lastColBottom);
+                if (residualGap > 4 && residualGap < 100) {
+                    advEl.style.marginTop = residualGap + 'px';
+                    void advEl.offsetHeight;
+                    await new Promise(r => setTimeout(r, 40));
+                    metrics = measureColumnMetrics(container);
+                }
+            }
+
+            // CRITICAL: Height must be at least maxBottom + clean padding
+            // so NO text or descenders can EVER be cut off or touch the bottom border!
+            let bottomPaddingPx = Math.max(10, Math.round(5 * DPI_SCALE));
+            let finalContentH = Math.ceil(metrics.maxBottom + bottomPaddingPx);
+            let minPx = Math.round((4.0 / 2.54) * BASE_DPI);
+            if (finalContentH < minPx) finalContentH = minPx;
+
+            let finalCm = Math.round(((finalContentH / BASE_DPI) * 2.54) * 10) / 10;
+
+            applyFinalFittedHeight(finalContentH, finalCm);
+        }
+
+        function applyFinalFittedHeight(heightPx, heightCm) {
+            window.customBorderHeight = heightPx;
+            window.customAdHeight = heightCm;
+
+            const container = document.getElementById('advtHtmlContainer');
+            if (container) {
+                container.style.height = heightPx + 'px';
+                container.style.minHeight = heightPx + 'px';
+
+                const cols = container.querySelector('.ad-columns-container');
+                if (cols) {
+                    // NEVER set fixed cols.style.height smaller than content! Keep it auto with min-height
+                    cols.style.height = 'auto';
+                    cols.style.minHeight = Math.max(0, heightPx - (10 * DPI_SCALE)) + 'px';
+                }
+
+                // Match manual column rule lines exactly
+                container.querySelectorAll('.manual-column-rule').forEach(rule => {
+                    rule.style.height = heightPx + 'px';
+                });
+
+                ensureBorderDragHandle(container);
+            }
+
+            const hInput = document.getElementById('adHeightInput');
+            if (hInput) hInput.value = heightCm.toFixed(1);
+
+            const badge = document.getElementById('advtMetaBadge');
+            if (badge && advtData) {
+                let widthInCm = window.customAdWidth || (advtData.width > 0 ? advtData.width : 8.0);
+                badge.innerText = `${advtData.advt_type || 'Legal Notice'} (${widthInCm.toFixed(1)}x${heightCm.toFixed(1)} cm)`;
+            }
+
+            applyCanvasZoom();
+            collectEditorState();
+            triggerAutoSave();
+
+            const statusEl = document.getElementById('saveStatusIndicator');
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Auto-fitted & Balanced! (${heightCm.toFixed(1)} cm)`;
+                statusEl.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1.5 shadow-sm";
+                setTimeout(() => {
+                    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Auto-synced`;
+                    statusEl.className = "text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1.5 shadow-sm";
+                }, 2500);
+            }
+        }
+
+        // Interactive Draggable Border Resize Handle - Allows user to drag bottom border directly on canvas
+        function ensureBorderDragHandle(container) {
+            if (!container) container = document.getElementById('advtHtmlContainer');
+            if (!container) return;
+
+            let handle = container.querySelector('.border-resize-handle');
+            if (!handle) {
+                handle = document.createElement('div');
+                handle.className = 'border-resize-handle';
+                handle.setAttribute('data-html2canvas-ignore', 'true');
+                handle.title = 'Drag to adjust ad border height / બોર્ડર ખેંચી ઊંચાઈ સેટ કરો';
+                handle.innerHTML = `
+                    <div class="resize-handle-pill">
+                        <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                        <span>Fix / Drag Border</span>
+                    </div>
+                `;
+                container.appendChild(handle);
+            }
+            initBorderDragHandle(handle, container);
+        }
+
+        function initBorderDragHandle(handle, container) {
+            if (!handle || handle._dragInitialized) return;
+            handle._dragInitialized = true;
+
+            handle.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const htmlWrapper = document.getElementById('advtHtmlWrapper');
+                let scale = 1.0;
+                if (htmlWrapper && htmlWrapper.offsetWidth > 0) {
+                    scale = htmlWrapper.getBoundingClientRect().width / htmlWrapper.offsetWidth;
+                }
+                if (!scale || scale <= 0) {
+                    scale = (window.canvasZoom || 1.0) * 0.45;
+                }
+
+                const startY = e.clientY;
+                const startH = container.offsetHeight;
+                let finalH = startH;
+
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                handle.classList.add('is-dragging');
+
+                function onMouseMove(ev) {
+                    const deltaY = (ev.clientY - startY) / scale;
+                    const minPx = Math.round((4.0 / 2.54) * BASE_DPI);
+                    finalH = Math.max(minPx, Math.round(startH + deltaY));
+
+                    container.style.height = finalH + 'px';
+                    container.style.minHeight = finalH + 'px';
+
+                    const cols = container.querySelector('.ad-columns-container');
+                    if (cols) {
+                        cols.style.minHeight = Math.max(0, finalH - (10 * DPI_SCALE)) + 'px';
+                    }
+
+                    container.querySelectorAll('.manual-column-rule').forEach(rule => {
+                        rule.style.height = finalH + 'px';
+                    });
+
+                    const newCm = Math.round(((finalH / BASE_DPI) * 2.54) * 10) / 10;
+                    const hInput = document.getElementById('adHeightInput');
+                    if (hInput) hInput.value = newCm.toFixed(1);
+
+                    const badge = document.getElementById('advtMetaBadge');
+                    if (badge && advtData) {
+                        let widthInCm = window.customAdWidth || (advtData.width > 0 ? advtData.width : 8.0);
+                        badge.innerText = `${advtData.advt_type || 'Legal Notice'} (${widthInCm.toFixed(1)}x${newCm.toFixed(1)} cm)`;
+                    }
+
+                    applyCanvasZoom();
+                }
+
+                function onMouseUp() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    handle.classList.remove('is-dragging');
+
+                    const finalCm = Math.round(((finalH / BASE_DPI) * 2.54) * 10) / 10;
+                    window.customBorderHeight = finalH;
+                    window.customAdHeight = finalCm;
+
+                    collectEditorState();
+                    triggerAutoSave();
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
         }
 
         function autoStretchLineHeight() {
@@ -1214,13 +1801,12 @@
             let maxLH = 4.0;
             let bestLH = window.customLineHeight || 1.02;
 
-            let paragraphs = container.querySelectorAll('.ad-paragraph, .notice-date, .advocate-block, .advocate-block p');
+            let paragraphs = container.querySelectorAll('.ad-paragraph, .notice-date');
 
             for (let i = 0; i < 20; i++) {
                 let midLH = (minLH + maxLH) / 2;
                 paragraphs.forEach(p => p.style.lineHeight = midLH);
 
-                // In column-fill: auto with a fixed height, overflow creates a new column horizontally
                 let isOverflowing = colsContainer.scrollWidth > colsContainer.clientWidth;
 
                 if (isOverflowing) {
@@ -1234,16 +1820,23 @@
             setLineHeight(bestLH);
         }
 
-
         function setColumnRule(val) {
             window.columnRuleWidth = parseInt(val) || 0;
             updateCanvasFromText();
+            triggerAutoSave();
         }
 
         function adjustLayoutOffset(delta) {
             window.currentLayoutOffset = (window.currentLayoutOffset || 0) + delta;
             document.getElementById('layoutOffsetDisplay').innerText = window.currentLayoutOffset > 0 ? '+' + window.currentLayoutOffset : window.currentLayoutOffset;
-            updateCanvasFromText();
+            if (window.customBorderHeight) {
+                let stepPx = 10 * DPI_SCALE;
+                let newH = window.customBorderHeight + (delta * stepPx);
+                let newCm = Math.round(((newH / BASE_DPI) * 2.54) * 10) / 10;
+                setAdHeight(newCm);
+            } else {
+                updateCanvasFromText();
+            }
         }
 
         function toggleBhashaBharatiMode(isON) {
@@ -1277,6 +1870,13 @@
 
                         const typeLabel = (block.type || 'Text Block').toUpperCase();
                         let textContent = block.text || '';
+                        if (typeof gopikaToUnicode === 'function') {
+                            let converted = gopikaToUnicode(textContent);
+                            if (converted && converted !== textContent) {
+                                textContent = converted;
+                                block.text = converted;
+                            }
+                        }
                         const fSize = block.font_size || (typeLabel === 'HEADING' ? 20 : 11);
                         const fAlign = block.text_align || (typeLabel === 'HEADING' ? 'center' : 'justify');
                         const fWeight = block.font_weight || 'normal';
@@ -1307,7 +1907,7 @@
                                     <button type="button" data-align="force-justify" class="block-format-align px-1.5 py-0.5 rounded text-[9px] font-bold ${fAlign === 'force-justify' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:text-slate-900'}" title="FORCE JUSTIFY">FJ</button>
                                 </div>
                             </div>
-                            <textarea class="block-editor-input gopika-text w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 leading-relaxed resize-y focus:border-brand-500 outline-none" style="font-size: ${fSize}px; text-align: ${fAlign === 'force-justify' ? 'justify' : fAlign}; font-weight: ${fWeight === 'bold' || fWeight === '900' ? 'bold' : 'normal'};" rows="4" data-index="${index}"></textarea>
+                            <textarea class="block-editor-input w-full p-3 bg-white border border-slate-300 rounded-lg text-slate-900 leading-relaxed resize-y focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none shadow-sm" style="font-family: 'Inter', 'Noto Sans Gujarati', 'Nirmala UI', 'Shruti', system-ui, -apple-system, sans-serif !important; font-size: 13px; text-align: ${fAlign === 'force-justify' ? 'justify' : fAlign}; font-weight: ${fWeight === 'bold' || fWeight === '900' ? 'bold' : 'normal'};" rows="4" data-index="${index}"></textarea>
                             <input type="hidden" class="block-format-bold-val" value="${fWeight}">
                             <input type="hidden" class="block-format-align-val" value="${fAlign}">
                             <input type="hidden" class="block-format-layout-val" value="${fLayout}">
@@ -1327,6 +1927,7 @@
                                 div.querySelector('.block-format-align-val').value = this.dataset.align;
                                 div.querySelector('.block-editor-input').style.textAlign = this.dataset.align === 'force-justify' ? 'justify' : this.dataset.align;
                                 updateCanvasFromText();
+                                triggerAutoSave();
                             });
                         });
 
@@ -1344,16 +1945,13 @@
                                 ta.style.fontWeight = "bold";
                             }
                             updateCanvasFromText();
+                            triggerAutoSave();
                         });
 
-                        // Typing event (Bhasha Bharati support)
+                        // Clean typing event - user can type Gujarati or English cleanly without character corruption
                         div.querySelector('.block-editor-input').addEventListener('input', function (e) {
-                            if (window.bhashaBharatiMode) {
-                                let curPos = this.selectionStart;
-                                this.value = bhashaBharatiRemingtonToGopika(this.value);
-                                this.selectionStart = this.selectionEnd = curPos;
-                            }
                             updateCanvasFromText();
+                            triggerAutoSave();
                         });
 
                         container.appendChild(div);
@@ -1416,10 +2014,11 @@
             let heightPx = (heightInCm / 2.54) * BASE_DPI;
 
             container.style.width = physicalScreenPx + 'px';
-            container.style.height = 'auto'; // Always auto to let text balance perfectly
             if (window.customBorderHeight) {
-                container.style.minHeight = window.customBorderHeight + 'px'; // Expand beyond user height if needed, but don't shrink below
+                container.style.height = window.customBorderHeight + 'px';
+                container.style.minHeight = window.customBorderHeight + 'px';
             } else {
+                container.style.height = 'auto'; // Always auto to let text balance perfectly
                 container.style.minHeight = '0px'; // Allow shrinking below default height
             }
             let padPx = 5 * DPI_SCALE;
@@ -1452,26 +2051,29 @@
                         colsContainer.addEventListener('input', syncCanvasToJson);
                         // column-rule handled by manual HTML divs below (html2canvas can't render CSS column-rule)
 
+                        colsContainer.style.height = 'auto';
                         if (window.customBorderHeight) {
                             let offsetPx = (window.currentLayoutOffset || 0) * (5 * DPI_SCALE);
-                            colsContainer.style.height = (window.customBorderHeight + offsetPx) + 'px';
-                            colsContainer.style.columnFill = 'balance';
+                            colsContainer.style.minHeight = Math.max(0, window.customBorderHeight + offsetPx - padPx) + 'px';
                         } else {
-                            colsContainer.style.height = 'auto';
-                            colsContainer.style.columnFill = 'balance';
+                            colsContainer.style.minHeight = '0px';
                         }
+                        colsContainer.style.columnFill = 'balance';
 
                         if (headingBlock) {
                             let rawHText = headingBlock.text || 'જાહેર નોટિસ';
-                            let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(rawHText);
-                            let convertedH = convertWithEnglishPreserved(rawHText, !hasGujaratiUnicode);
+                            let convertedH = convertWithEnglishPreserved(rawHText);
                             let hFontSize = (headingBlock.font_size || 20) * PT_TO_PX;
                             let hBgHeight = (headingBlock.bg_height ? parseFloat(headingBlock.bg_height) : 25) * DPI_SCALE;
                             let hIndex = blocks.indexOf(headingBlock);
 
                             let hDiv = document.createElement('div');
-                            hDiv.className = 'ad-heading-box';
+                            hDiv.className = 'ad-heading-box cursor-pointer';
                             hDiv.setAttribute('data-block-index', hIndex);
+                            hDiv.title = 'Double-click to edit in left sidebar';
+                            hDiv.addEventListener('dblclick', function () {
+                                scrollToEditorBlock(hIndex);
+                            });
                             hDiv.style.display = 'block';
                             hDiv.style.height = hBgHeight + 'px';
                             hDiv.style.minHeight = hBgHeight + 'px';
@@ -1508,8 +2110,7 @@
                             let realIndex = blocks.indexOf(b);
 
                             let tText = b.text.trim();
-                            let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(tText);
-                            let convertedText = convertWithEnglishPreserved(tText, !hasGujaratiUnicode);
+                            let convertedText = convertWithEnglishPreserved(tText);
 
                             let baseFontSize = (b.font_size || 11) * PT_TO_PX;
                             let bFontWeight = b.font_weight || 'normal';
@@ -1522,7 +2123,11 @@
                                 if (!pText.trim()) return;
                                 let p = document.createElement('p');
                                 p.setAttribute('data-block-index', realIndex);
-                                p.className = 'ad-paragraph';
+                                p.className = 'ad-paragraph cursor-text';
+                                p.title = 'Double-click to edit in left sidebar';
+                                p.addEventListener('dblclick', function () {
+                                    scrollToEditorBlock(realIndex);
+                                });
                                 p.style.fontSize = baseFontSize + 'px';
                                 p.style.fontFamily = baseFontFamily;
                                 p.style.fontWeight = 'normal';
@@ -1612,11 +2217,12 @@
                         if (advocateBlocks.length > 0) {
                             let advWrapper = document.createElement('div');
                             advWrapper.className = 'advocate-block';
+                            let advLH = window.customAdvLineHeight !== undefined ? window.customAdvLineHeight : 0.90;
+                            advWrapper.style.lineHeight = advLH;
                             advocateBlocks.forEach((b) => {
                                 let realIndex = blocks.indexOf(b);
                                 let rawAdvText = (b.text || '').trim();
-                                let hasGujaratiUnicode = /[\u0A80-\u0AFF]/.test(rawAdvText);
-                                let convertedAdv = convertWithEnglishPreserved(rawAdvText, !hasGujaratiUnicode);
+                                let convertedAdv = convertWithEnglishPreserved(rawAdvText);
                                 let baseFontSize = (b.font_size || 12) * PT_TO_PX;
                                 let defaultW = b.font_weight || 'normal';
                                 let advBaseFont = (defaultW === 'bold' || defaultW === '900') ? 'BGOTB' : 'BGOT';
@@ -1633,9 +2239,14 @@
 
                                     let p = document.createElement('p');
                                     p.setAttribute('data-block-index', realIndex);
+                                    p.className = 'ad-advocate-p cursor-text';
+                                    p.title = 'Double-click to edit in left sidebar';
+                                    p.addEventListener('dblclick', function () {
+                                        scrollToEditorBlock(realIndex);
+                                    });
                                     p.style.fontSize = baseFontSize + 'px';
                                     p.style.fontFamily = advBaseFont;
-                                    p.style.lineHeight = window.customLineHeight || 1.02;
+                                    p.style.lineHeight = advLH;
                                     if (window.customCharSpacing) p.style.letterSpacing = window.customCharSpacing + 'px';
                                     if (window.customWordSpacing !== undefined && window.customWordSpacing !== 0) p.style.wordSpacing = window.customWordSpacing + 'px';
 
@@ -1756,53 +2367,6 @@
                             }
                         });
 
-                        // Sync canvas text edits back to JSON and Left Sidebar
-                        colsContainer.addEventListener('input', function () {
-                            // ONLY sync LINE STYLES, NOT TEXT.
-                            // Syncing text from an ASCII-mapped canvas destroys original Unicode text.
-                            window.lineStyles = {};
-                            const paragraphs = colsContainer.querySelectorAll('p[data-block-index]');
-                            paragraphs.forEach(p => {
-                                const idx = p.getAttribute('data-block-index');
-
-                                // Save per-line styles
-                                window.lineStyles[idx] = window.lineStyles[idx] || [];
-                                window.lineStyles[idx].push({
-                                    align: p.dataset.lineAlign || null,
-                                    bold: p.dataset.lineBold === '1',
-                                    size: p.dataset.lineSize || null
-                                });
-                            });
-
-                            // Silently update the hidden JSON text with only the new styles
-                            if (!advtData) return;
-                            try {
-                                let parsedData = JSON.parse(advtData.translated_text || '[]');
-                                let currentBlocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
-
-                                let newJson = {
-                                    gujarati_text: currentBlocks,
-                                    layout_offset: window.currentLayoutOffset || 0,
-                                    border_height: window.customBorderHeight || null,
-                                    ad_width: window.customAdWidth || (window.customColumnCount * 4.0),
-                                    ad_height: window.customAdHeight || 25.0,
-                                    column_count: window.customColumnCount || 2,
-                                    col_widths: window.customColWidths,
-                                    column_rule_width: window.columnRuleWidth,
-                                    line_height: window.customLineHeight || 1.02,
-                                    char_spacing: window.customCharSpacing || 0,
-                                    word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
-                                    is_bhasha_bharati: window.bhashaBharatiMode || false,
-                                    line_styles: window.lineStyles
-                                };
-                                const newJsonStr = JSON.stringify(newJson);
-                                document.getElementById('editTranslationText').value = newJsonStr;
-                                advtData.translated_text = newJsonStr;
-                            } catch (e) {
-                                console.error('Canvas sync error:', e);
-                            }
-                        });
-
                         container.appendChild(colsContainer);
 
                         setTimeout(() => {
@@ -1831,6 +2395,8 @@
                             let currentH = container.offsetHeight;
                             let actualCmHeight = Math.round(((currentH / BASE_DPI) * 2.54) * 10) / 10;
 
+                            if (window.isAutoFitting) return;
+
                             if (!window.customBorderHeight) {
                                 window.customBorderHeight = currentH;
                                 window.customAdHeight = actualCmHeight;
@@ -1849,6 +2415,8 @@
                                 window._htmlLogW = container.offsetWidth;
                                 window._htmlLogH = container.offsetHeight;
                             }
+
+                            ensureBorderDragHandle(container);
 
                             applyCanvasZoom();
                         }, 50);
@@ -1882,89 +2450,376 @@
         function setFloatingLineAlign(alignMode) { }
         function toggleFloatingLineBold() { }
 
-        function updateCanvasFromText() {
-            const container = document.getElementById('editBlocksContainer');
-            const inputs = container.querySelectorAll('.block-editor-input');
-            if (!advtData) return;
+        function extractUnicodeFromCanvasEl(el) {
+            if (!el) return '';
+            const digitMap = { '0': '૦', '1': '૧', '2': '૨', '3': '૩', '4': '૪', '5': '૫', '6': '૬', '7': '૭', '8': '૮', '9': '૯' };
+            function convertGopikaPiece(raw) {
+                if (!raw) return '';
+                raw = raw.replace(/[\u200b\u200c\u200d\u2060\ufeff]/g, '');
+                let res = (typeof gopikaToUnicode === 'function') ? gopikaToUnicode(raw) : raw;
+                res = res.replace(/[0-9]/g, ch => digitMap[ch] || ch);
+                return res;
+            }
 
-            try {
-                let parsedData = JSON.parse(advtData.translated_text || '[]');
-                let blocks = [];
-                if (Array.isArray(parsedData)) blocks = parsedData;
-                else if (parsedData && Array.isArray(parsedData.gujarati_text)) blocks = parsedData.gujarati_text;
-
-                // Sync inputs to blocks only if count matches
-                if (inputs.length === blocks.length) {
-                    inputs.forEach((ta, idx) => {
-                        blocks[idx].text = ta.value;
-                        const parent = ta.parentElement;
-                        const sizeInput = parent.querySelector('.block-format-size');
-                        if (sizeInput) blocks[idx].font_size = parseFloat(sizeInput.value);
-                        const boldInput = parent.querySelector('.block-format-bold-val');
-                        if (boldInput) blocks[idx].font_weight = boldInput.value;
-                        const alignInput = parent.querySelector('.block-format-align-val');
-                        if (alignInput) blocks[idx].text_align = alignInput.value;
-                    });
-
-                    const hBgHeight = parseFloat(document.getElementById('headingHeightInput').value) || 25;
-                    const hTextY = parseFloat(document.getElementById('headingTextYInput').value) || 0;
-                    const hBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading');
-                    if (hBlock) {
-                        hBlock.bg_height = hBgHeight;
-                        hBlock.text_offset_y = hTextY;
-                        const hLayoutInput = document.querySelector('.block-format-layout-val');
-                        if (hLayoutInput) hBlock.layout_position = hLayoutInput.value;
+            let result = '';
+            function walk(node) {
+                if (node.nodeType === 3) {
+                    let val = node.nodeValue || '';
+                    let isEng = node.parentElement && node.parentElement.closest('.english-text');
+                    if (isEng) {
+                        result += val;
+                    } else {
+                        result += convertGopikaPiece(val);
                     }
-
-                    let newJson = {
-                        gujarati_text: blocks,
-                        layout_offset: window.currentLayoutOffset || 0,
-                        border_height: window.customBorderHeight || null,
-                        ad_width: window.customAdWidth || (window.customColumnCount * 4.0),
-                        ad_height: window.customAdHeight || 25.0,
-                        column_count: window.customColumnCount || 2,
-                        col_widths: window.customColWidths,
-                        column_rule_width: window.columnRuleWidth,
-                        line_height: window.customLineHeight || 1.02,
-                        char_spacing: window.customCharSpacing || 0,
-                        word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
-                        is_bhasha_bharati: window.bhashaBharatiMode || false,
-                        line_styles: window.lineStyles || parsedData.line_styles
-                    };
-
-                    const newJsonStr = JSON.stringify(newJson);
-                    document.getElementById('editTranslationText').value = newJsonStr;
-                    advtData.translated_text = newJsonStr;
+                } else if (node.nodeType === 1) {
+                    if (node.tagName === 'BR') {
+                        result += '\n';
+                    } else if (node.classList && node.classList.contains('english-text')) {
+                        result += node.textContent;
+                    } else {
+                        for (let child of node.childNodes) {
+                            walk(child);
+                        }
+                    }
                 }
+            }
+            walk(el);
+            return result;
+        }
 
-                // Always rebuild preview regardless of inputs/blocks count
-                buildCanvasPreview();
+        function syncCanvasToState() {
+            const cols = document.querySelector('.ad-columns-container');
+            if (!cols) return;
+
+            // Don't overwrite sidebar input if user is actively typing in that input
+            if (document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('block-editor-input')) {
+                return;
+            }
+
+            let parsedData = {};
+            try {
+                parsedData = JSON.parse(advtData.translated_text || '{}');
             } catch (e) {
-                console.error("Error updating HTML from text:", e);
-                // Even on error, try to rebuild preview
-                buildCanvasPreview();
+                parsedData = {};
+            }
+            let blocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
+            if (!blocks || blocks.length === 0) return;
+
+            const canvasElements = cols.querySelectorAll('[data-block-index]');
+            const blockIndices = new Set();
+            canvasElements.forEach(el => {
+                const idx = el.getAttribute('data-block-index');
+                if (idx !== null && idx !== '') blockIndices.add(parseInt(idx));
+            });
+
+            blockIndices.forEach(idx => {
+                if (!blocks[idx]) return;
+                const els = cols.querySelectorAll(`[data-block-index="${idx}"]`);
+                if (els.length === 0) return;
+
+                const textParts = [];
+                els.forEach(el => {
+                    const t = extractUnicodeFromCanvasEl(el).trim();
+                    textParts.push(t);
+                });
+
+                const newText = textParts.filter(Boolean).join('\n');
+                if (newText) {
+                    blocks[idx].text = newText;
+                    const ta = document.querySelector(`.block-editor-input[data-index="${idx}"]`);
+                    if (ta && ta.value !== newText) {
+                        ta.value = newText;
+                    }
+                }
+            });
+
+            if (parsedData.gujarati_text) {
+                parsedData.gujarati_text = blocks;
+            } else {
+                parsedData = blocks;
+            }
+            const updatedJson = JSON.stringify(parsedData);
+            advtData.translated_text = updatedJson;
+            const transInput = document.getElementById('editTranslationText');
+            if (transInput) transInput.value = updatedJson;
+        }
+
+        function syncCanvasToJson() {
+            syncCanvasToState();
+            triggerAutoSave();
+        }
+
+        function scrollToEditorBlock(idx) {
+            const targetInput = document.querySelector(`.block-editor-input[data-index="${idx}"]`);
+            if (targetInput) {
+                targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetInput.focus();
+                targetInput.classList.add('ring-2', 'ring-brand-500', 'border-brand-500');
+                setTimeout(() => targetInput.classList.remove('ring-2', 'ring-brand-500', 'border-brand-500'), 1500);
             }
         }
 
-        async function saveEditorChanges() {
-            const newJsonStr = document.getElementById('editTranslationText').value;
+        // Centralized State Collector: Gathers 100% of current text, formats & layout parameters
+        function collectEditorState() {
+            if (!advtData) return '';
+
+            // Sync any pending canvas edits to sidebar inputs and blocks first
+            const isTypingInSidebar = document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('block-editor-input');
+            if (!isTypingInSidebar) {
+                syncCanvasToState();
+            }
+
             try {
+                let parsedData = {};
+                try {
+                    parsedData = JSON.parse(advtData.translated_text || '{}');
+                } catch (e) {
+                    parsedData = {};
+                }
+
+                let blocks = [];
+                if (Array.isArray(parsedData)) {
+                    blocks = parsedData;
+                } else if (parsedData && Array.isArray(parsedData.gujarati_text)) {
+                    blocks = parsedData.gujarati_text;
+                }
+
+                // Gather true Unicode text & styles from left sidebar inputs
+                const container = document.getElementById('editBlocksContainer');
+                if (container) {
+                    const inputs = container.querySelectorAll('.block-editor-input');
+                    inputs.forEach((ta, idx) => {
+                        const targetIdx = parseInt(ta.dataset.index !== undefined ? ta.dataset.index : idx);
+                        if (!blocks[targetIdx]) {
+                            blocks[targetIdx] = {
+                                type: targetIdx === 0 ? 'heading' : 'content',
+                                text: ta.value
+                            };
+                        } else {
+                            blocks[targetIdx].text = ta.value;
+                        }
+
+                        const parent = ta.parentElement;
+                        if (parent) {
+                            const sizeInput = parent.querySelector('.block-format-size');
+                            if (sizeInput && sizeInput.value) blocks[targetIdx].font_size = parseFloat(sizeInput.value);
+                            const boldInput = parent.querySelector('.block-format-bold-val');
+                            if (boldInput && boldInput.value) blocks[targetIdx].font_weight = boldInput.value;
+                            const alignInput = parent.querySelector('.block-format-align-val');
+                            if (alignInput && alignInput.value) blocks[targetIdx].text_align = alignInput.value;
+                            const layoutInput = parent.querySelector('.block-format-layout-val');
+                            if (layoutInput && layoutInput.value) blocks[targetIdx].layout_position = layoutInput.value;
+                        }
+                    });
+                }
+
+                // Update heading block from dedicated heading UI
+                const hBgHeight = parseFloat(document.getElementById('headingHeightInput')?.value) || 25;
+                const hTextY = parseFloat(document.getElementById('headingTextYInput')?.value) || 0;
+                const hFontSize = parseFloat(document.getElementById('headingFontSizeInput')?.value) || 20;
+                const hLayoutInput = document.querySelector('.block-format-layout-val');
+                const hLayout = hLayoutInput ? hLayoutInput.value : 'full';
+
+                const hBlock = blocks.find(b => (b.type || '').toLowerCase() === 'heading' || (b.text && b.text.includes('જાહેર નોટિસ')));
+                if (hBlock) {
+                    hBlock.bg_height = hBgHeight;
+                    hBlock.text_offset_y = hTextY;
+                    hBlock.font_size = hFontSize;
+                    hBlock.layout_position = hLayout;
+                }
+
+                // Read global layout settings
+                const widthIn = document.getElementById('adWidthInput');
+                if (widthIn && widthIn.value) window.customAdWidth = parseFloat(widthIn.value);
+
+                const heightIn = document.getElementById('adHeightInput');
+                if (heightIn && heightIn.value) {
+                    window.customAdHeight = parseFloat(heightIn.value);
+                    if (!window.customBorderHeight && !window.isAutoFitting) {
+                        window.customBorderHeight = (window.customAdHeight / 2.54) * BASE_DPI;
+                    }
+                }
+
+                const lhIn = document.getElementById('lineHeightInput');
+                if (lhIn && lhIn.value) window.customLineHeight = parseFloat(lhIn.value);
+
+                const advLhIn = document.getElementById('advLineHeightInput');
+                if (advLhIn && advLhIn.value) window.customAdvLineHeight = parseFloat(advLhIn.value);
+
+                const csIn = document.getElementById('charSpacingInput');
+                if (csIn && csIn.value !== '') window.customCharSpacing = parseInt(csIn.value);
+
+                const wsIn = document.getElementById('wordSpacingInput');
+                if (wsIn && wsIn.value !== '') window.customWordSpacing = parseInt(wsIn.value);
+
+                const crIn = document.getElementById('colRuleSelect');
+                if (crIn && crIn.value !== '') window.columnRuleWidth = parseInt(crIn.value);
+
+                const eqToggle = document.getElementById('equalColWidthsToggle');
+                if (eqToggle) window.equalColWidths = eqToggle.checked;
+
+                // Sync window.lineStyles from canvas if available
+                const cols = document.querySelector('.ad-columns-container');
+                if (cols) {
+                    let updatedLineStyles = {};
+                    const paragraphs = cols.querySelectorAll('p[data-block-index], div.ad-heading-box[data-block-index]');
+                    paragraphs.forEach(p => {
+                        const idx = p.getAttribute('data-block-index');
+                        if (idx !== null) {
+                            if (!updatedLineStyles[idx]) updatedLineStyles[idx] = [];
+                            updatedLineStyles[idx].push({
+                                align: p.dataset.lineAlign || null,
+                                bold: p.dataset.lineBold === '1',
+                                size: p.dataset.lineSize || null
+                            });
+                        }
+                    });
+                    if (Object.keys(updatedLineStyles).length > 0) {
+                        window.lineStyles = updatedLineStyles;
+                    }
+                }
+
+                let newJson = {
+                    gujarati_text: blocks,
+                    layout_offset: window.currentLayoutOffset || 0,
+                    border_height: window.customBorderHeight || null,
+                    ad_width: window.customAdWidth || (window.customColumnCount * 4.0),
+                    ad_height: window.customAdHeight || 25.0,
+                    column_count: window.customColumnCount || 2,
+                    col_widths: window.customColWidths || [],
+                    equal_col_widths: window.equalColWidths !== undefined ? window.equalColWidths : true,
+                    column_rule_width: window.columnRuleWidth !== undefined ? window.columnRuleWidth : 1,
+                    line_height: window.customLineHeight || 1.02,
+                    adv_line_height: window.customAdvLineHeight !== undefined ? window.customAdvLineHeight : 0.90,
+                    char_spacing: window.customCharSpacing || 0,
+                    word_spacing: window.customWordSpacing !== undefined ? window.customWordSpacing : -4,
+                    line_styles: window.lineStyles || parsedData.line_styles || {}
+                };
+
+                const newJsonStr = JSON.stringify(newJson);
+                document.getElementById('editTranslationText').value = newJsonStr;
+                advtData.translated_text = newJsonStr;
+                return newJsonStr;
+            } catch (err) {
+                console.error("Error collecting editor state:", err);
+                return document.getElementById('editTranslationText')?.value || '';
+            }
+        }
+
+        let _autoSaveTimer = null;
+        function triggerAutoSave() {
+            clearTimeout(_autoSaveTimer);
+            _autoSaveTimer = setTimeout(async () => {
+                const statusEl = document.getElementById('saveStatusIndicator');
+                try {
+                    const newJsonStr = collectEditorState();
+                    if (!newJsonStr || !CURRENT_ADVT_ID) return;
+
+                    const token = localStorage.getItem('access_token');
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+                    headers['X-Username'] = localStorage.getItem('username') || '';
+                    headers['X-User-Role'] = localStorage.getItem('user_role') || '';
+
+                    const res = await fetch(`/api/advt/${CURRENT_ADVT_ID}`, {
+                        method: 'PUT',
+                        headers: headers,
+                        body: JSON.stringify({
+                            translated_text: newJsonStr,
+                            width: window.customAdWidth || (window.customColumnCount * 4.0),
+                            height: window.customAdHeight || 25.0
+                        })
+                    });
+
+                    if (res.ok && statusEl) {
+                        statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Auto-synced`;
+                        statusEl.className = "text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1.5 shadow-sm";
+                    }
+                } catch (e) {
+                    console.warn("Auto-save sync:", e);
+                }
+            }, 1000);
+        }
+
+        function updateCanvasFromText() {
+            collectEditorState();
+            buildCanvasPreview();
+        }
+
+        async function saveEditorChanges() {
+            const saveBtn = document.querySelector('button[onclick="saveEditorChanges()"]');
+            const statusEl = document.getElementById('saveStatusIndicator');
+            
+            // Ensure any live canvas edits are captured
+            const isTypingInSidebar = document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('block-editor-input');
+            if (!isTypingInSidebar) {
+                syncCanvasToState();
+            }
+
+            // 1. Gather 100% fresh, complete editor state before sending
+            const newJsonStr = collectEditorState();
+            
+            if (!newJsonStr) {
+                alert("No advertisement data to save.");
+                return;
+            }
+
+            try {
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                }
+                if (statusEl) {
+                    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>Saving changes...`;
+                    statusEl.className = "text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 flex items-center gap-1.5 shadow-sm";
+                }
+
                 const token = localStorage.getItem('access_token');
                 const headers = { 'Content-Type': 'application/json' };
                 if (token) headers['Authorization'] = `Bearer ${token}`;
+                headers['X-Username'] = localStorage.getItem('username') || '';
+                headers['X-User-Role'] = localStorage.getItem('user_role') || '';
+
+                const payload = {
+                    translated_text: newJsonStr,
+                    width: window.customAdWidth || (window.customColumnCount * 4.0),
+                    height: window.customAdHeight || 25.0
+                };
 
                 const res = await fetch(`/api/advt/${CURRENT_ADVT_ID}`, {
                     method: 'PUT',
                     headers: headers,
-                    body: JSON.stringify({ translated_text: newJsonStr })
+                    body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error("Failed to save changes");
-                document.getElementById('saveStatusIndicator').innerText = "Saved successfully!";
+                
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.detail || "Failed to save changes (HTTP " + res.status + ")");
+                }
+
+                if (statusEl) {
+                    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Saved successfully!`;
+                    statusEl.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1.5 shadow-sm";
+                }
+                
                 setTimeout(() => {
-                    document.getElementById('saveStatusIndicator').innerText = "Auto-sync enabled";
+                    if (statusEl) {
+                        statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Auto-sync enabled`;
+                        statusEl.className = "text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 flex items-center gap-1.5 shadow-sm";
+                    }
                 }, 3000);
             } catch (err) {
-                alert("Save error: " + err.message);
+                console.error("Save error:", err);
+                if (statusEl) {
+                    statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Save failed`;
+                    statusEl.className = "text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-md border border-red-200 flex items-center gap-1.5 shadow-sm";
+                }
+                alert("Failed to save changes: " + err.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
             }
         }
 
@@ -2094,6 +2949,7 @@
             const clone = container.cloneNode(true);
             clone.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
             clone.querySelectorAll('*').forEach(e => { if (e.style.outline) e.style.outline = 'none'; });
+            clone.querySelectorAll('.border-resize-handle').forEach(e => e.remove());
             clone.style.width = W + 'px';
             clone.style.height = H + 'px';
             clone.style.minHeight = H + 'px';
@@ -2390,67 +3246,6 @@
             }
 
             return _lastActiveLine ? [_lastActiveLine] : [];
-        }
-
-        function syncCanvasToJson() {
-            const cols = document.querySelector('.ad-columns-container');
-            if (!cols) return;
-
-            let newLineStyles = {};
-            let newTexts = {};
-            let paragraphs = cols.querySelectorAll('p.ad-paragraph, div.ad-heading-box');
-
-            // Build formatting objects by reading dataset properties and text
-            paragraphs.forEach(p => {
-                let bIdx = p.getAttribute('data-block-index');
-                if (bIdx !== null) {
-                    if (!newLineStyles[bIdx]) newLineStyles[bIdx] = [];
-                    if (!newTexts[bIdx]) newTexts[bIdx] = [];
-
-                    let styleObj = {};
-                    if (p.dataset.lineAlign) styleObj.align = p.dataset.lineAlign;
-                    if (p.dataset.lineBold === '1') styleObj.bold = true;
-                    if (p.dataset.lineSize) styleObj.size = p.dataset.lineSize;
-
-                    newLineStyles[bIdx].push(styleObj);
-
-                    // Extract text (remove Zero Width No-Break Space \u2060 / &#8288;)
-                    let text = p.innerText.replace(/\u2060/g, '').trim();
-                    newTexts[bIdx].push(text);
-                }
-            });
-            window.lineStyles = newLineStyles;
-
-            // Sync texts back to textareas for all modes, 
-            // since convertWithEnglishPreserved now dynamically handles non-Unicode legacy fallback per-block.
-            for (let bIdx in newTexts) {
-                let ta = document.querySelector(`.block-editor-input[data-index="${bIdx}"]`);
-                if (ta) {
-                    let joinedText = newTexts[bIdx].join('\n');
-                    if (ta.value !== joinedText) {
-                        ta.value = joinedText;
-                    }
-                }
-            }
-
-            // Immediately flush styles and text to the hidden JSON string so Save Changes works
-            if (advtData && advtData.translated_text) {
-                try {
-                    let parsedData = JSON.parse(advtData.translated_text);
-                    let blocks = Array.isArray(parsedData) ? parsedData : (parsedData.gujarati_text || []);
-
-                    for (let bIdx in newTexts) {
-                        if (blocks[bIdx]) {
-                            blocks[bIdx].text = newTexts[bIdx].join('\n');
-                        }
-                    }
-
-                    parsedData.line_styles = window.lineStyles;
-                    const newJsonStr = JSON.stringify(parsedData);
-                    document.getElementById('editTranslationText').value = newJsonStr;
-                    advtData.translated_text = newJsonStr;
-                } catch (e) { }
-            }
         }
 
         function splitLineAtCursor() {

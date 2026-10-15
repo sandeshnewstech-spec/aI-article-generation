@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import re
+import json
 import jwt
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
 from typing import List, Optional
@@ -241,18 +242,44 @@ async def update_advt(id: str, payload: dict):
     try:
         db = get_db()
         translated_text = payload.get("translated_text")
-        if not translated_text:
+        if translated_text is None or translated_text == "":
             raise HTTPException(status_code=400, detail="Translated text is required")
+            
+        if isinstance(translated_text, (dict, list)):
+            translated_text = json.dumps(translated_text, ensure_ascii=False)
+            
+        update_fields = {
+            "translated_text": translated_text,
+            "updated_at": datetime.utcnow()
+        }
+        
+        # Try extracting ad_width and ad_height if available
+        try:
+            parsed = json.loads(translated_text)
+            if isinstance(parsed, dict):
+                if parsed.get("ad_width"):
+                    update_fields["width"] = float(parsed["ad_width"])
+                if parsed.get("ad_height"):
+                    update_fields["height"] = float(parsed["ad_height"])
+        except Exception:
+            pass
+            
+        if "width" in payload and payload["width"] is not None:
+            update_fields["width"] = float(payload["width"])
+        if "height" in payload and payload["height"] is not None:
+            update_fields["height"] = float(payload["height"])
             
         res = await db["advt"].update_one(
             {"_id": ObjectId(id)},
-            {"$set": {"translated_text": translated_text}}
+            {"$set": update_fields}
         )
         
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="Advertisement not found")
             
         return {"message": "Advertisement updated successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[ERROR] Failed to update advt: {e}")
         raise HTTPException(status_code=500, detail=str(e))
