@@ -145,12 +145,14 @@
             text-align-last: left;
             text-indent: 1.5em;
             word-break: normal;
-            overflow-wrap: normal;
+            overflow-wrap: break-word;
             margin-bottom: 0;
             line-height: 1.15;
             margin-top: 0;
             widows: 1;
             orphans: 1;
+            letter-spacing: -0.15px;
+            text-wrap: pretty;
         }
 
         .notice-date {
@@ -192,7 +194,12 @@
             display: inline;
         }
 
-        .ad-paragraph, .ad-heading-box, .ad-advocate-p, .ad-columns-container, .notice-date, .advocate-block {
+        .ad-paragraph,
+        .ad-heading-box,
+        .ad-advocate-p,
+        .ad-columns-container,
+        .notice-date,
+        .advocate-block {
             outline: none !important;
             -webkit-tap-highlight-color: transparent;
         }
@@ -602,12 +609,13 @@
 
                         <!-- Advocate Line Height Control (Dusre wale ka line height - thoda kam) -->
                         <div class="flex items-center justify-between pt-1 border-t border-slate-900">
-                            <span class="text-slate-600 text-xs" title="Advocate / 2nd Part Line Height">Advocate Line H:</span>
+                            <span class="text-slate-600 text-xs" title="Advocate / 2nd Part Line Height">Advocate Line
+                                H:</span>
                             <div class="flex items-center gap-1">
                                 <button type="button" onclick="adjustAdvLineHeight(-0.05)"
                                     class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
-                                <input type="number" id="advLineHeightInput" step="0.05" min="0.70" max="2.00" value="0.90"
-                                    onchange="setAdvLineHeight(this.value)"
+                                <input type="number" id="advLineHeightInput" step="0.05" min="0.70" max="2.00"
+                                    value="0.90" onchange="setAdvLineHeight(this.value)"
                                     class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500"
                                     title="Tighter line-height for Advocate / address section">
                                 <button type="button" onclick="adjustAdvLineHeight(0.05)"
@@ -619,12 +627,12 @@
                         <div class="flex items-center justify-between pt-1 border-t border-slate-900">
                             <span class="text-slate-600 text-xs">Letter Spacing (Char):</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="adjustCharSpacing(-5)"
+                                <button type="button" onclick="adjustCharSpacing(-0.2)"
                                     class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">-</button>
-                                <input type="number" id="charSpacingInput" step="5" min="-50" max="300" value="0"
+                                <input type="number" id="charSpacingInput" step="0.1" min="-10" max="50" value="0"
                                     onchange="setCharSpacing(this.value)"
                                     class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-center text-slate-900 font-semibold outline-none focus:border-brand-500">
-                                <button type="button" onclick="adjustCharSpacing(5)"
+                                <button type="button" onclick="adjustCharSpacing(0.2)"
                                     class="w-6 h-6 rounded bg-slate-50 hover:bg-slate-200 text-slate-900 font-bold flex items-center justify-center">+</button>
                             </div>
                         </div>
@@ -976,10 +984,10 @@
                         if (!token) continue;
                         if (/^\s+$/.test(token)) {
                             lineHtml += token;
-                        } else if (/[-/]/.test(token)) {
-                            let subparts = token.split(/([-\/])/g);
+                        } else if (/[-/]|\.(?=[A-Za-z\u0A80-\u0AFF\s]|$)/.test(token)) {
+                            let subparts = token.split(/([-\/]|\.(?=[A-Za-z\u0A80-\u0AFF\s]|$))/g);
                             for (let sp of subparts) {
-                                if (sp === '-' || sp === '/') {
+                                if (sp === '-' || sp === '/' || sp === '.') {
                                     lineHtml += `<span>${escapeHtml(sp)}</span><wbr>`;
                                 } else if (sp) {
                                     lineHtml += `<span class="ad-word" style="display: inline; white-space: nowrap;">${escapeHtml(sp)}</span>`;
@@ -999,7 +1007,7 @@
             // Helper to render a sub-token without hyphens/slashes
             function renderSubToken(sub) {
                 if (!sub) return '';
-                if (sub === '-' || sub === '/') {
+                if (sub === '-' || sub === '/' || sub === '.') {
                     return `<span>${escapeHtml(sub)}</span><wbr>`;
                 }
 
@@ -1073,11 +1081,12 @@
                         continue;
                     }
 
-                    // If token contains hyphens or slashes (e.g. મોજે-અસલાલી, સબ-ડીસ્ટ્રીકટ, એ-૨૦૫/૨૦૬),
-                    // split around hyphens/slashes and place <wbr> so the browser can wrap cleanly at punctuation!
-                    if (/[-/]/.test(token)) {
-                        let subparts = token.split(/([-\/])/g);
+                    // If token contains hyphens, slashes, or abbreviation dots (e.g. મોજે-અસલાલી, હે.આરે.ચો.મી., સબ-ડીસ્ટ્રીકટ, એ-૨૦૫/૨૦૬),
+                    // split around them and place <wbr> so the browser can wrap cleanly at punctuation!
+                    if (/[-/]|\.(?=[A-Za-z\u0A80-\u0AFF\s]|$)/.test(token)) {
+                        let subparts = token.split(/([-\/]|\.(?=[A-Za-z\u0A80-\u0AFF\s]|$))/g);
                         for (let sp of subparts) {
+                            if (!sp) continue;
                             lineHtml += renderSubToken(sp);
                         }
                     } else {
@@ -1476,15 +1485,17 @@
         }
 
         function adjustCharSpacing(delta) {
-            let current = parseInt(document.getElementById('charSpacingInput').value) || window.customCharSpacing || 0;
-            current = Math.max(-50, Math.min(300, current + delta));
+            let current = parseFloat(document.getElementById('charSpacingInput').value) || window.customCharSpacing || 0;
+            current = Math.round((current + delta) * 10) / 10;
+            current = Math.max(-10, Math.min(50, current));
             setCharSpacing(current);
         }
 
         function setCharSpacing(val) {
-            let num = parseInt(val);
+            let num = parseFloat(val);
             if (isNaN(num)) num = 0;
-            window.customCharSpacing = Math.max(-50, Math.min(300, num));
+            num = Math.round(num * 10) / 10;
+            window.customCharSpacing = Math.max(-10, Math.min(50, num));
             document.getElementById('charSpacingInput').value = window.customCharSpacing;
             updateCanvasFromText();
             triggerAutoSave();
@@ -2260,13 +2271,24 @@
                                         p.style.fontSize = (parseFloat(lStyles.size) * PT_TO_PX) + 'px';
                                         p.dataset.lineSize = lStyles.size;
                                     }
-                                    if (lStyles.bold) {
-                                        if (!isLineGuj && isLineEng) {
-                                            p.style.fontWeight = 'bold';
+                                    if (lStyles.bold !== undefined && lStyles.bold !== null) {
+                                        if (lStyles.bold) {
+                                            if (!isLineGuj && isLineEng) {
+                                                p.style.fontWeight = 'bold';
+                                            } else {
+                                                p.style.fontFamily = 'BGOTB';
+                                            }
+                                            p.dataset.lineBold = '1';
                                         } else {
-                                            p.style.fontFamily = 'BGOTB';
+                                            if (!isLineGuj && isLineEng) {
+                                                p.style.fontWeight = 'normal';
+                                            } else {
+                                                p.style.fontFamily = 'BGOT';
+                                            }
+                                            p.dataset.lineBold = '0';
                                         }
-                                        p.dataset.lineBold = '1';
+                                    } else {
+                                        p.dataset.lineBold = (bFontWeight === 'bold' || bFontWeight === '900') ? '1' : '0';
                                     }
                                     if (lStyles.align) {
                                         let bAlign = lStyles.align;
@@ -2290,6 +2312,7 @@
                                         if (baseAlign !== 'justify') p.style.textIndent = '0';
                                     }
                                 } else {
+                                    p.dataset.lineBold = (bFontWeight === 'bold' || bFontWeight === '900') ? '1' : '0';
                                     if (baseAlign === 'force-justify') {
                                         p.style.textAlign = 'justify';
                                         p.style.textAlignLast = 'justify';
@@ -2362,7 +2385,7 @@
                                     let autoAlign = 'right';
                                     let isDateOrPlace = /^(તા\.|તારીખ|સ્થળ|date|place|તા:|સ્થળ:|તા\s|સ્થળ\s|તા૦|તા1|તા2|તા3|તા\d)/i.test(rawText.replace(/[\s\u200B-\u200D\uFEFF]/g, ''));
                                     let isAdvocate = /એડવોકેટ|વકીલ|advocate/i.test(rawText);
-                                    let isAddress = /(ઓફીસ|સરનામું|કોમ્પ્લેક્ષ|રોડ|સોસાયટી|શેરી|નગર|પાસે|પીન|મો\.|મોબાઈલ|ફોન|office|address|કેનાલ|હાઇવે|માર્ગ|ચોકડી|ભવન|ફ્લોર|માળ|ચેમ્બર|બિલ્ડીંગ|એસ્ટેટ|એપાર્ટમેન્ટ|પ્લોટ|દુકાન|મકાન|સેન્ટર|પ્લાઝા|ચોક|માર્કેટ|બ્લોક)/i.test(rawText) || /^[a-zA-Zઅ-હ][\u0ABE-\u0ACD]?\s*[\/\-]\s*\d+/.test(rawText) || /^\(વી\.ટી\.સી\.\)/.test(rawText);
+                                    let isAddress = /(ઓફિસ|ઓફીસ|સરનામું|કોમ્પ્લેક્ષ|રોડ|સોસાયટી|શેરી|નગર|પાસે|સામે|વિહાર|કાફે|પીન|મો\.|મોબાઈલ|ફોન|office|address|કેનાલ|હાઇવે|માર્ગ|ચોકડી|ભવન|ફ્લોર|માળ|ચેમ્બર|બિલ્ડીંગ|એસ્ટેટ|એપાર્ટમેન્ટ|પ્લોટ|દુકાન|મકાન|સેન્ટર|પ્લાઝા|ચોક|માર્કેટ|બ્લોક)/i.test(rawText) || /^[a-zA-Zઅ-હ][\u0ABE-\u0ACD]?\s*[\/\-]\s*\d+/.test(rawText) || /^\(વી\.ટી\.સી\.\)/.test(rawText);
 
                                     let isBold = false;
                                     if (isDateOrPlace) {
@@ -2379,11 +2402,11 @@
                                             autoAlign = 'left';
                                         } else {
                                             autoAlign = 'right';
-                                            isBold = true;
+                                            isBold = (b.font_weight === 'bold' || b.font_weight === '900');
                                         }
                                     }
 
-                                    let lStyles = parsedData.line_styles && parsedData.line_styles[realIndex] ? parsedData.line_styles[realIndex][styleIndex] : null;
+                                    let lStyles = (parsedData.line_styles && parsedData.line_styles[realIndex]) ? parsedData.line_styles[realIndex][styleIndex] : (window.lineStyles && window.lineStyles[realIndex] ? window.lineStyles[realIndex][styleIndex] : null);
                                     let bAlign = b.text_align || autoAlign;
 
                                     if (lStyles) {
@@ -2391,7 +2414,9 @@
                                             p.style.fontSize = (parseFloat(lStyles.size) * PT_TO_PX) + 'px';
                                             p.dataset.lineSize = lStyles.size;
                                         }
-                                        if (lStyles.bold) isBold = true;
+                                        if (lStyles.bold !== undefined && lStyles.bold !== null) {
+                                            isBold = !!lStyles.bold;
+                                        }
                                         if (lStyles.align) {
                                             bAlign = lStyles.align;
                                             p.dataset.lineAlign = lStyles.align;
@@ -2410,7 +2435,7 @@
                                         p.style.fontWeight = 'normal';
                                         p.dataset.lineBold = '1';
                                     } else {
-                                        p.style.fontFamily = advBaseFont;
+                                        p.style.fontFamily = 'BGOT';
                                         p.style.fontWeight = 'normal';
                                         p.dataset.lineBold = '0';
                                     }
@@ -2434,8 +2459,43 @@
                             });
                             colsContainer.appendChild(advWrapper);
                         }
-                        // Intercept Enter key in contenteditable — create a new <p> with DOM manipulation
+                        // Intercept Space & Enter keys in contenteditable
                         colsContainer.addEventListener('keydown', function (e) {
+                            if (e.key === ' ' || e.code === 'Space') {
+                                const sel = window.getSelection();
+                                if (sel && sel.rangeCount) {
+                                    const range = sel.getRangeAt(0);
+                                    let n = range.commonAncestorContainer;
+                                    let wordSpan = n.nodeType === 3 ? (n.parentElement ? n.parentElement.closest('.ad-word') : null) : (n.closest ? n.closest('.ad-word') : null);
+                                    if (wordSpan) {
+                                        e.preventDefault();
+                                        let afterRange = document.createRange();
+                                        afterRange.setStart(range.endContainer, range.endOffset);
+                                        afterRange.setEndAfter(wordSpan.lastChild || wordSpan);
+                                        let afterFrag = afterRange.extractContents();
+
+                                        let spaceNode = document.createTextNode(' ');
+                                        let newSpan = document.createElement('span');
+                                        newSpan.className = wordSpan.className;
+                                        newSpan.style.cssText = wordSpan.style.cssText;
+                                        newSpan.appendChild(afterFrag);
+
+                                        wordSpan.parentNode.insertBefore(spaceNode, wordSpan.nextSibling);
+                                        wordSpan.parentNode.insertBefore(newSpan, spaceNode.nextSibling);
+
+                                        let newRange = document.createRange();
+                                        newRange.setStart(newSpan, 0);
+                                        newRange.collapse(true);
+                                        sel.removeAllRanges();
+                                        sel.addRange(newRange);
+
+                                        syncCanvasToState();
+                                        triggerAutoSave();
+                                        return;
+                                    }
+                                }
+                            }
+
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
 
@@ -2697,6 +2757,28 @@
                 }
             });
 
+            // Also sync line styles from canvas so parsedData.line_styles is never lost or stale
+            let updatedLineStyles = {};
+            const paragraphs = cols.querySelectorAll('p[data-block-index], div.ad-heading-box[data-block-index]');
+            paragraphs.forEach(p => {
+                const idx = p.getAttribute('data-block-index');
+                if (idx !== null) {
+                    if (!updatedLineStyles[idx]) updatedLineStyles[idx] = [];
+                    let lineIsBold = p.dataset.lineBold !== undefined && p.dataset.lineBold !== '' ?
+                        (p.dataset.lineBold === '1') :
+                        ((p.style.fontFamily && p.style.fontFamily.includes('BGOTB')) || p.style.fontWeight === 'bold');
+                    updatedLineStyles[idx].push({
+                        align: p.dataset.lineAlign || null,
+                        bold: lineIsBold,
+                        size: p.dataset.lineSize || null
+                    });
+                }
+            });
+            if (Object.keys(updatedLineStyles).length > 0) {
+                window.lineStyles = updatedLineStyles;
+                parsedData.line_styles = updatedLineStyles;
+            }
+
             if (parsedData.gujarati_text) {
                 parsedData.gujarati_text = blocks;
             } else {
@@ -2810,7 +2892,7 @@
                 if (advLhIn && advLhIn.value) window.customAdvLineHeight = parseFloat(advLhIn.value);
 
                 const csIn = document.getElementById('charSpacingInput');
-                if (csIn && csIn.value !== '') window.customCharSpacing = parseInt(csIn.value);
+                if (csIn && csIn.value !== '') window.customCharSpacing = parseFloat(csIn.value);
 
                 const wsIn = document.getElementById('wordSpacingInput');
                 if (wsIn && wsIn.value !== '') window.customWordSpacing = parseInt(wsIn.value);
@@ -2921,7 +3003,7 @@
 
             // 1. Gather 100% fresh, complete editor state before sending
             const newJsonStr = collectEditorState();
-            
+
             if (!newJsonStr) {
                 alert("No advertisement data to save.");
                 return;
@@ -2954,7 +3036,7 @@
                     headers: headers,
                     body: JSON.stringify(payload)
                 });
-                
+
                 if (!res.ok) {
                     const errData = await res.json().catch(() => ({}));
                     throw new Error(errData.detail || "Failed to save changes (HTTP " + res.status + ")");
@@ -2968,7 +3050,7 @@
                     statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Saved successfully!`;
                     statusEl.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 flex items-center gap-1.5 shadow-sm";
                 }
-                
+
                 setTimeout(() => {
                     if (statusEl) {
                         statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Auto-sync enabled`;
@@ -3264,6 +3346,16 @@
 
                         const currentSize = parseFloat(window.getComputedStyle(activeP).fontSize) / PT_TO_PX;
                         document.getElementById('ctSize').value = Math.round(currentSize);
+
+                        const isPBold = activeP.dataset.lineBold === '1' || (activeP.style.fontFamily && activeP.style.fontFamily.includes('BGOTB')) || activeP.style.fontWeight === 'bold';
+                        const ctBoldBtn = document.getElementById('ctBold');
+                        if (ctBoldBtn) {
+                            if (isPBold) {
+                                ctBoldBtn.classList.add('bg-brand-50', 'text-brand-700', 'font-black');
+                            } else {
+                                ctBoldBtn.classList.remove('bg-brand-50', 'text-brand-700', 'font-black');
+                            }
+                        }
                     }
                     return;
                 }
@@ -3506,9 +3598,24 @@
                 }
 
                 if (type === 'bold') {
-                    const isBold = el.dataset.lineBold === '1';
-                    el.dataset.lineBold = isBold ? '0' : '1';
-                    el.style.fontFamily = isBold ? 'BGOT' : 'BGOTB';
+                    let currentlyBold = el.dataset.lineBold === '1';
+                    if (el.dataset.lineBold === undefined || el.dataset.lineBold === null || el.dataset.lineBold === '') {
+                        currentlyBold = (el.style.fontFamily && el.style.fontFamily.includes('BGOTB')) ||
+                            el.style.fontWeight === 'bold' ||
+                            el.style.fontWeight === '700' ||
+                            el.style.fontWeight === '900';
+                    }
+                    const newBold = !currentlyBold;
+                    el.dataset.lineBold = newBold ? '1' : '0';
+                    const isLineGuj = /[\u0A80-\u0AFF]/.test(el.textContent || '');
+                    const isLineEng = /[A-Za-z]/.test(el.textContent || '');
+                    if (!isLineGuj && isLineEng) {
+                        el.style.fontFamily = 'Arial, Helvetica, sans-serif';
+                        el.style.fontWeight = newBold ? 'bold' : 'normal';
+                    } else {
+                        el.style.fontFamily = newBold ? 'BGOTB' : 'BGOT';
+                        el.style.fontWeight = 'normal';
+                    }
                 }
 
                 if (type === 'fontSize') {
@@ -3517,6 +3624,8 @@
                 }
             });
 
+            updateCanvasToolbarState();
+            collectEditorState();
             triggerAutoSave();
         }
         // ------------------------------------
